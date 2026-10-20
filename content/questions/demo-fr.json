@@ -1,0 +1,16 @@
+{
+  "name": "Démo (questions fictives)",
+  "description": "Pack de démonstration pour les tests, 2 manches de 3 questions. Questions écrites pour le test, sans aucune source externe. Ne pas utiliser en public.",
+  "questions": [
+    { "id": "demo-1", "type": "single-choice", "demo": true, "difficulty": "easy", "text": "[DÉMO] Combien de bitcoins au maximum seront émis ?", "options": ["21 millions", "42 millions", "100 millions", "Illimité"], "correctIndex": 0 },
+    { "id": "demo-2", "type": "single-choice", "demo": true, "difficulty": "intermediate", "text": "[DÉMO] Quel intervalle moyen sépare 2 blocs Bitcoin ?", "options": ["1 minute", "10 minutes", "1 heure", "1 jour"], "correctIndex": 1 },
+    { "id": "demo-3", "type": "single-choice", "demo": true, "difficulty": "hard", "text": "[DÉMO] Tous les combien de blocs la difficulté est-elle ajustée ?", "options": ["144", "1 008", "2 016", "210 000"], "correctIndex": 2 },
+    { "id": "demo-4", "type": "single-choice", "demo": true, "difficulty": "easy", "text": "[DÉMO] Quelle unité est utilisée pour le hashrate dans ce quiz ?", "options": ["TH/s", "sats", "BTC", "kWh"], "correctIndex": 0 },
+    { "id": "demo-5", "type": "single-choice", "demo": true, "difficulty": "intermediate", "text": "[DÉMO] Que déclenche un nouveau bloc réel dans ce quiz ?", "options": ["Une pause", "Un tirage de bonus", "La fin de la manche", "Rien"], "correctIndex": 1 },
+    { "id": "demo-6", "type": "single-choice", "demo": true, "difficulty": "hard", "text": "[DÉMO] Combien d'équipes sont nécessaires au minimum pour une pool classique ?", "options": ["1", "2", "3", "5"], "correctIndex": 2 }
+  ],
+  "rounds": [
+    { "id": "demo-r1", "title": "Manche démo 1", "questionIds": ["demo-1", "demo-2", "demo-3"] },
+    { "id": "demo-r2", "title": "Manche démo 2", "questionIds": ["demo-4", "demo-5", "demo-6"] }
+  ]
+}

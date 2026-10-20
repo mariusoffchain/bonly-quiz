@@ -1,0 +1,44 @@
+/*
+ * Colour tokens adapted from the mempool.space frontend (frontend/src/styles.scss),
+ * The Mempool Open Source Project, AGPL-3.0-or-later. The 3D block shape below is
+ * adapted from blockchain-blocks.component.scss. No mempool logo or trademark is used.
+ */
+:root {
+  --bg: #11131f;
+  --active-bg: #000000;
+  --hover-bg: #12131e;
+  --fg: #ffffff;
+  --title-fg: #2055e3;
+  --primary: #007cfa;
+  --secondary: #272f4e;
+  --tertiary: #6225b2;
+  --success: #0aab2f;
+  --info: #00ddff;
+  --box-bg: #171c2a;
+  --stat-box-bg: #0b1018;
+  --block-top: #232838;
+  --block-side: #191c27;
+  --mempool-block-top: #403834;
+  --mempool-block-side: #2d2825;
+  --skeleton-bg: #2e324e;
+  --skeleton-bg-light: #5d6182;
+  --transparent-fg: #ffffffbb;
+  --taproot: #eba814;
+  --green: #83fd00;
+  --red: #ff3d00;
+  --yellow: #fff000;
+  --grey: #7e7e7e;
+  --tooltip-grey: #b1b1b1;
+  --orange: #ff9f00;
+  --pink: #e83e8c;
+  --purple: #9339f4;
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+body { min-height: 100vh; }
+a { color: var(--primary); }
+button, input, textarea, select { font: inherit; color: inherit; }
+::selection { background: var(--primary); color: #fff; }

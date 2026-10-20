@@ -1,0 +1,1348 @@
+{
+  "name": "Plan B BTC101 fr (provisoire)",
+  "description": "Questions des quiz de fin de leçon du cours « Votre première aventure avec Bitcoin » (btc101), 5 premières sections, 10 questions chacune. Matériau provisoire, à remplacer pour B-only. Source : Plan B Network, CC BY-SA 4.0, dépôt commit 86c147e50231, importé le 2026-10-20.",
+  "attribution": {
+    "provider": "Plan B Network / Plan B Academy",
+    "repository": "https://github.com/PlanB-Network/bitcoin-educational-content",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "course": "btc101",
+    "courseTitle": "Votre première aventure avec Bitcoin",
+    "repoCommit": "86c147e502310e735a3359b1d82021a2b5dd83b6",
+    "importedAt": "2026-10-20"
+  },
+  "questions": [
+    {
+      "id": "planb-btc101-000",
+      "type": "single-choice",
+      "text": "Quand la guerre de la taille des blocs a-t-elle eu lieu ?",
+      "options": [
+        "En 2010.",
+        "En 2019.",
+        "En 2017.",
+        "En 2008."
+      ],
+      "correctIndex": 2,
+      "difficulty": "easy",
+      "explanation": "La guerre de la taille des blocs a eu lieu en 2017. Ce conflit opposait les acteurs qui voulaient modifier Bitcoin en augmentant la taille des blocs pour augmenter la capacité des transactions, à ceux qui cherchaient à préserver l'indépendance et le pouvoir des utilisateurs en maintenant la taille à 1 MB.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/000",
+        "author": "DecouvreBitcoin",
+        "sourceId": "697f5344-775a-44e7-967c-6f1d04e58c66",
+        "courseId": "btc101",
+        "chapter": "Introduction",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-001",
+      "type": "single-choice",
+      "text": "Quel est le but de ce cours sur Bitcoin ?",
+      "options": [
+        "Introduire comment miner du Bitcoin.",
+        "Introduire certains aspects monétaires généraux de Bitcoin, comment l'utiliser, et son avenir.",
+        "Introduire comment créer un nouveau protocole Bitcoin.",
+        "Introduire comment réguler le Bitcoin."
+      ],
+      "correctIndex": 1,
+      "difficulty": "easy",
+      "explanation": "Le but de ce cours sur Bitcoin est de discuter des\ncaractéristiques monétaires générales de Bitcoin, y compris comment\nacheter et vendre des bitcoins, les stocker de manière sécurisée dans des portefeuilles numériques,\net les utiliser pour des transactions. Il vise également à\nexplorer l'avenir de Bitcoin.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/001",
+        "author": "DecouvreBitcoin",
+        "sourceId": "c8c38a68-217d-4822-be19-3c4342a3af18",
+        "courseId": "btc101",
+        "chapter": "Introduction",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-005",
+      "type": "single-choice",
+      "text": "Qui sont les cypherpunks ?",
+      "options": [
+        "Un groupe de hackers qui ont volé des informations aux gouvernements.",
+        "Un groupe de personnes qui s'opposaient à l'utilisation de la technologie.",
+        "Un groupe de personnes qui ont commencé à remettre profondément en question le rôle de la vie privée et de la liberté à l'ère numérique.",
+        "Un groupe de personnes qui ont inventé le Bitcoin et d'autres cryptomonnaies."
+      ],
+      "correctIndex": 2,
+      "difficulty": "easy",
+      "explanation": "Les cypherpunks sont un groupe d'individus qui croyaient\nque la cryptographie pouvait servir d'outil pour protéger\nles droits individuels contre les ingérences des gouvernements\net des grandes entreprises.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/005",
+        "author": "DecouvreBitcoin",
+        "sourceId": "20a2a60f-e4e3-4015-930f-660e94f10206",
+        "courseId": "btc101",
+        "chapter": "Introduction",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-006",
+      "type": "single-choice",
+      "text": "Qu'est-ce que le Manifeste Cypherpunk ?",
+      "options": [
+        "Un texte écrit par Eric Hughes affirmant que la vie privée est un droit fondamental.",
+        "Un document décrivant les principes du Bitcoin.",
+        "Un livre écrit par Julian Assange sur l'avenir de la technologie.",
+        "Un manifeste écrit par David Chaum sur l'importance de la monnaie numérique."
+      ],
+      "correctIndex": 0,
+      "difficulty": "easy",
+      "explanation": "Le Manifeste Cypherpunk a été écrit par Eric Hughes en 1993\net affirme que la vie privée est un droit fondamental.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/006",
+        "author": "DecouvreBitcoin",
+        "sourceId": "719116a3-11ae-414d-afe4-3ea3de43badd",
+        "courseId": "btc101",
+        "chapter": "Introduction",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-002",
+      "type": "single-choice",
+      "text": "Quelles sont les deux principales caractéristiques du Bitcoin ?",
+      "options": [
+        "Le Bitcoin est à la fois un protocole informatique et une unité monétaire.",
+        "Le Bitcoin est à la fois une monnaie centralisée et décentralisée.",
+        "Le Bitcoin est à la fois un type d'action et un type d'obligation.",
+        "Le Bitcoin est à la fois une monnaie physique et un portefeuille numérique."
+      ],
+      "correctIndex": 0,
+      "difficulty": "intermediate",
+      "explanation": "Le Bitcoin est à la fois un protocole informatique qui utilise des technologies\ncomme la cryptographie et la blockchain, et aussi une unité\nmonétaire qui est utilisée pour les transactions.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/002",
+        "author": "DecouvreBitcoin",
+        "sourceId": "a1986be3-b5cf-440f-af9c-1ee3d7d33e78",
+        "courseId": "btc101",
+        "chapter": "Introduction",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-003",
+      "type": "single-choice",
+      "text": "Quel est l'objectif principal de ce cours sur Bitcoin ?",
+      "options": [
+        "Les aspects de codage de Bitcoin.",
+        "Les aspects monétaires de Bitcoin.",
+        "Les aspects réglementaires de Bitcoin.",
+        "L'impact écologique de Bitcoin."
+      ],
+      "correctIndex": 1,
+      "difficulty": "intermediate",
+      "explanation": "Ce cours sur Bitcoin se concentre sur les aspects monétaires de\nBitcoin, y compris comment acheter et vendre des bitcoins, les\nstocker de manière sécurisée dans des portefeuilles numériques, et les utiliser pour\ndes transactions.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/003",
+        "author": "DecouvreBitcoin",
+        "sourceId": "fd96f1d5-f8ff-4c4e-8c1e-aca92f5a75b4",
+        "courseId": "btc101",
+        "chapter": "Introduction",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-007",
+      "type": "single-choice",
+      "text": "Quel était le projet DigiCash ?",
+      "options": [
+        "Un projet pour créer un portefeuille numérique pour Bitcoin.",
+        "Un projet pour créer une cryptomonnaie basée sur Bitcoin.",
+        "Une tentative de numériser tout l'argent physique par la Réserve Fédérale.",
+        "Une tentative de créer de l'argent électronique anonyme par David Chaum."
+      ],
+      "correctIndex": 3,
+      "difficulty": "intermediate",
+      "explanation": "David Chaum a introduit le concept d'argent électronique anonyme avec son projet DigiCash dans les années 1980.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/007",
+        "author": "DecouvreBitcoin",
+        "sourceId": "bb3ffae9-e336-478f-b782-cfeaca4f93a5",
+        "courseId": "btc101",
+        "chapter": "Introduction",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-004",
+      "type": "single-choice",
+      "text": "Que signifie le fait que Bitcoin soit une monnaie neutre ?",
+      "options": [
+        "Elle est uniquement utilisée pour de grosses transactions.",
+        "Elle n'est contrôlée par aucune entité ou institution.",
+        "Elle est contrôlée par une seule entité ou institution.",
+        "Elle est régulée par le gouvernement."
+      ],
+      "correctIndex": 1,
+      "difficulty": "hard",
+      "explanation": "Bitcoin est une monnaie neutre, ce qui signifie qu'elle n'est contrôlée\npar aucune entité ou institution, donc chaque utilisateur a les mêmes\ndroits. C'est un aspect clé de sa décentralisation.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/004",
+        "author": "DecouvreBitcoin",
+        "sourceId": "4ed96db8-d41d-4611-be0e-af8e0321d685",
+        "courseId": "btc101",
+        "chapter": "Introduction",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-009",
+      "type": "single-choice",
+      "text": "Qu'est-ce que le b-money de Wei Dai ?",
+      "options": [
+        "Une idée de monnaie numérique anonyme où la détection de fraude était effectuée par une communauté d'évaluateurs plutôt que par une autorité centrale.",
+        "Une monnaie numérique qui a été créée par Wei Dai comme un concurrent de Bitcoin pour être plus évolutive.",
+        "Une forme de monnaie numérique qui a été créée par la CIA et utilisée par l'armée.",
+        "Une monnaie numérique qui était largement utilisée avant Bitcoin et était contrôlée par un groupe de cypherpunks."
+      ],
+      "correctIndex": 0,
+      "difficulty": "hard",
+      "explanation": "Le b-money de Wei Dai était l'idée d'une monnaie numérique\nanonyme sans entité centrale qui a grandement inspiré la\ncréation de Bitcoin. En fait, il est cité dans le livre blanc\nde Bitcoin.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/009",
+        "author": "DecouvreBitcoin",
+        "sourceId": "23566294-ed60-4167-a990-f57d2cce3e7f",
+        "courseId": "btc101",
+        "chapter": "Introduction",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-010",
+      "type": "single-choice",
+      "text": "Que symbolise Bitcoin au-delà de sa technologie ?",
+      "options": [
+        "Une révolution contre les systèmes financiers traditionnels et une alternative basée sur la transparence, la décentralisation et la souveraineté individuelle.",
+        "Un moyen pour les individus de gagner de l'argent par le minage.",
+        "Une nouvelle forme de monnaie numérique qui est plus efficace que les monnaies traditionnelles car elle est plus rapide.",
+        "Un outil pour les criminels pour effectuer des transactions illégales."
+      ],
+      "correctIndex": 0,
+      "difficulty": "hard",
+      "explanation": "Au-delà de sa technologie, Bitcoin symbolise une révolution\ncontre les systèmes financiers traditionnels : le protocole\nimpose un nouveau système monétaire sans aucune entité centrale.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/010",
+        "author": "DecouvreBitcoin",
+        "sourceId": "9b4d8821-50de-4880-9dce-271718ea6154",
+        "courseId": "btc101",
+        "chapter": "Introduction",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-011",
+      "type": "single-choice",
+      "text": "Quelles étaient les premières formes de monnaie ?",
+      "options": [
+        "Les actifs numériques.",
+        "Des biens tels que les céréales et le bétail.",
+        "L'or et l'argent.",
+        "Les billets de banque."
+      ],
+      "correctIndex": 1,
+      "difficulty": "easy",
+      "explanation": "Les premières formes de monnaie étaient souvent liées à des\nbiens essentiels tels que les céréales, le bétail et d'autres\nmarchandises. Cependant, ces biens présentaient des inconvénients\nmajeurs, tels que la périssabilité, rendant difficile leur\nutilisation comme moyen d'épargne à long terme.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/011",
+        "author": "DecouvreBitcoin",
+        "sourceId": "69cf36c4-c7d8-4c4d-b38b-06eb7fd524eb",
+        "courseId": "btc101",
+        "chapter": "L'argent",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-012",
+      "type": "single-choice",
+      "text": "Quelles sont les trois fonctions canoniques de la monnaie ?",
+      "options": [
+        "Réserve de valeur, Moyen d'échange, Unité de compte.",
+        "Réserve de valeur, Moyen d'échange, Moyen de production.",
+        "Réserve de valeur, Moyen de production, Unité de compte.",
+        "Moyen d'échange, Moyen de production, Unité de compte."
+      ],
+      "correctIndex": 0,
+      "difficulty": "easy",
+      "explanation": "Selon Aristote, la monnaie remplit trois fonctions : elle est\nune réserve de valeur, un moyen d'échange et une unité de\ncompte. De nos jours, la fonction de moyen d'échange est\nlargement reconnue comme la principale, avant les deux autres.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/012",
+        "author": "DecouvreBitcoin",
+        "sourceId": "43f4eec2-ac15-4556-bb3e-0dd5b3890136",
+        "courseId": "btc101",
+        "chapter": "L'argent",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-013",
+      "type": "single-choice",
+      "text": "Quelles sont les principales caractéristiques d'une monnaie efficace ?",
+      "options": [
+        "Fongible, Indivisible, Liquide.",
+        "Non-fongible, Divisible, Liquide.",
+        "Fongible, Divisible, Liquide.",
+        "Fongible, Divisible, Périssable."
+      ],
+      "correctIndex": 2,
+      "difficulty": "easy",
+      "explanation": "Une monnaie efficace doit être fongible (interchangeable\nsans perte de valeur), divisible (séparable en petites\nparties pour faciliter les transactions de différents volumes), et\nliquide (facilement convertible en biens ou services).",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/013",
+        "author": "DecouvreBitcoin",
+        "sourceId": "8e845faf-833b-4c48-9766-f1ac6aa82736",
+        "courseId": "btc101",
+        "chapter": "L'argent",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-014",
+      "type": "single-choice",
+      "text": "Quel est l'un des inconvénients de l'or en tant que forme d'argent ?",
+      "options": [
+        "Il n'est pas facilement divisible.",
+        "Il s'érode avec le temps.",
+        "Il est facile à produire.",
+        "Il ne conserve pas sa valeur dans l'espace."
+      ],
+      "correctIndex": 0,
+      "difficulty": "easy",
+      "explanation": "L'un des principaux inconvénients de l'or en tant que forme d'argent est\nqu'il est difficile de le diviser en petites unités selon les besoins\nqui se présentent, ce qui le rend moins pratique à utiliser.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/014",
+        "author": "DecouvreBitcoin",
+        "sourceId": "36e20e0f-ae6d-4698-ab33-fd09396bdac9",
+        "courseId": "btc101",
+        "chapter": "L'argent",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-015",
+      "type": "single-choice",
+      "text": "Pourquoi l'or est-il devenu le standard comme moyen d'échange ?",
+      "options": [
+        "En raison de sa rareté, de sa périssabilité et de sa divisibilité.",
+        "En raison de son abondance, de sa périssabilité et de son indivisibilité.",
+        "En raison de son abondance, de sa durabilité et de son indivisibilité.",
+        "En raison de sa rareté, de sa durabilité et de sa divisibilité."
+      ],
+      "correctIndex": 3,
+      "difficulty": "intermediate",
+      "explanation": "L'or est devenu le standard comme moyen d'échange en raison\nde sa rareté, de sa durabilité et de sa divisibilité : sa rareté empêchait\nla dévaluation causée par la production, sa durabilité\nassurait qu'il ne s'éroderait pas avec le temps, et sa divisibilité\npermettait son utilisation dans des transactions de différentes tailles.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/015",
+        "author": "DecouvreBitcoin",
+        "sourceId": "de090d89-805d-48bf-9ead-34f0a52a7d9a",
+        "courseId": "btc101",
+        "chapter": "L'argent",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-016",
+      "type": "single-choice",
+      "text": "Quel est le rôle de l'argent comme outil de communication ?",
+      "options": [
+        "Il permet la communication de la valeur à travers l'espace uniquement et sans avoir besoin de faire confiance à une contrepartie.",
+        "Il permet la communication de la valeur à travers l'espace et le temps avec le besoin de faire confiance à une contrepartie.",
+        "Il permet la communication de la valeur à travers le temps uniquement et sans avoir besoin de faire confiance à une contrepartie.",
+        "Il permet la communication de la valeur à travers l'espace et le temps sans avoir besoin de faire confiance à une contrepartie."
+      ],
+      "correctIndex": 3,
+      "difficulty": "intermediate",
+      "explanation": "L'argent, en tant qu'outil de communication, permet la communication à travers\nl'espace et le temps, car nous transformons notre temps et notre énergie en un\nactif qui peut être réutilisé dans le futur sans risque de dévaluation. Il permet également\nla communication dans un langage commun universel, permettant à deux inconnus d'échanger, de commercer,\net de s'accorder sur la valeur des choses.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/016",
+        "author": "DecouvreBitcoin",
+        "sourceId": "fa76710c-2f37-4130-ae02-58e90fbba2da",
+        "courseId": "btc101",
+        "chapter": "L'argent",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-017",
+      "type": "single-choice",
+      "text": "Quel est le principal inconvénient des monnaies fiduciaires ?",
+      "options": [
+        "Leur valeur est constamment érodée par l'inflation monétaire.",
+        "Leur valeur est constamment appréciée par l'inflation monétaire.",
+        "Elles ne sont pas divisibles.",
+        "Elles ne sont pas facilement transportables."
+      ],
+      "correctIndex": 0,
+      "difficulty": "intermediate",
+      "explanation": "Le principal inconvénient des monnaies fiduciaires, telles que\nle dollar et l'euro, est que leur valeur est constamment\nérodée par l'inflation monétaire. Cela est dû à la\ndévaluation causée par les entités qui les contrôlent (roi,\nbanque centrale, empereur, dictateur).",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/017",
+        "author": "DecouvreBitcoin",
+        "sourceId": "1715ff9f-ca9a-4e14-9b09-f7903c647cce",
+        "courseId": "btc101",
+        "chapter": "L'argent",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-019",
+      "type": "single-choice",
+      "text": "Pourquoi l'or ne peut-il pas bien performer dans un monde globalisé et numérique ?",
+      "options": [
+        "Parce qu'il n'est pas assez rare.",
+        "Parce qu'il n'est pas assez précieux.",
+        "Parce qu'il nécessite une entité centrale pour le rendre divisible et facilement échangeable.",
+        "Parce qu'il s'érode avec le temps."
+      ],
+      "correctIndex": 2,
+      "difficulty": "hard",
+      "explanation": "L'or ne peut pas suivre dans un monde globalisé et numérique\nparce qu'il nécessite une entité centrale pour le rendre divisible et\nfacilement échangeable. Cela le rend moins pratique à utiliser dans\nun monde où les transactions sont de plus en plus numériques et\ndécentralisées.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/019",
+        "author": "DecouvreBitcoin",
+        "sourceId": "b30d367c-2949-449a-a1d2-c9abb9e4079d",
+        "courseId": "btc101",
+        "chapter": "L'argent",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-020",
+      "type": "single-choice",
+      "text": "Pourquoi le bitcoin n'est-il pas largement accepté dans le commerce aujourd'hui ?",
+      "options": [
+        "Parce qu'il n'est pas transportable.",
+        "Parce qu'il n'est pas largement adopté par les individus.",
+        "Parce qu'il n'est pas liquide.",
+        "Parce qu'il n'est pas divisible en petites unités."
+      ],
+      "correctIndex": 1,
+      "difficulty": "hard",
+      "explanation": "Malgré ses propriétés, telles que son offre strictement limitée,\nle bitcoin n'est toujours pas largement accepté dans le commerce\naujourd'hui, en raison du manque d'adoption par les individus, donc\nles commerçants ne sont pas encouragés à l'accepter.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/020",
+        "author": "DecouvreBitcoin",
+        "sourceId": "99f57387-f46c-4f7e-8f3f-7e918906228e",
+        "courseId": "btc101",
+        "chapter": "L'argent",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-021",
+      "type": "single-choice",
+      "text": "Quel est le chemin d'évolution de la monnaie actuelle ?",
+      "options": [
+        "Pierre brute -> Pièce -> Billet de banque -> Carte bancaire -> Blockchain -> Lightning Network",
+        "Pierre brute -> Pièce -> Carte bancaire -> Billet de banque -> Blockchain -> Lightning Network",
+        "Pierre brute -> Pièce -> Billet de banque -> Carte bancaire -> Lightning Network",
+        "Pierre brute -> Pièce -> Billet de banque -> Blockchain -> Lightning Network"
+      ],
+      "correctIndex": 0,
+      "difficulty": "hard",
+      "explanation": "La monnaie est une technologie qui a évolué avec le temps,\ncommençant par être représentée par des pierres brutes, se transformant\nen pièces métalliques, puis en billets de banque, cartes bancaires, et\nfinalement en réseaux pair-à-pair avec l'utilisation de la\nblockchain Bitcoin et du Lightning Network.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/021",
+        "author": "DecouvreBitcoin",
+        "sourceId": "170d826f-e8b0-44dc-ae2d-0596541ae8d7",
+        "courseId": "btc101",
+        "chapter": "L'argent",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-065",
+      "type": "single-choice",
+      "text": "Quelles sont les trois principales fonctions d'un portefeuille Bitcoin ?",
+      "options": [
+        "Stocker des bitcoins, envoyer des bitcoins, les sécuriser contre les tentatives de piratage et de vol.",
+        "Recevoir des bitcoins, envoyer des bitcoins, vendre des bitcoins.",
+        "Recevoir des bitcoins, envoyer des bitcoins, les sécuriser contre les tentatives de piratage et de vol.",
+        "Recevoir des bitcoins, stocker des bitcoins, les sécuriser contre les tentatives de piratage et de vol."
+      ],
+      "correctIndex": 2,
+      "difficulty": "easy",
+      "explanation": "Un portefeuille Bitcoin est utilisé pour interagir avec le réseau Bitcoin. Ses trois principales fonctions sont de permettre de recevoir des bitcoins, d'envoyer des bitcoins, et de les sécuriser contre les tentatives de piratage et de vol.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/065",
+        "author": "DecouvreBitcoin",
+        "sourceId": "5f336629-847a-40d3-b2c5-8ea654313e44",
+        "courseId": "btc101",
+        "chapter": "Portefeuilles Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-066",
+      "type": "single-choice",
+      "text": "Qu'est-ce que la clé privée dans un portefeuille Bitcoin ?",
+      "options": [
+        "Une liste secrète de mots pour détruire un portefeuille en cas de besoin.",
+        "Une clé publique utilisée pour générer des adresses Bitcoin.",
+        "Une clé secrète qui vous permet de signer vos transactions.",
+        "Une clé secrète pour chiffrer les transactions Bitcoin."
+      ],
+      "correctIndex": 2,
+      "difficulty": "easy",
+      "explanation": "Lors de l'initialisation d'un portefeuille Bitcoin, une liste secrète de mots, appelée graine mnémonique, est générée. Cette liste de récupération est très importante car elle représente la propriété des Bitcoins et donc le droit de les envoyer.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/066",
+        "author": "DecouvreBitcoin",
+        "sourceId": "192a777d-7ef5-41b5-ab42-c74553447e33",
+        "courseId": "btc101",
+        "chapter": "Portefeuilles Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-067",
+      "type": "single-choice",
+      "text": "Où sont stockés les bitcoins ?",
+      "options": [
+        "Dans la blockchain Bitcoin.",
+        "Dans le coffre de la Réserve Fédérale.",
+        "Sur l'appareil où le portefeuille est installé.",
+        "Dans le portefeuille Bitcoin."
+      ],
+      "correctIndex": 0,
+      "difficulty": "easy",
+      "explanation": "Bien que vos clés privées soient stockées dans votre portefeuille, les\nbitcoins eux-mêmes sont en réalité stockés dans la blockchain Bitcoin, qui est le registre public distribué au sein\ndu réseau pair-à-pair Bitcoin.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/067",
+        "author": "DecouvreBitcoin",
+        "sourceId": "93194b7f-d1df-47f6-8485-7c1724bf8243",
+        "courseId": "btc101",
+        "chapter": "Portefeuilles Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-068",
+      "type": "single-choice",
+      "text": "Qu'est-ce que la phrase mnémonique dans un portefeuille Bitcoin ?",
+      "options": [
+        "Un mot de passe choisi pour accéder au portefeuille Bitcoin.",
+        "Une liste de 12 ou 24 mots qui vous permet d'accéder à vos bitcoins.",
+        "Une phrase de récupération secrète qui détruit le portefeuille Bitcoin en cas de besoin.",
+        "Un code pour crypter les transactions Bitcoin."
+      ],
+      "correctIndex": 1,
+      "difficulty": "easy",
+      "explanation": "Depuis 2017, la clé privée peut être codée dans une simple liste\nde 12 ou 24 mots, appelée la phrase mnémonique. Cette phrase\nest une sauvegarde de votre portefeuille Bitcoin, donc elle vous permet\nd'accéder à vos bitcoins en utilisant n'importe quel logiciel/application\nde portefeuille Bitcoin.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/068",
+        "author": "DecouvreBitcoin",
+        "sourceId": "9c112f26-6860-408d-a0b5-e4fffbf63b15",
+        "courseId": "btc101",
+        "chapter": "Portefeuilles Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-069",
+      "type": "single-choice",
+      "text": "Quel est le rôle de la clé publique dans un portefeuille Bitcoin ?",
+      "options": [
+        "Elle est utilisée pour accéder au portefeuille Bitcoin.",
+        "Elle est utilisée pour sauvegarder le portefeuille Bitcoin.",
+        "Elle est utilisée pour chiffrer les transactions Bitcoin.",
+        "Elle est utilisée pour générer des adresses Bitcoin et ainsi recevoir de l'argent."
+      ],
+      "correctIndex": 3,
+      "difficulty": "intermediate",
+      "explanation": "La clé publique est dérivée de la clé privée et est utilisée\npour générer des adresses Bitcoin afin de recevoir de l'argent.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/069",
+        "author": "DecouvreBitcoin",
+        "sourceId": "f0f44916-788b-4467-8e61-9ee2b36d4fea",
+        "courseId": "btc101",
+        "chapter": "Portefeuilles Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-070",
+      "type": "single-choice",
+      "text": "Quel est le risque de partager la clé publique d'un portefeuille Bitcoin ?",
+      "options": [
+        "Pirater le portefeuille Bitcoin.",
+        "Perdre la confidentialité.",
+        "Détruire le portefeuille Bitcoin.",
+        "Perdre les Bitcoins."
+      ],
+      "correctIndex": 1,
+      "difficulty": "intermediate",
+      "explanation": "Partager la clé publique comporte des risques pour la confidentialité, mais pas\npour la sécurité. Cela est dû au fait que la clé publique est utilisée pour\ngénérer des adresses Bitcoin et donc recevoir de l'argent, mais elle ne représente\npas la propriété des bitcoins.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/070",
+        "author": "DecouvreBitcoin",
+        "sourceId": "cc69301e-bf51-4ee1-b106-d37fd2c4c67e",
+        "courseId": "btc101",
+        "chapter": "Portefeuilles Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-071",
+      "type": "single-choice",
+      "text": "Laquelle de ces options est fausse concernant la perte de l'appareil sur lequel se trouve votre portefeuille Bitcoin ?",
+      "options": [
+        "Vous pouvez vérifier avec vos clés publiques que vos bitcoins n'ont pas été dépensés.",
+        "Vous perdez tous vos bitcoins si vous n'avez pas la phrase mnémonique.",
+        "Vous pouvez recréer votre portefeuille et dépenser vos bitcoins en réinitialisant votre mot de passe.",
+        "Vous pouvez recréer votre portefeuille et dépenser vos bitcoins en utilisant la phrase mnémonique."
+      ],
+      "correctIndex": 2,
+      "difficulty": "intermediate",
+      "explanation": "Perdre l'appareil sur lequel se trouve votre portefeuille ne signifie pas nécessairement la perte de vos bitcoins. Ce qui vous permet de recréer votre portefeuille et de dépenser vos bitcoins est la phrase mnémonique.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/071",
+        "author": "DecouvreBitcoin",
+        "sourceId": "11c7066b-0445-4c2f-831a-e9a44842d0cf",
+        "courseId": "btc101",
+        "chapter": "Portefeuilles Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-073",
+      "type": "single-choice",
+      "text": "Quelle est la probabilité que quelqu'un devine accidentellement votre liste de 12 ou 24 mots dans un portefeuille Bitcoin ?",
+      "options": [
+        "Élevée.",
+        "Modérée.",
+        "Forte.",
+        "Extrêmement faible."
+      ],
+      "correctIndex": 3,
+      "difficulty": "hard",
+      "explanation": "Grâce à la cryptographie utilisée pour créer le portefeuille, la\nprobabilité que quelqu'un devine accidentellement votre liste de\n12 ou 24 mots est extrêmement faible. C'est comme trouver\nle bon numéro entre 1 et $2^256$, ce qui est presque\néquivalent à trouver un atome défini dans l'Univers.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/073",
+        "author": "DecouvreBitcoin",
+        "sourceId": "4868d42a-daae-481a-bd94-89f0f3809811",
+        "courseId": "btc101",
+        "chapter": "Portefeuilles Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-074",
+      "type": "single-choice",
+      "text": "Quelle est la question centrale à se poser lors du choix d'un portefeuille Bitcoin, en termes de garde personnelle ?",
+      "options": [
+        "Le portefeuille permet-il de recevoir et d'envoyer des bitcoins ?",
+        "Le portefeuille est-il sécurisé par une phrase secrète ?",
+        "Êtes-vous le propriétaire des fonds ou laissez-vous le contrôle de votre argent à un tiers ?",
+        "Puis-je partager mon portefeuille avec une autre personne ?"
+      ],
+      "correctIndex": 2,
+      "difficulty": "hard",
+      "explanation": "Lors du choix d'un portefeuille Bitcoin, la question centrale est :\nêtes-vous le propriétaire des fonds ou laissez-vous le contrôle de\nvotre argent à un tiers ? Cela est dû au fait que le détenteur de\nla clé privée est le propriétaire des bitcoins.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/074",
+        "author": "DecouvreBitcoin",
+        "sourceId": "854a1eea-abaf-4cd7-af63-b733e4abbdfd",
+        "courseId": "btc101",
+        "chapter": "Portefeuilles Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-075",
+      "type": "single-choice",
+      "text": "Quelle est la technologie utilisée pour dépenser des fonds de manière sécurisée en utilisant un portefeuille Bitcoin ?",
+      "options": [
+        "Cryptographie symétrique",
+        "Cryptographie RSA",
+        "Cryptographie sur courbes elliptiques",
+        "Cryptographie quantique"
+      ],
+      "correctIndex": 2,
+      "difficulty": "hard",
+      "explanation": "Pour dépenser des bitcoins, le propriétaire doit utiliser l'Algorithme de Signature Numérique à Courbe Elliptique (ECDSA) pour forger une signature permettant la propagation d'une transaction Bitcoin.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/075",
+        "author": "DecouvreBitcoin",
+        "sourceId": "79a593b4-bd60-45e3-bb76-26c74cdfc53f",
+        "courseId": "btc101",
+        "chapter": "Portefeuilles Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-107",
+      "type": "single-choice",
+      "text": "Quand le Bitcoin a-t-il été présenté au monde pour la première fois ?",
+      "options": [
+        "22 novembre 2009",
+        "3 janvier 2009",
+        "31 octobre 2008",
+        "12 décembre 2010"
+      ],
+      "correctIndex": 2,
+      "difficulty": "easy",
+      "explanation": "Le Bitcoin a été présenté au monde pour la première fois le 31 octobre\n2008, lorsque Satoshi Nakamoto a envoyé un courriel contenant le Livre Blanc de Bitcoin à la liste de diffusion\ncypherpunk.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/107",
+        "author": "DecouvreBitcoin",
+        "sourceId": "00250d73-75c0-4557-a2a5-0dfe9e6bcbab",
+        "courseId": "btc101",
+        "chapter": "Les aspects techniques de Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-108",
+      "type": "single-choice",
+      "text": "Qui était la première personne à rejoindre le réseau Bitcoin après Satoshi Nakamoto ?",
+      "options": [
+        "Hal Finney",
+        "Rogzy",
+        "Phil Champagne",
+        "Laszlo Hanyecz"
+      ],
+      "correctIndex": 0,
+      "difficulty": "easy",
+      "explanation": "Hal Finney était la première personne à rejoindre le réseau Bitcoin\naprès Satoshi Nakamoto lui-même. Il a même tweeté \"Running\nbitcoin\" pour marquer l'occasion.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/108",
+        "author": "DecouvreBitcoin",
+        "sourceId": "7a0f7bc2-bc4e-4f30-ba09-738777eb9d6c",
+        "courseId": "btc101",
+        "chapter": "Les aspects techniques de Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-109",
+      "type": "single-choice",
+      "text": "Quelle est la première transaction Bitcoin enregistrée ?",
+      "options": [
+        "Une transaction de 1 BTC entre Satoshi Nakamoto et Hal Finney.",
+        "Une transaction de 10 000 BTC entre Laszlo Hanyecz et Hal Finney.",
+        "Une transaction de 10 000 BTC pour 2 pizzas.",
+        "Une transaction de 10 BTC entre Satoshi Nakamoto et Hal Finney."
+      ],
+      "correctIndex": 3,
+      "difficulty": "easy",
+      "explanation": "La première transaction Bitcoin enregistrée était une transaction de\n10 BTC entre Satoshi Nakamoto et Hal Finney.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/109",
+        "author": "DecouvreBitcoin",
+        "sourceId": "bda08251-135d-41ab-8161-dd457401978e",
+        "courseId": "btc101",
+        "chapter": "Les aspects techniques de Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-110",
+      "type": "single-choice",
+      "text": "Quand Satoshi Nakamoto a-t-il disparu ?",
+      "options": [
+        "En 2010",
+        "En 2008",
+        "En 2009",
+        "En 2023"
+      ],
+      "correctIndex": 0,
+      "difficulty": "easy",
+      "explanation": "Satoshi Nakamoto a disparu en 2010, laissant sa création\nentre les mains de la communauté.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/110",
+        "author": "DecouvreBitcoin",
+        "sourceId": "618d7a67-55d7-429f-a4f2-f5799905edbc",
+        "courseId": "btc101",
+        "chapter": "Les aspects techniques de Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-111",
+      "type": "single-choice",
+      "text": "Quel est le message contenu dans le premier bloc de la blockchain Bitcoin ?",
+      "options": [
+        "03/jan/2009 Le Chancelier au bord d'un second sauvetage des banques.",
+        "Aucune des réponses ci-dessus.",
+        "Les gouvernements sont doués pour couper la tête de réseaux centralisés comme Napster, mais les réseaux purement P2P comme Gnutella et Tor semblent tenir le coup.",
+        "Nous pouvons remporter une bataille majeure dans la course aux armements et gagner un nouveau territoire de liberté pour plusieurs années."
+      ],
+      "correctIndex": 0,
+      "difficulty": "intermediate",
+      "explanation": "Le premier bloc de la blockchain Bitcoin, également connu sous\nle nom de bloc Genesis, contient le message \"03/jan/2009\nLe Chancelier au bord d'un second sauvetage des banques\", qui est\nle titre du *Times* ce jour-là pour horodater le bloc Genesis.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/111",
+        "author": "DecouvreBitcoin",
+        "sourceId": "a6393237-2f50-46db-94bf-25320fbfa886",
+        "courseId": "btc101",
+        "chapter": "Les aspects techniques de Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-112",
+      "type": "single-choice",
+      "text": "Qu'est-ce que BitcoinTalk ?",
+      "options": [
+        "Un lieu de discussion pour les utilisateurs de Bitcoin.",
+        "Un logiciel de minage de Bitcoin.",
+        "Un portefeuille Bitcoin.",
+        "Une conférence sur le Bitcoin."
+      ],
+      "correctIndex": 0,
+      "difficulty": "intermediate",
+      "explanation": "Le forum BitcoinTalk est un lieu de discussion pour les\nutilisateurs de Bitcoin. Il a été créé par Satoshi Nakamoto le 22 novembre 2009.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/112",
+        "author": "DecouvreBitcoin",
+        "sourceId": "f201b720-5879-4bd3-b3cd-6d10a738ca5d",
+        "courseId": "btc101",
+        "chapter": "Les aspects techniques de Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-113",
+      "type": "single-choice",
+      "text": "Quand est-ce que le Bitcoin a été utilisé pour la première fois pour acheter des biens physiques ?",
+      "options": [
+        "Quand Laszlo Hanyecz a acheté 2 pizzas pour 10 000 BTC.",
+        "Quand Satoshi Nakamoto a acheté une maison pour 1 000 000 000 BTC.",
+        "Aucune des autres options.",
+        "Quand Hal Finney a acheté une voiture pour 100 000 BTC."
+      ],
+      "correctIndex": 0,
+      "difficulty": "intermediate",
+      "explanation": "La première fois que le Bitcoin a été utilisé pour acheter des\nbiens physiques fut quand Laszlo Hanyecz a acheté 2 pizzas pour 10 000\nBTC, le 22 mai 2010, date qui est maintenant connue sous le nom de \"Pizza Day\".",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/113",
+        "author": "DecouvreBitcoin",
+        "sourceId": "cdf4e9d6-6d9f-408c-b343-d361a871d205",
+        "courseId": "btc101",
+        "chapter": "Les aspects techniques de Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-116",
+      "type": "single-choice",
+      "text": "Quel est le numéro du bloc de la première transaction Bitcoin ?",
+      "options": [
+        "Bloc 17",
+        "Bloc 1",
+        "Bloc 170",
+        "Bloc 1700"
+      ],
+      "correctIndex": 2,
+      "difficulty": "hard",
+      "explanation": "La première transaction Bitcoin, qui était une transaction de\n10 BTC entre Satoshi Nakamoto et Hal Finney, est enregistrée\ndans le bloc 170.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/116",
+        "author": "DecouvreBitcoin",
+        "sourceId": "d464305d-7492-4785-be8a-b82deb2e4f67",
+        "courseId": "btc101",
+        "chapter": "Les aspects techniques de Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-117",
+      "type": "single-choice",
+      "text": "Quelle est la version du premier logiciel Bitcoin publié ?",
+      "options": [
+        "Bitcoin-1.0.0",
+        "Bitcoin-0.1.1",
+        "Bitcoin-0.0.1",
+        "Bitcoin-0.1.0"
+      ],
+      "correctIndex": 3,
+      "difficulty": "hard",
+      "explanation": "Le premier logiciel Bitcoin publié était Bitcoin-0.1.0. Il a été annoncé par Satoshi Nakamoto le 8 janvier 2009.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/117",
+        "author": "DecouvreBitcoin",
+        "sourceId": "a98612ca-7b3c-4516-bb99-c4413fcc78e1",
+        "courseId": "btc101",
+        "chapter": "Les aspects techniques de Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-118",
+      "type": "single-choice",
+      "text": "Quelle est la date du dernier message privé connu de Satoshi Nakamoto par email ?",
+      "options": [
+        "31 octobre 2008",
+        "23 avril 2011",
+        "12 décembre 2010",
+        "8 janvier 2009"
+      ],
+      "correctIndex": 1,
+      "difficulty": "hard",
+      "explanation": "La date du dernier message privé connu de Satoshi Nakamoto par email est le 23 avril 2011. Il a été envoyé au développeur Mike Hearn.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/118",
+        "author": "DecouvreBitcoin",
+        "sourceId": "fc4c98e6-d07d-4d18-b98e-e4ce107a8e8c",
+        "courseId": "btc101",
+        "chapter": "Les aspects techniques de Bitcoin",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-166",
+      "type": "single-choice",
+      "text": "Quelle est l'une des raisons pour lesquelles le Bitcoin est attrayant pour certains groupes ?",
+      "options": [
+        "Il est facile à contrefaire, et peut créer des solutions pour recevoir plus d'argent d'un simple clic.",
+        "Sa capacité à offrir des solutions telles que l'argent électronique sans confiance, la résistance à la censure, ou une politique monétaire transparente et immuable.",
+        "Il n'est pas pseudonyme, donc chaque utilisateur est bien connu et digne de confiance.",
+        "Il est contrôlé par une autorité centrale qui distribue librement du capital aux utilisateurs."
+      ],
+      "correctIndex": 1,
+      "difficulty": "easy",
+      "explanation": "La nature décentralisée du Bitcoin, son pseudonymat et sa résistance à la censure le rendent attrayant pour des groupes tels que les technophiles, les cypherpunks, les libertariens, et les enthousiastes de l'or.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/166",
+        "author": "DecouvreBitcoin",
+        "sourceId": "622051ea-403a-44b4-b89a-dac1ac3902f9",
+        "courseId": "btc101",
+        "chapter": "Comment obtenir des bitcoins ?",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-168",
+      "type": "single-choice",
+      "text": "Quelle est une manière d'atténuer la volatilité du Bitcoin ?",
+      "options": [
+        "Investir tout votre argent dans le Bitcoin.",
+        "Couvertures financières (stablecoins).",
+        "Acheter plus de bitcoin lorsque le prix baisse.",
+        "Ignorer les tendances du marché."
+      ],
+      "correctIndex": 1,
+      "difficulty": "easy",
+      "explanation": "La volatilité du Bitcoin peut être atténuée par plusieurs solutions telles que les couvertures financières (stablecoins), une forte croyance à long terme (hodling), ou simplement ne pas mettre 100% de son argent dans le Bitcoin sans rien comprendre.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/168",
+        "author": "DecouvreBitcoin",
+        "sourceId": "c11e019a-0539-4956-9aa6-1a791dd50b4a",
+        "courseId": "btc101",
+        "chapter": "Comment obtenir des bitcoins ?",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-169",
+      "type": "single-choice",
+      "text": "Quelle est une caractéristique unique du protocole Bitcoin ?",
+      "options": [
+        "Il fonctionne uniquement pendant les heures de bureau.",
+        "Il fonctionne à l'échelle mondiale, 24 heures sur 24, 7 jours sur 7.",
+        "Il peut être facilement piraté.",
+        "Il est contrôlé par une autorité centrale."
+      ],
+      "correctIndex": 1,
+      "difficulty": "easy",
+      "explanation": "Le protocole Bitcoin est unique en ce qu'il fonctionne à l'échelle mondiale, 24 heures sur 24, 7 jours sur 7, rendant la régulation difficile pour les autorités financières.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/169",
+        "author": "DecouvreBitcoin",
+        "sourceId": "081f4971-80c7-4f1e-b8bf-d5c41c3c1b43",
+        "courseId": "btc101",
+        "chapter": "Comment obtenir des bitcoins ?",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-178",
+      "type": "single-choice",
+      "text": "En comparaison avec les monnaies fiduciaires, comment est perçu le Bitcoin ?",
+      "options": [
+        "Comme une économie industrielle.",
+        "Comme une économie tertiaire.",
+        "Comme une économie parallèle.",
+        "Comme une économie de remplacement."
+      ],
+      "correctIndex": 2,
+      "difficulty": "easy",
+      "explanation": "Le Bitcoin est considéré comme une économie parallèle aux monnaies fiduciaires, ce qui signifie qu'il fonctionne à côté des économies traditionnelles et peut être utilisé pour des transactions directement, sans avoir besoin de passer par une plateforme d'échange.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/178",
+        "author": "DecouvreBitcoin",
+        "sourceId": "abe0bd33-585c-4620-b547-ec3c3ea04885",
+        "courseId": "btc101",
+        "chapter": "Comment obtenir des bitcoins ?",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-170",
+      "type": "single-choice",
+      "text": "Quel a été un événement marquant dans le monde des cryptomonnaies en 2017 ?",
+      "options": [
+        "La création du Bitcoin.",
+        "L'interdiction du Bitcoin.",
+        "Le lancement de milliers d'Offres Initiales de Pièces (ICO).",
+        "La disparition de toutes les cryptomonnaies."
+      ],
+      "correctIndex": 2,
+      "difficulty": "intermediate",
+      "explanation": "L'année 2017 a été marquée par une bulle spéculative significative dans le monde des cryptomonnaies, notamment avec le lancement de milliers d'Offres Initiales de Pièces (ICO).",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/170",
+        "author": "DecouvreBitcoin",
+        "sourceId": "8f96b395-318a-4325-a04b-91416977cb2f",
+        "courseId": "btc101",
+        "chapter": "Comment obtenir des bitcoins ?",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-171",
+      "type": "single-choice",
+      "text": "Quelle est la tendance générale du Bitcoin, compte tenu de son offre limitée et du processus de halving ?",
+      "options": [
+        "Une tendance générale à la baisse.",
+        "Une tendance qui fluctue de manière extrême sans motif discernable.",
+        "Une tendance générale à la hausse.",
+        "Aucune tendance particulière."
+      ],
+      "correctIndex": 2,
+      "difficulty": "intermediate",
+      "explanation": "Le Bitcoin, en raison de sa quantité limitée à 21 millions de bitcoins et de son processus de halving (réduisant de moitié la création monétaire tous les 4 ans en moyenne), suit une tendance générale à la hausse.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/171",
+        "author": "DecouvreBitcoin",
+        "sourceId": "6e9107a2-dbb4-4b32-be34-c07dd79c1ea6",
+        "courseId": "btc101",
+        "chapter": "Comment obtenir des bitcoins ?",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-172",
+      "type": "single-choice",
+      "text": "Quelle est l'une des raisons pour lesquelles le Bitcoin connaît tant de bulles spéculatives ?",
+      "options": [
+        "Parce que le Bitcoin est une monnaie qui est utilisée partout dans le monde.",
+        "Parce que le Bitcoin n'est réellement utilisé nulle part.",
+        "Parce que le Bitcoin est une bulle qui va disparaître.",
+        "Parce que le Bitcoin n'est pas soumis aux cycles économiques."
+      ],
+      "correctIndex": 0,
+      "difficulty": "intermediate",
+      "explanation": "Le Bitcoin connaît de nombreuses bulles spéculatives parce que c'est une monnaie qui est réellement utilisée partout dans le monde.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/172",
+        "author": "DecouvreBitcoin",
+        "sourceId": "fd5099ec-60b3-4955-a5aa-3511275fd5f1",
+        "courseId": "btc101",
+        "chapter": "Comment obtenir des bitcoins ?",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-174",
+      "type": "single-choice",
+      "text": "Quelle est une manière dont le Bitcoin s'est davantage intégré au marché traditionnel ?",
+      "options": [
+        "L'arrivée des ETF Bitcoin.",
+        "La disparition de toutes les cryptomonnaies.",
+        "La création du Bitcoin.",
+        "L'interdiction du Bitcoin."
+      ],
+      "correctIndex": 0,
+      "difficulty": "hard",
+      "explanation": "Le Bitcoin continue de survivre et même de se développer davantage en\ns'intégrant de plus en plus au marché traditionnel. L'arrivée des ETF Bitcoin, une réglementation plus claire,\net une meilleure acquisition d'outils de stockage ne font qu'encourager cette\ntendance.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/174",
+        "author": "DecouvreBitcoin",
+        "sourceId": "0ba1f61e-3819-4811-925d-e37f5e359cfc",
+        "courseId": "btc101",
+        "chapter": "Comment obtenir des bitcoins ?",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-175",
+      "type": "single-choice",
+      "text": "Parmi les caractéristiques suivantes, laquelle a contribué à l'expansion de l'utilisation de Bitcoin dans les marchés noirs du web, comme Silk Road ?",
+      "options": [
+        "Sa traçabilité et sa nature contrôlable.",
+        "Son absence de pseudonymat.",
+        "Sa nature incontrôlable et pseudonyme.",
+        "Son contrôle centralisé."
+      ],
+      "correctIndex": 2,
+      "difficulty": "hard",
+      "explanation": "L'utilisation de Bitcoin s'est étendue aux marchés noirs du web comme Silk Road en raison de sa nature incontrôlable et pseudonyme.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/175",
+        "author": "DecouvreBitcoin",
+        "sourceId": "0e581ed9-fd9e-4264-a49e-eebeb8b0e7b6",
+        "courseId": "btc101",
+        "chapter": "Comment obtenir des bitcoins ?",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-176",
+      "type": "single-choice",
+      "text": "Quelle est une raison pour laquelle le prix du Bitcoin peut chuter de 10 %, 20 %, ou même 50 % en seulement quelques jours ?",
+      "options": [
+        "La météo.",
+        "Le prix de l'or.",
+        "Les phases haussières et baissières du marché.",
+        "Le nombre de personnes utilisant internet."
+      ],
+      "correctIndex": 2,
+      "difficulty": "hard",
+      "explanation": "Le prix du Bitcoin est souvent caractérisé par une volatilité significative, qui peut être influencée par les variations du marché et les phases haussières et baissières du marché.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/176",
+        "author": "DecouvreBitcoin",
+        "sourceId": "20531e9a-db75-4049-8ad1-6d21bc2ee2fb",
+        "courseId": "btc101",
+        "chapter": "Comment obtenir des bitcoins ?",
+        "retrievedAt": "2026-10-20",
+        "note": "repo commit 86c147e50231, lesson quiz, fr"
+      }
+    }
+  ],
+  "rounds": [
+    {
+      "id": "round-1",
+      "title": "Manche 1, Introduction",
+      "questionIds": [
+        "planb-btc101-000",
+        "planb-btc101-001",
+        "planb-btc101-005",
+        "planb-btc101-006",
+        "planb-btc101-002",
+        "planb-btc101-003",
+        "planb-btc101-007",
+        "planb-btc101-004",
+        "planb-btc101-009",
+        "planb-btc101-010"
+      ]
+    },
+    {
+      "id": "round-2",
+      "title": "Manche 2, L'argent",
+      "questionIds": [
+        "planb-btc101-011",
+        "planb-btc101-012",
+        "planb-btc101-013",
+        "planb-btc101-014",
+        "planb-btc101-015",
+        "planb-btc101-016",
+        "planb-btc101-017",
+        "planb-btc101-019",
+        "planb-btc101-020",
+        "planb-btc101-021"
+      ]
+    },
+    {
+      "id": "round-3",
+      "title": "Manche 3, Portefeuilles Bitcoin",
+      "questionIds": [
+        "planb-btc101-065",
+        "planb-btc101-066",
+        "planb-btc101-067",
+        "planb-btc101-068",
+        "planb-btc101-069",
+        "planb-btc101-070",
+        "planb-btc101-071",
+        "planb-btc101-073",
+        "planb-btc101-074",
+        "planb-btc101-075"
+      ]
+    },
+    {
+      "id": "round-4",
+      "title": "Manche 4, Les aspects techniques de Bitcoin",
+      "questionIds": [
+        "planb-btc101-107",
+        "planb-btc101-108",
+        "planb-btc101-109",
+        "planb-btc101-110",
+        "planb-btc101-111",
+        "planb-btc101-112",
+        "planb-btc101-113",
+        "planb-btc101-116",
+        "planb-btc101-117",
+        "planb-btc101-118"
+      ]
+    },
+    {
+      "id": "round-5",
+      "title": "Manche 5, Comment obtenir des bitcoins ?",
+      "questionIds": [
+        "planb-btc101-166",
+        "planb-btc101-168",
+        "planb-btc101-169",
+        "planb-btc101-178",
+        "planb-btc101-170",
+        "planb-btc101-171",
+        "planb-btc101-172",
+        "planb-btc101-174",
+        "planb-btc101-175",
+        "planb-btc101-176"
+      ]
+    }
+  ]
+}
