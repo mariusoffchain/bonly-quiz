@@ -195,7 +195,9 @@ export class App {
 
   // ------------------------------------------------------------------- URLs
   lanUrls(): string[] {
-    const port = this.publicPort();
+    // Addresses on the local network always use this server's own port (a PUBLIC_URL tunnel has its own).
+    const addr = this.server.address();
+    const port = this.opts.publicPort ?? (typeof addr === 'object' && addr ? addr.port : this.opts.port);
     const out: string[] = [];
     for (const list of Object.values(os.networkInterfaces())) {
       for (const i of list ?? []) if (i.family === 'IPv4' && !i.internal) out.push(`http://${i.address}:${port}`);
