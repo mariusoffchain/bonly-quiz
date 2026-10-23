@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { BoardView } from '../../shared/views';
-import { BlocksStrip, Countdown, Donut, FeedBadge, PoolList } from '../components/Shared';
+import { AvatarBadge, BlocksStrip, Countdown, Donut, FeedBadge, Leaderboard, PoolList } from '../components/Shared';
 import { difficultyLabel, fmtClock, pctText, ths } from '../lib/format';
 import { useQuizSocket, useTicker } from '../lib/ws';
 
@@ -38,6 +38,12 @@ export function Board() {
   const showQuestion = q && (view.phase === 'question-open' || view.phase === 'question-closed');
   const open = showQuestion && !q.closed && q.closesAt > sock.serverNow();
   const lastBonus = view.lastBlockBonus;
+  // Reveal first, then the ranking with its own timer (same holds as the phones).
+  const nowS = sock.serverNow();
+  const resultUntil = (q?.closedAt ?? 0) + view.config.revealHoldMs;
+  const lbUntil = resultUntil + view.config.leaderboardHoldMs;
+  const showLeaderboard = !!q && q.closed && view.phase === 'question-closed' && nowS >= resultUntil;
+  const lbTimerRunning = showLeaderboard && nowS < lbUntil && view.config.leaderboardHoldMs > 0;
 
   return (
     <div className="board">
@@ -54,7 +60,18 @@ export function Board() {
       </div>
 
       <div className="main">
-        {showQuestion ? (
+        {showLeaderboard ? (
+          <div className="card question-card">
+            <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div className="card-title">{round?.title} · classement après la question {q.questionIndex + 1}/{q.questionTotal}</div>
+                <div className="q">Classement de la manche</div>
+              </div>
+              {lbTimerRunning ? <Countdown closesAt={lbUntil} durationMs={view.config.leaderboardHoldMs} serverNow={sock.serverNow} /> : <span className="badge">Prochaine question bientôt</span>}
+            </div>
+            <Leaderboard competitors={view.competitors} limit={10} big />
+          </div>
+        ) : showQuestion ? (
           <div className="card question-card">
             <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div style={{ flex: 1 }}>
@@ -201,7 +218,7 @@ function Results({ view, names }: { view: BoardView; names: Map<string, string> 
                 {g.rank}
                 {g.tied ? '=' : ''}
               </td>
-              <td>{names.get(g.competitorId) ?? '?'}</td>
+              <td><span className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>{(() => { const c = view.competitors.find((x) => x.id === g.competitorId); return c ? <AvatarBadge competitor={c} size={26} /> : null; })()}{names.get(g.competitorId) ?? '?'}</span></td>
               <td className="mono">+{g.bonusPercent.replace('.', ',')} %</td>
               <td className="num">{ths(g.gain)}</td>
             </tr>
@@ -253,7 +270,7 @@ function RoundEnd({ view, names }: { view: BoardView; names: Map<string, string>
               <tr key={c.id}>
                 <td className="mono">{c.rank}</td>
                 <td>
-                  {c.name} <span className="muted small">{c.kind === 'pool' ? c.members.join(', ') : c.members[0] ?? ''}</span>
+                  <span className="row" style={{ gap: 8, flexWrap: 'nowrap' }}><AvatarBadge competitor={c} size={26} />{c.name}</span> <span className="muted small">{c.kind === 'pool' ? c.members.join(', ') : c.members[0] ?? ''}</span>
                 </td>
                 <td className="num">{ths(c.hashrate)}</td>
                 <td className="num">{pctText(c.share)}</td>

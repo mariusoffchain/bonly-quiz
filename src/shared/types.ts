@@ -48,12 +48,19 @@ export interface ContentPack {
 
 export type CompetitorKind = 'pool' | 'bitaxe';
 
+/** Visual identity assigned by the server at registration: indexes into the client palettes. */
+export interface Avatar {
+  shape: number;
+  color: number;
+}
+
 export interface Competitor {
   id: string;
   kind: CompetitorKind;
   name: string;
   members: string[];
   bitaxeNumber?: number;
+  avatar: Avatar;
   /** Secret used by the phone to reconnect to this competitor. Never sent to the board. */
   token: string;
   joinedAt: number;
@@ -184,6 +191,7 @@ export interface SessionState {
   phase: Phase;
   competitors: Record<string, Competitor>;
   nextBitaxeNumber: number;
+  nextAvatarIndex: number;
   processedBlockIds: string[];
   recentBlocks: BlockInfo[];
   prizesDraft: PrizeDef[];

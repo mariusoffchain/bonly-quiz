@@ -47,6 +47,10 @@ export class Game {
   private listeners: ((ev: GameEvent) => void)[] = [];
 
   constructor(state: SessionState, deps: GameDeps = {}) {
+    // Older snapshots: fill in settings and fields added since.
+    state.config = { ...DEFAULT_CONFIG, ...state.config };
+    state.nextAvatarIndex ??= Object.keys(state.competitors).length;
+    for (const c of Object.values(state.competitors)) c.avatar ??= { shape: 0, color: 0 };
     this.state = state;
     this.rng = deps.rng ?? cryptoRng;
     this.newId = deps.newId ?? defaultId;
@@ -66,6 +70,7 @@ export class Game {
       phase: 'lobby',
       competitors: {},
       nextBitaxeNumber: 1,
+      nextAvatarIndex: 0,
       processedBlockIds: [],
       recentBlocks: [],
       prizesDraft: [],
@@ -162,6 +167,7 @@ export class Game {
       kind: 'pool',
       name,
       members,
+      avatar: this.nextAvatar(),
       token: this.newToken(),
       joinedAt: now,
       connected: true,
@@ -179,6 +185,7 @@ export class Game {
       name: `Bitaxe ${n}`,
       members: input.owner?.trim() ? [input.owner.trim()] : [],
       bitaxeNumber: n,
+      avatar: this.nextAvatar(),
       token: this.newToken(),
       joinedAt: now,
       connected: true,
@@ -186,6 +193,12 @@ export class Game {
     };
     this.registerCompetitor(c, now);
     return c;
+  }
+
+  /** Shape and colour advance together so neighbours differ on both. */
+  private nextAvatar() {
+    const i = this.state.nextAvatarIndex++;
+    return { shape: i % 10, color: i % 16 };
   }
 
   private registerCompetitor(c: Competitor, now: number): void {

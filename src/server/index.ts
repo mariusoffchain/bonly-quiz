@@ -13,7 +13,7 @@ const app = new App({
   dataDir: process.env.DATA_DIR ?? path.join(projectRoot, 'data'),
   contentDir: process.env.CONTENT_DIR ?? path.join(projectRoot, 'content/questions'),
   consoleToken: process.env.CONSOLE_TOKEN,
-  publicUrl: process.env.PUBLIC_URL,
+  publicUrl: process.env.PUBLIC_URL?.trim() || undefined,
   publicPort: process.env.PUBLIC_PORT ? Number(process.env.PUBLIC_PORT) : undefined,
   blockSource: (process.env.BLOCK_SOURCE as 'real' | 'off' | undefined) ?? 'real',
   mempoolBaseUrl: process.env.MEMPOOL_URL,

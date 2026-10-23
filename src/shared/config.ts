@@ -37,8 +37,10 @@ export interface SessionConfig {
   excludePrizeWinnersAcrossSeries: boolean;
   /** Minimum members for a classic pool (decided: 3). */
   minPoolMembers: number;
-  /** Seconds the reveal stays before the console may move on (UI only). */
+  /** Duration of the personal result screen after a question closes (UI only). */
   revealHoldMs: number;
+  /** Duration of the ranking screen shown after the result screen (UI only, 0 disables). */
+  leaderboardHoldMs: number;
 }
 
 export const DEFAULT_CONFIG: SessionConfig = {
@@ -52,7 +54,8 @@ export const DEFAULT_CONFIG: SessionConfig = {
   prizeScope: 'round',
   excludePrizeWinnersAcrossSeries: false,
   minPoolMembers: 3,
-  revealHoldMs: 3000,
+  revealHoldMs: 4000,
+  leaderboardHoldMs: 15000,
 };
 
 /** Speed bonus for a 1-based rank, as an exact Percent. */

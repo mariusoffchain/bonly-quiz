@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { BlockBonusEvent, BlockFeedStatus, BlockInfo } from '../../shared/types';
 import type { CompetitorView } from '../../shared/views';
-import { colorFor, pctText, ths, timeAgo } from '../lib/format';
+import { avatarColor, avatarShape, medal, pctText, ths, timeAgo } from '../lib/format';
 import { useTicker } from '../lib/ws';
 
 export function ConnDot({ state }: { state: 'connecting' | 'open' | 'closed' }) {
@@ -18,16 +18,24 @@ export function FeedBadge({ feed }: { feed: BlockFeedStatus }) {
   return <span className="badge real">Blocs réels, mempool.space</span>;
 }
 
+/** Server-assigned shape + colour, the same on every screen. */
+export function AvatarBadge({ competitor, size = 28 }: { competitor: Pick<CompetitorView, 'avatar'>; size?: number }) {
+  return (
+    <span className="avatar" style={{ width: size, height: size, background: avatarColor(competitor.avatar), fontSize: size * 0.55 }} aria-hidden>
+      {avatarShape(competitor.avatar)}
+    </span>
+  );
+}
+
 /** Pool ranking list: bar = share of the total fictitious hashrate. */
 export function PoolList({ competitors, meId, highlightId }: { competitors: CompetitorView[]; meId?: string; highlightId?: string | null }) {
-  const colorIndex = useColorIndex(competitors);
   if (competitors.length === 0) return <div className="muted small">Aucun concurrent pour l’instant.</div>;
   return (
     <div className="pool-list">
       {competitors.map((c) => (
         <div key={c.id} className={'pool-row' + (c.connected ? '' : ' offline') + (c.id === meId ? ' me' : '') + (c.id === highlightId ? ' flash' : '')}>
-          <div className="bar" style={{ width: `${Math.max(0, c.share * 100)}%`, background: colorFor(colorIndex.get(c.id) ?? 0) }} />
-          <div className="dot" style={{ background: colorFor(colorIndex.get(c.id) ?? 0) }} />
+          <div className="bar" style={{ width: `${Math.max(0, c.share * 100)}%`, background: avatarColor(c.avatar) }} />
+          <AvatarBadge competitor={c} size={22} />
           <div className="name" title={c.members.join(', ')}>
             {c.name}
             <span className="kind">{c.kind === 'pool' ? `pool · ${c.members.length}` : 'solo'}</span>
@@ -42,15 +50,43 @@ export function PoolList({ competitors, meId, highlightId }: { competitors: Comp
   );
 }
 
-/** Stable colour per competitor by join order (not by rank), so colours don't jump. */
-export function useColorIndex(competitors: CompetitorView[]): Map<string, number> {
-  const ref = useRef(new Map<string, number>());
-  for (const c of competitors) if (!ref.current.has(c.id)) ref.current.set(c.id, ref.current.size);
-  return ref.current;
+/**
+ * Ranking screen shown between questions (phones and board): medals for the top 3,
+ * avatar, hashrate, share and the gain of the question that just closed.
+ */
+export function Leaderboard({ competitors, meId, limit = 10, big }: { competitors: CompetitorView[]; meId?: string; limit?: number; big?: boolean }) {
+  const top = competitors.slice(0, limit);
+  const me = meId ? competitors.find((c) => c.id === meId) : undefined;
+  const meHidden = me && !top.some((c) => c.id === me.id);
+  const row = (c: CompetitorView) => (
+    <div key={c.id} className={'lb-row' + (c.rank <= 3 ? ' top' : '') + (c.id === meId ? ' me' : '')}>
+      <span className="lb-rank">{medal(c.rank)}</span>
+      <AvatarBadge competitor={c} size={big ? 40 : 30} />
+      <span className="lb-name">
+        {c.name}
+        <span className="kind">{c.kind === 'pool' ? `pool · ${c.members.length}` : 'solo'}</span>
+      </span>
+      <span className="lb-gain">{c.lastGain && c.lastGain !== '0' ? `+${ths(c.lastGain)}` : ''}</span>
+      <span className="lb-hr">
+        {ths(c.hashrate)}
+        <span className="share">{pctText(c.share)}</span>
+      </span>
+    </div>
+  );
+  return (
+    <div className={'leaderboard' + (big ? ' big' : '')}>
+      {top.map(row)}
+      {meHidden && me ? (
+        <>
+          <div className="lb-sep">…</div>
+          {row(me)}
+        </>
+      ) : null}
+    </div>
+  );
 }
 
 export function Donut({ competitors, size = 220 }: { competitors: CompetitorView[]; size?: number }) {
-  const colorIndex = useColorIndex(competitors);
   const r = 44;
   const circ = 2 * Math.PI * r;
   let acc = 0;
@@ -61,7 +97,7 @@ export function Donut({ competitors, size = 220 }: { competitors: CompetitorView
       {segs.map((c) => {
         const len = c.share * circ;
         const el = (
-          <circle key={c.id} cx="60" cy="60" r={r} fill="none" stroke={colorFor(colorIndex.get(c.id) ?? 0)} strokeWidth="16" strokeDasharray={`${len} ${circ - len}`} strokeDashoffset={-acc} transform="rotate(-90 60 60)" style={{ transition: 'stroke-dasharray .6s, stroke-dashoffset .6s' }} />
+          <circle key={c.id} cx="60" cy="60" r={r} fill="none" stroke={avatarColor(c.avatar)} strokeWidth="16" strokeDasharray={`${len} ${circ - len}`} strokeDashoffset={-acc} transform="rotate(-90 60 60)" style={{ transition: 'stroke-dasharray .6s, stroke-dashoffset .6s' }} />
         );
         acc += len;
         return el;

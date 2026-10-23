@@ -395,6 +395,10 @@ function ConfigForm({ config, onSave }: { config: SessionConfig; onSave: (p: Par
           <option value="false">non</option>
           <option value="true">oui</option>
         </select>
+        <label>Écran résultat après clôture (s)</label>
+        <input type="number" value={c.revealHoldMs / 1000} onChange={(e) => set('revealHoldMs', Math.max(0, Number(e.target.value)) * 1000)} />
+        <label>Écran classement ensuite (s, 0 = aucun)</label>
+        <input type="number" value={c.leaderboardHoldMs / 1000} onChange={(e) => set('leaderboardHoldMs', Math.max(0, Number(e.target.value)) * 1000)} />
         <label>Membres minimum par pool</label>
         <input type="number" value={c.minPoolMembers} onChange={(e) => set('minPoolMembers', Number(e.target.value))} />
       </div>

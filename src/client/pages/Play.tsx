@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PlayerView, ServerMessage } from '../../shared/views';
-import { ConnDot, Countdown, FeedBadge, PoolList } from '../components/Shared';
-import { difficultyLabel, fmtClock, pctText, ths } from '../lib/format';
+import { AvatarBadge, ConnDot, Countdown, Leaderboard, PoolList } from '../components/Shared';
+import { medal, pctText, ths } from '../lib/format';
 import { useQuizSocket, useTicker } from '../lib/ws';
 
 const LETTERS = 'ABCDEFGH';
@@ -52,7 +52,7 @@ export function Play() {
   if (!view) {
     return (
       <div className="play">
-        <TopBar conn={sock.conn} code={code} />
+        <TopBar conn={sock.conn} />
         <div className="card">{sock.conn === 'open' ? 'Chargement de la partie…' : 'Connexion au serveur…'}</div>
         {sock.lastError ? <div className="alert error">{sock.lastError.message}</div> : null}
       </div>
@@ -61,7 +61,7 @@ export function Play() {
 
   return (
     <div className="play">
-      <TopBar conn={sock.conn} code={view.code} feed={view.blockFeed} />
+      {!(view.me && (view.phase === 'question-open' || view.phase === 'question-closed')) ? <TopBar conn={sock.conn} /> : null}
       {sock.lastError ? (
         <div className="alert error" onClick={sock.clearError}>
           {sock.lastError.message}
@@ -72,17 +72,15 @@ export function Play() {
   );
 }
 
-function TopBar({ conn, code, feed }: { conn: 'connecting' | 'open' | 'closed'; code: string; feed?: PlayerView['blockFeed'] }) {
-  return (
-    <div className="topbar">
-      <span className="brand">B-only Quiz</span>
-      <span>
-        <ConnDot state={conn} />
-        {conn === 'open' ? 'connecté' : conn === 'closed' ? 'hors ligne, reconnexion…' : 'connexion…'} · partie <span className="kbd">{code || '—'}</span>
-      </span>
-      {feed ? <FeedBadge feed={feed} /> : null}
-    </div>
-  );
+function Connection({ conn }: { conn: 'connecting' | 'open' | 'closed' }) {
+  const label = conn === 'open' ? 'Connecté' : conn === 'closed' ? 'Reconnexion…' : 'Connexion…';
+  return <span className="player-connection" role="status" aria-label={label} title={label}>
+    <ConnDot state={conn} />{conn !== 'open' ? label : null}
+  </span>;
+}
+
+function TopBar({ conn }: { conn: 'connecting' | 'open' | 'closed' }) {
+  return <div className="topbar"><span className="brand">B-only Quiz</span><Connection conn={conn} /></div>;
 }
 
 function Join({ sock, view }: { sock: ReturnType<typeof useQuizSocket<PlayerView>>; view: PlayerView }) {
@@ -99,20 +97,17 @@ function Join({ sock, view }: { sock: ReturnType<typeof useQuizSocket<PlayerView
       <>
         <div className="card">
           <div className="card-title">Rejoindre la partie</div>
-          <p>Jouez en équipe (pool classique, 1 téléphone pour toute l’équipe) ou seul (Bitaxe, votre propre hashrate).</p>
+          <p>Jouez en équipe (pool classique, 1 téléphone pour toute l’équipe) ou en solo, avec votre propre hashrate.</p>
           <div className="row">
             <button className="btn grow" onClick={() => setMode('pool')}>
               Créer une pool
             </button>
             <button className="btn secondary grow" onClick={() => setMode('bitaxe')}>
-              Jouer en Bitaxe (solo)
+              Jouer en solo
             </button>
           </div>
         </div>
-        <div className="card">
-          <div className="card-title">Déjà {view.competitors.length} concurrent{view.competitors.length > 1 ? 's' : ''}</div>
-          <PoolList competitors={view.competitors} />
-        </div>
+        <p className="join-count muted small">{view.competitors.length} concurrent{view.competitors.length > 1 ? 's' : ''} inscrit{view.competitors.length > 1 ? 's' : ''}</p>
       </>
     );
   }
@@ -120,16 +115,16 @@ function Join({ sock, view }: { sock: ReturnType<typeof useQuizSocket<PlayerView
   if (mode === 'bitaxe') {
     return (
       <div className="card">
-        <div className="card-title">Bitaxe individuel</div>
+        <div className="card-title">Jouer en solo</div>
         <p>Vous jouez seul, avec votre propre hashrate et vos propres chances. Vous apparaîtrez comme « Bitaxe n ».</p>
         <label className="small muted">Votre prénom ou pseudo (facultatif, pour la remise des lots)</label>
-        <input className="input" value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Prénom ou pseudo" />
+        <input className="input" value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Prénom ou pseudo" aria-label="Prénom ou pseudo" maxLength={40} />
         <div className="row" style={{ marginTop: 12 }}>
           <button className="btn ghost" onClick={() => setMode('choose')}>
             Retour
           </button>
           <button className="btn grow" onClick={() => sock.send({ type: 'join-bitaxe', owner })}>
-            Rejoindre comme Bitaxe
+            Rejoindre la partie
           </button>
         </div>
       </div>
@@ -164,167 +159,234 @@ function Join({ sock, view }: { sock: ReturnType<typeof useQuizSocket<PlayerView
   );
 }
 
+// Show the exact credited nano-TH/s, trimming only insignificant zeroes.
+function playerThs(nano: string): string {
+  return ths(nano, { unit: false, maxFrac: 9 }).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '').replace('.', ',') + ' TH/s';
+}
+
 function Game({ sock, view }: { sock: ReturnType<typeof useQuizSocket<PlayerView>>; view: PlayerView }) {
   const me = view.me!;
   const q = view.question;
   const [pending, setPending] = useState<{ optionIndex: number; clientId: string } | null>(null);
-  const [ack, setAck] = useState<{ accepted: boolean; reason?: string; optionIndex: number; serverAt: number; questionId: string } | null>(null);
+  const pendingRef = useRef(pending);
+  pendingRef.current = pending;
+  const [ack, setAck] = useState<Extract<ServerMessage, { type: 'answer-ack' }> | null>(null);
   useTicker(250);
 
-  useEffect(() => {
-    return sock.onMessage((m) => {
-      if (m.type === 'answer-ack') {
-        setPending((p) => (p && p.clientId === m.clientId ? null : p));
-        setAck({ accepted: m.accepted, reason: m.reason, optionIndex: m.optionIndex, serverAt: m.serverAt, questionId: m.questionId });
-      }
-    });
-  }, [sock]);
+  useEffect(() => sock.onMessage((m) => {
+    // Ignore older replies while a newer choice is in flight.
+    if (m.type === 'answer-ack' && pendingRef.current?.clientId === m.clientId) {
+      pendingRef.current = null;
+      setPending(null);
+      setAck(m);
+    }
+    // A fresh server snapshot after reconnect is authoritative even if an ack was lost.
+    if (m.type === 'hello-ok') {
+      pendingRef.current = null;
+      setPending(null);
+      setAck(null);
+    }
+  }), [sock.onMessage]);
 
-  // Reset local answer state when a new question opens.
   useEffect(() => {
+    pendingRef.current = null;
     setPending(null);
     setAck(null);
   }, [q?.question.id, q?.openedAt]);
 
-  const open = q && !q.closed && view.phase === 'question-open' && q.closesAt > sock.serverNow();
-  const selected = pending?.optionIndex ?? view.myAnswer?.optionIndex;
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [q?.question.id, q?.openedAt, q?.closed]);
+
+  const questionPhase = !!q && (view.phase === 'question-open' || view.phase === 'question-closed');
+  const waiting = view.phase === 'lobby' || view.phase === 'round-ready';
+  const roundOver = view.phase === 'round-ended' || view.phase === 'finished';
+  const focused = questionPhase || waiting || roundOver;
+  // After the close: personal result (revealHoldMs), then the ranking with its own timer (leaderboardHoldMs).
+  const nowS = sock.serverNow();
+  const closedAt = q?.closedAt ?? 0;
+  const resultUntil = closedAt + view.config.revealHoldMs;
+  const lbUntil = resultUntil + view.config.leaderboardHoldMs;
+  const showLeaderboard = !!q && q.closed && view.phase === 'question-closed' && nowS >= resultUntil;
+  const lbTimerRunning = showLeaderboard && nowS < lbUntil && view.config.leaderboardHoldMs > 0;
+  const open = !!q && !q.closed && view.phase === 'question-open' && q.closesAt > sock.serverNow();
+  const canAnswer = open && sock.conn === 'open';
+  const currentAck = ack?.questionId === q?.question.id ? ack : null;
+  const confirmedOption = !q?.closed && currentAck?.accepted ? currentAck.optionIndex : view.myAnswer?.optionIndex;
+  const selected = q?.closed ? view.myAnswer?.optionIndex : pending?.optionIndex ?? confirmedOption;
   const myGain = q?.results?.gains.find((g) => g.competitorId === me.id);
   const names = useMemo(() => new Map(view.competitors.map((c) => [c.id, c.name])), [view.competitors]);
 
   const answer = (i: number) => {
-    if (!q || !open) return;
-    const clientId = Math.random().toString(36).slice(2);
-    setPending({ optionIndex: i, clientId });
-    sock.send({ type: 'answer', questionId: q.question.id, optionIndex: i, clientId });
+    if (!q || !canAnswer) return;
+    const next = { optionIndex: i, clientId: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}` };
+    pendingRef.current = next;
+    setPending(next);
+    setAck(null);
+    sock.send({ type: 'answer', questionId: q.question.id, ...next });
   };
 
   const status = (() => {
-    if (!q) return null;
+    if (!q || q.closed) return null;
+    if (sock.conn !== 'open') return <span className="status-line err">Connexion interrompue · vérification de votre réponse à la reconnexion.</span>;
     if (pending) return <span className="status-line">Envoi de la réponse {LETTERS[pending.optionIndex]}…</span>;
-    if (ack && ack.questionId === q.question.id && !ack.accepted) {
-      const why = ack.reason === 'closed' ? 'trop tard, le temps était écoulé' : ack.reason === 'stale-question' ? 'question déjà passée' : ack.reason;
-      return <span className="status-line err">Réponse refusée ({why}).</span>;
+    if (currentAck && !currentAck.accepted) {
+      const why = currentAck.reason === 'closed' ? 'le temps est écoulé' : currentAck.reason === 'stale-question' ? 'la question est passée' : 'réessayez';
+      return <span className="status-line err">Réponse {LETTERS[currentAck.optionIndex]} refusée · {why}.{view.myAnswer ? ` Réponse ${LETTERS[view.myAnswer.optionIndex]} conservée.` : ''}</span>;
     }
-    if (view.myAnswer) {
-      return (
-        <span className="status-line ok">
-          Réponse {LETTERS[view.myAnswer.optionIndex]} enregistrée à {fmtClock(view.myAnswer.lastAt)}
-          {view.myAnswer.changes > 0 ? ` (modifiée ${view.myAnswer.changes}×)` : ''}
-          {open ? ', modifiable jusqu’à la fin du compte à rebours' : ''}
-        </span>
-      );
-    }
-    if (open) return <span className="status-line">Aucune réponse envoyée pour l’instant.</span>;
-    return <span className="status-line">Pas de réponse enregistrée.</span>;
+    if (confirmedOption !== undefined) return <span className="status-line ok">Réponse {LETTERS[confirmedOption]} enregistrée{open ? ' · modifiable jusqu’à la fin' : ' · en attente du résultat'}</span>;
+    return <span className="status-line">{open ? 'Choisissez votre réponse.' : 'Temps écoulé · en attente du résultat.'}</span>;
   })();
 
   return (
     <>
-      <div className="card me-card">
-        <div>
-          <div style={{ fontWeight: 800, fontSize: 18 }}>{me.name}</div>
-          <div className="small muted">
-            {me.kind === 'pool' ? `Pool · ${me.members.join(', ')}` : me.members[0] ? `Bitaxe · ${me.members[0]}` : 'Bitaxe'} · rang {me.rank}/{view.competitors.length} · {pctText(me.share)} du hashrate
-          </div>
+      {questionPhase ? (
+        <header className="player-header">
+          <span className="player-name"><AvatarBadge competitor={me} size={22} /> {me.name}</span>
+          <span className="player-header-end">
+            {!q?.closed ? <span className="player-balance">{ths(me.hashrate)}</span> : null}
+            <Connection conn={sock.conn} />
+          </span>
+        </header>
+      ) : !waiting && !roundOver ? (
+        <div className="card me-card player-identity">
+          <div><div className="player-name"><AvatarBadge competitor={me} size={22} /> {me.name}</div><div className="small muted">Rang {me.rank}/{view.competitors.length} · {pctText(me.share)} du hashrate</div></div>
+          <div className="hr">{playerThs(me.hashrate)}</div>
         </div>
-        <div className="hr">{ths(me.hashrate)}</div>
-      </div>
+      ) : null}
 
-      {q && (view.phase === 'question-open' || view.phase === 'question-closed') ? (
-        <div className="card">
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <div>
-              <div className="card-title" style={{ margin: 0 }}>
-                {view.rounds[q.roundIndex]?.title} · question {q.questionIndex + 1}/{q.questionTotal}
-              </div>
-              <span className={'badge ' + q.question.difficulty}>{difficultyLabel[q.question.difficulty]} · {view.config.baseGainThs[q.question.difficulty]} TH/s</span>
-              {q.question.demo ? <span className="badge sim" style={{ marginLeft: 6 }}>démo</span> : null}
-            </div>
-            {open ? <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={sock.serverNow} small /> : <span className="badge">{q.cancelled ? 'Annulée' : 'Terminée'}</span>}
+      {q && questionPhase ? (
+        <section className="player-question" aria-label={q.closed ? 'Résultat' : 'Question en cours'}>
+          <div className="question-heading">
+            <span className="question-progress">Question {q.questionIndex + 1} / {q.questionTotal}</span>
+            {q.question.demo ? <span className="badge sim">Démo</span> : null}
+            {open ? <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={sock.serverNow} small /> : null}
           </div>
-          <div className="question-text">{q.question.text}</div>
-          <div className="options">
-            {q.question.options.map((opt, i) => {
-              const revealed = q.closed && q.question.correctIndex !== undefined;
-              const cls = ['option'];
-              if (!revealed && selected === i) cls.push('selected');
-              if (revealed) {
-                if (i === q.question.correctIndex) cls.push('correct');
-                else if (selected === i) cls.push('wrong');
-                else cls.push('dim');
-              }
-              return (
-                <button key={i} className={cls.join(' ')} disabled={!open} onClick={() => answer(i)}>
-                  <span className="letter">{LETTERS[i]}</span>
-                  <span>{opt}</span>
-                </button>
-              );
-            })}
-          </div>
-          <div style={{ marginTop: 10 }}>{status}</div>
-          {q.closed && !q.cancelled ? (
-            <div className="alert ok" style={{ marginTop: 10 }}>
-              {myGain ? (
-                <>
-                  Bonne réponse, rang {myGain.rank}{myGain.tied ? ' (ex æquo)' : ''} parmi les bonnes réponses, bonus +{myGain.bonusPercent.replace('.', ',')} %. Gain {ths(myGain.gain)}.
-                </>
-              ) : view.myAnswer ? (
-                <>Mauvaise réponse, 0 TH/s. Aucune pénalité.</>
-              ) : (
-                <>Pas de réponse, 0 TH/s. Aucune pénalité.</>
-              )}
-              {q.question.explanation ? <div className="small muted" style={{ marginTop: 6 }}>{q.question.explanation}</div> : null}
-            </div>
-          ) : null}
-        </div>
-      ) : (
-        <div className="card">
-          <div className="card-title">{phaseLabel(view)}</div>
-          <p className="muted small">{view.phase === 'lobby' ? 'L’animateur va lancer la première manche. Gardez cette page ouverte.' : view.phase === 'round-ready' ? 'La manche commence, première question imminente.' : 'Manche terminée, regardez l’écran pour les tirages.'}</p>
-        </div>
-      )}
-
-      {view.lastBlockBonus && view.lastBlockBonus.roundIndex === view.currentRoundIndex ? (
-        <div className="card small">
-          <span className="badge" style={{ marginRight: 8 }}>{view.lastBlockBonus.origin === 'simulated' ? 'Bloc simulé' : 'Bloc réel'} {view.lastBlockBonus.height.toLocaleString('fr-FR')}</span>
-          {view.lastBlockBonus.winnerId ? (
+          <div className="progress" aria-hidden><div style={{ width: `${((q.questionIndex + 1) / Math.max(1, q.questionTotal)) * 100}%` }} /></div>
+          {showLeaderboard ? (
             <>
-              bonus +{view.config.blockBonusPercent.replace('.', ',')} % pour <b>{names.get(view.lastBlockBonus.winnerId) ?? '?'}</b> ({ths(view.lastBlockBonus.bonus)})
+              <div className="phase-head">
+                <div className="card-title">Classement après la question {q.questionIndex + 1}</div>
+                {lbTimerRunning ? <Countdown closesAt={lbUntil} durationMs={view.config.leaderboardHoldMs} serverNow={sock.serverNow} small /> : <span className="small muted">Prochaine question bientôt</span>}
+              </div>
+              <Leaderboard competitors={view.competitors} meId={me.id} />
+              {!q.cancelled && q.question.correctIndex !== undefined ? (
+                <details className="answer-details" style={{ marginTop: 14 }}>
+                  <summary>Revoir la question</summary>
+                  <p className="review-question">{q.question.text}</p>
+                  <p className="correct-answer"><span aria-hidden="true">✓</span>{q.question.options[q.question.correctIndex]}</p>
+                  {q.question.explanation ? <p className="answer-explanation">{q.question.explanation}</p> : null}
+                </details>
+              ) : null}
+            </>
+          ) : q.closed ? (
+            <>
+              <div className={'player-result ' + (myGain && !q.cancelled ? 'success' : 'neutral')} role="status">
+                <h1 className="result-title">{q.cancelled ? 'Question annulée' : myGain ? 'Bonne réponse !' : view.myAnswer ? 'Mauvaise réponse' : 'Pas de réponse'}</h1>
+                {myGain && !q.cancelled ? (
+                  <>
+                    <div className="result-gain">+{playerThs(myGain.gain)}</div>
+                    <p className="result-breakdown">{playerThs(myGain.base)} + {playerThs((BigInt(myGain.gain) - BigInt(myGain.base)).toString())} de rapidité</p>
+                  </>
+                ) : <p className="result-breakdown">Votre hashrate est conservé.</p>}
+                <p className="result-total">Votre total <strong>{playerThs(me.hashrate)}</strong></p>
+              </div>
+              {!q.cancelled && q.question.correctIndex !== undefined ? (
+                <div className="answer-review">
+                  <p className="review-question">{q.question.text}</p>
+                  <p className="correct-answer"><span aria-hidden="true">✓</span>{q.question.options[q.question.correctIndex]}</p>
+                  {view.myAnswer && !myGain ? <p className="previous-answer">Votre réponse · {q.question.options[view.myAnswer.optionIndex]}</p> : null}
+                  {q.question.explanation ? (
+                    <details className="answer-details" key={`${q.question.id}-${q.openedAt}`}>
+                      <summary>Pourquoi ?</summary>
+                      <p className="answer-explanation">{q.question.explanation}</p>
+                    </details>
+                  ) : null}
+                </div>
+              ) : null}
             </>
           ) : (
-            'aucun concurrent éligible'
+            <>
+              <h1 className="question-text">{q.question.text}</h1>
+              <div className="options">
+                {q.question.options.map((opt, i) => (
+                  <button key={i} className={'option' + (selected === i ? ' selected' : '')} disabled={!canAnswer} aria-pressed={selected === i} onClick={() => answer(i)}>
+                    <span className="letter">{LETTERS[i]}</span><span>{opt}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="answer-status" role="status" aria-live="polite">{status}</div>
+            </>
           )}
-        </div>
-      ) : null}
+        </section>
+      ) : waiting ? (
+        <section className="player-waiting" aria-label="Salle d’attente">
+          <p className="waiting-name">{me.name}</p>
+          <div className="waiting-check" aria-hidden="true">✓</div>
+          <h1>{me.kind === 'pool' ? 'Vous êtes inscrits' : 'Vous êtes inscrit'}</h1>
+          <p className="muted">{view.phase === 'lobby' ? 'La partie va commencer.' : 'La première question arrive.'}</p>
+          <details className="waiting-help">
+            <summary>Comment jouer ?</summary>
+            <ul className="waiting-rules">
+              <li>Chaque bonne réponse augmente votre hashrate.</li>
+              <li>La rapidité apporte un bonus.</li>
+              <li>Vous pouvez modifier votre réponse jusqu’à la fin du compte à rebours.</li>
+            </ul>
+          </details>
+        </section>
+      ) : roundOver ? (
+        <FinalScreen view={view} />
+      ) : (
+        <div className="card"><div className="card-title">{phaseLabel(view)}</div><p className="muted small">Regardez l’écran pour les tirages.</p></div>
+      )}
 
-      <div className="card">
-        <div className="card-title">Hashrate du quiz (fictif), {view.rounds[view.currentRoundIndex]?.title ?? 'avant la 1re manche'}</div>
-        <PoolList competitors={view.competitors} meId={me.id} />
-      </div>
-
-      {view.prizeSeries.length > 0 ? (
-        <div className="card">
-          <div className="card-title">Lots</div>
-          {view.prizeSeries.map((s) => (
-            <div key={s.id} className="small">
-              {s.awards.map((a) => {
-                const prize = s.prizes.find((p) => p.id === a.prizeId);
-                return (
-                  <div key={a.prizeId}>
-                    {prize?.label} → <b>{a.winnerId ? names.get(a.winnerId) ?? '?' : 'non attribué'}</b>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      <details className="card">
-        <summary className="small">Modifier l’équipe</summary>
-        <EditMe sock={sock} view={view} />
-      </details>
+      {!focused ? <>
+        {view.lastBlockBonus && view.lastBlockBonus.roundIndex === view.currentRoundIndex ? (
+          <div className="card small">
+            <span className="badge">{view.lastBlockBonus.origin === 'simulated' ? 'Bloc simulé' : 'Bloc réel'} {view.lastBlockBonus.height.toLocaleString('fr-FR')}</span>{' '}
+            {view.lastBlockBonus.winnerId ? <>bonus +{view.config.blockBonusPercent.replace('.', ',')} % pour <b>{names.get(view.lastBlockBonus.winnerId) ?? '?'}</b> ({ths(view.lastBlockBonus.bonus)})</> : 'aucun concurrent éligible'}
+          </div>
+        ) : null}
+        <div className="card"><div className="card-title">Hashrate du quiz (fictif), {view.rounds[view.currentRoundIndex]?.title ?? 'avant la 1re manche'}</div><PoolList competitors={view.competitors} meId={me.id} /></div>
+        {view.prizeSeries.length > 0 ? <div className="card"><div className="card-title">Lots</div>{view.prizeSeries.map((s) => <div key={s.id} className="small">{s.awards.map((a) => <div key={a.prizeId}>{s.prizes.find((p) => p.id === a.prizeId)?.label} → <b>{a.winnerId ? names.get(a.winnerId) ?? '?' : 'non attribué'}</b></div>)}</div>)}</div> : null}
+      </> : null}
+      {!questionPhase ? <details className="player-profile"><summary>{me.kind === 'pool' ? 'Mon équipe' : 'Mon profil'}</summary><EditMe sock={sock} view={view} /></details> : null}
     </>
+  );
+}
+
+/** Personal end-of-round screen: rank, final hashrate, share, prizes won, top 10. */
+function FinalScreen({ view }: { view: PlayerView }) {
+  const me = view.me!;
+  const round = view.rounds[view.currentRoundIndex];
+  const names = new Map(view.competitors.map((c) => [c.id, c.name]));
+  const myPrizes = view.prizeSeries
+    .filter((s) => s.roundIndexes.includes(view.currentRoundIndex))
+    .flatMap((s) => s.awards.filter((a) => a.winnerId === me.id).map((a) => s.prizes.find((p) => p.id === a.prizeId)?.label ?? 'Lot'));
+  const remaining = view.rounds.filter((r) => r.status === 'pending').length;
+  return (
+    <section className="card final" aria-label="Résultat de la manche">
+      <div className="card-title">{view.phase === 'finished' ? 'Partie terminée' : `${round?.title ?? 'Manche'} terminée`}</div>
+      <div className="result" style={{ padding: '8px 0 4px' }}>
+        <AvatarBadge competitor={me} size={64} />
+        <div className="headline">{me.name}</div>
+        <div className="big-num">{medal(me.rank)}{me.rank > 3 ? `/${view.competitors.length}` : ''}</div>
+        <div className="detail">{me.rank <= 3 ? `${me.rank}${me.rank === 1 ? 'er' : 'e'} sur ${view.competitors.length}` : 'au classement de la manche'}</div>
+      </div>
+      <div className="stats">
+        <div className="stat"><div className="label">Hashrate final</div><div className="value">{ths(me.hashrate)}</div></div>
+        <div className="stat"><div className="label">Part du total</div><div className="value">{pctText(me.share)}</div></div>
+      </div>
+      {myPrizes.length > 0 ? myPrizes.map((label, i) => <div key={i} className="prize-won">🎁 Vous gagnez : {label}</div>) : view.prizeSeries.some((s) => s.roundIndexes.includes(view.currentRoundIndex)) ? <p className="small muted">Pas de lot cette fois. Chances = part du hashrate final.</p> : <p className="small muted">Les tirages des lots arrivent sur l’écran. Vos chances valent votre part du hashrate.</p>}
+      <div className="card-title" style={{ marginTop: 14 }}>Top 10 de la manche</div>
+      <Leaderboard competitors={view.competitors} meId={me.id} />
+      {view.prizeSeries.filter((s) => s.roundIndexes.includes(view.currentRoundIndex)).map((s) => (
+        <div key={s.id} className="small" style={{ marginTop: 10 }}>
+          {s.awards.map((a) => <div key={a.prizeId}>{s.prizes.find((p) => p.id === a.prizeId)?.label} → <b>{a.winnerId ? names.get(a.winnerId) ?? '?' : 'non attribué'}</b></div>)}
+        </div>
+      ))}
+      <p className="small muted" style={{ marginTop: 12 }}>{remaining > 0 ? `${remaining} manche${remaining > 1 ? 's' : ''} à venir, tout le monde repart de ${view.config.initialHashrateThs} TH/s.` : 'Merci d’avoir joué.'}</p>
+    </section>
   );
 }
 

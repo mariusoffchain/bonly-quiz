@@ -1,5 +1,5 @@
 import { nanoFromJSON, shareOf } from './hashrate.js';
-import type { BlockBonusEvent, BlockFeedStatus, BlockInfo, Competitor, GameEvent, Phase, PrizeSeries, Question, QuestionRun, RoundDef, RoundState, SessionConfig, SessionState } from './types.js';
+import type { Avatar, BlockBonusEvent, BlockFeedStatus, BlockInfo, Competitor, GameEvent, Phase, PrizeSeries, Question, QuestionRun, RoundDef, RoundState, SessionConfig, SessionState } from './types.js';
 
 /** Competitor as shown on boards and phones (no token). */
 export interface CompetitorView {
@@ -8,8 +8,12 @@ export interface CompetitorView {
   name: string;
   members: string[];
   bitaxeNumber?: number;
+  avatar: Avatar;
   connected: boolean;
   hashrate: string; // nano, current round (or final of last round)
+  /** Gain credited on the last closed question of the round (nano), for the ranking screen. */
+  lastGain?: string;
+  lastRank?: number;
   share: number; // 0..1 of the total
   rank: number; // 1-based by hashrate
 }
@@ -34,6 +38,7 @@ export interface QuestionView {
   question: PublicQuestion;
   openedAt: number;
   closesAt: number;
+  closedAt?: number;
   durationMs: number;
   closed: boolean;
   cancelled?: boolean;
@@ -97,17 +102,25 @@ function rankedCompetitors(state: SessionState): { list: CompetitorView[]; total
   const withHr = active.map((c) => ({ c, hr: nanoFromJSON(source[c.id] ?? '0') }));
   const total = withHr.reduce((s, x) => s + x.hr, 0n);
   withHr.sort((a, b) => (a.hr === b.hr ? a.c.joinedAt - b.c.joinedAt : a.hr > b.hr ? -1 : 1));
-  const list = withHr.map((x, i) => ({
-    id: x.c.id,
-    kind: x.c.kind,
-    name: x.c.name,
-    members: x.c.members,
-    bitaxeNumber: x.c.bitaxeNumber,
-    connected: x.c.connected,
-    hashrate: x.hr.toString(),
-    share: shareOf(x.hr, total),
-    rank: i + 1,
-  }));
+  const lastRun = round && round.currentQuestion >= 0 ? round.questionRuns[round.currentQuestion] : undefined;
+  const lastGains = new Map((lastRun?.results?.gains ?? []).map((g) => [g.competitorId, g]));
+  const list = withHr.map((x, i) => {
+    const g = lastGains.get(x.c.id);
+    return {
+      id: x.c.id,
+      kind: x.c.kind,
+      name: x.c.name,
+      members: x.c.members,
+      bitaxeNumber: x.c.bitaxeNumber,
+      avatar: x.c.avatar,
+      connected: x.c.connected,
+      hashrate: x.hr.toString(),
+      share: shareOf(x.hr, total),
+      rank: i + 1,
+      lastGain: g?.gain,
+      lastRank: g?.rank,
+    };
+  });
   return { list, total };
 }
 
@@ -134,6 +147,7 @@ function questionView(state: SessionState, revealToConsole: boolean): QuestionVi
     question: publicQuestion(q, closed || revealToConsole),
     openedAt: run.openedAt,
     closesAt: run.closesAt,
+    closedAt: run.closedAt,
     durationMs: run.durationMs,
     closed,
     cancelled: run.cancelled,
