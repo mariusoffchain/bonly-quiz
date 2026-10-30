@@ -16,6 +16,13 @@ Les questions des packs `content/questions/bonly-21-fr.json` et
 auteur, son identifiant et son lien dans le champ `source`. Toute redistribution de ces packs
 doit conserver l'attribution et la même licence.
 
+## B-Only
+
+L'identité visuelle (couleurs, typographie, filets, trame de points) reprend celle du site
+[b-only.org](https://b-only.org/). L'illustration `src/client/assets/mountains.webp`
+provient de ce site et a été fournie par l'organisation de B-Only (association AlpineChain)
+pour ce quiz ; elle n'est pas couverte par la licence AGPL du code.
+
 ## Polices
 
-Inter et JetBrains Mono sont chargées depuis Google Fonts (SIL Open Font License).
+JetBrains Mono et Silkscreen sont chargées depuis Google Fonts (SIL Open Font License).

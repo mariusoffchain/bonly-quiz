@@ -1,5 +1,5 @@
 import type { BoardView } from '../../shared/views';
-import { ConnBadge, Countdown, Mining, NetworkBar, Rules, Standings, Swatch } from '../components/ui';
+import { ConnBadge, Countdown, Label, Mining, Mountains, NetworkBar, Rules, Standings, Swatch, Wordmark } from '../components/ui';
 import { LETTERS, difficultyLabel, pct, seconds, ths } from '../lib/format';
 import { useQuizSocket } from '../lib/ws';
 
@@ -24,7 +24,7 @@ function Head({ view }: { view: BoardView }) {
   const done = view.phase === 'final' ? view.questionTotal : q ? q.index + (view.phase === 'question' ? 0 : 1) : 0;
   return (
     <header className="board-head">
-      <span className="wordmark">B-only quiz</span>
+      <Wordmark />
       <span className="muted">
         {view.phase === 'lobby' ? `${view.questionTotal} questions` : view.phase === 'final' ? 'Fin du quiz' : `Question ${q!.index + 1} / ${view.questionTotal}`}
       </span>
@@ -50,6 +50,7 @@ function Lobby({ view }: { view: BoardView }) {
         <figcaption className="mono">{view.joinUrl.replace(/^https?:\/\//, '')}</figcaption>
       </figure>
       <section className="lobby-text">
+        <Label>{view.questionTotal} questions sur Bitcoin</Label>
         <h1>Scannez pour jouer.</h1>
         <Rules config={view.config} />
         <div className="names">
@@ -61,6 +62,7 @@ function Lobby({ view }: { view: BoardView }) {
           ))}
         </div>
       </section>
+      <Mountains />
     </main>
   );
 }
@@ -71,9 +73,9 @@ function Question({ view, serverNow }: { view: BoardView; serverNow: () => numbe
   return (
     <main className="question">
       <div className="q-meta">
-        <span className="muted">
-          {difficultyLabel[q.difficulty]} · {q.baseGain} TH/s
-        </span>
+        <Label>
+          Question {q.index + 1} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH/s
+        </Label>
         <span className="muted">
           {q.answerCount} / {n} réponses
         </span>
@@ -99,6 +101,7 @@ function Reveal({ view }: { view: BoardView }) {
   return (
     <main className="split">
       <section>
+        <Label>Question {q.index + 1} · réponse</Label>
         <h2 className="q-mid">{q.text}</h2>
         {q.cancelled ? <p className="muted">Question annulée, aucun point.</p> : null}
         <ol className="results">
@@ -124,7 +127,7 @@ function Reveal({ view }: { view: BoardView }) {
         ) : null}
       </section>
       <aside>
-        <h3>Meilleurs gains</h3>
+        <Label>Meilleurs gains</Label>
         {q.top && q.top.length > 0 ? (
           <table className="standings">
             <tbody>
@@ -149,7 +152,7 @@ function Reveal({ view }: { view: BoardView }) {
         ) : (
           <p className="muted">Personne n’a trouvé.</p>
         )}
-        <h3>Classement</h3>
+        <Label>Classement</Label>
         <NetworkBar players={view.players} />
         <Standings players={view.players} limit={8} showGain />
       </aside>
@@ -168,6 +171,7 @@ function Final({ view, serverNow }: { view: BoardView; serverNow: () => number }
           <Mining block={last} players={view.players} serverNow={serverNow} />
         ) : (
           <div className="final-intro">
+            <Label>Fin du quiz</Label>
             <h1>Le minage</h1>
             <p>Chacun a une chance de trouver le bloc égale à sa part du hashrate. Le premier est favori, pas gagnant.</p>
             <NetworkBar players={view.players} />
@@ -186,11 +190,11 @@ function Final({ view, serverNow }: { view: BoardView; serverNow: () => number }
         )}
       </section>
       <aside>
-        <h3>Classement final</h3>
+        <Label>Classement final</Label>
         <Standings players={view.players} limit={12} winners={found.map((b) => b.winnerId ?? '')} />
         {found.length > 0 ? (
           <>
-            <h3>Blocs</h3>
+            <Label>Blocs</Label>
             <table className="standings">
               <tbody>
                 {found.map((b) => {
@@ -211,6 +215,7 @@ function Final({ view, serverNow }: { view: BoardView; serverNow: () => number }
           </>
         ) : null}
       </aside>
+      <Mountains />
     </main>
   );
 }

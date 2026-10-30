@@ -10,6 +10,6 @@ export const LETTERS = ['A', 'B', 'C', 'D'];
 
 export const difficultyLabel = { easy: 'facile', intermediate: 'moyenne', hard: 'difficile' } as const;
 
-/** Player colours, indexed by Player.color. Distinct but muted, so the accent stays the accent. */
-const PALETTE = ['#d9a25f', '#7d9fc9', '#8fb87a', '#c98aa6', '#6fb3ad', '#a593c9', '#cfc26b', '#c97f6b', '#8ab7cf', '#b5b08f', '#c7a0d6', '#9aa3a8'];
+/** Player colours, indexed by Player.color: the orange, mauve, gold and mountain tones of the B-Only site, then neutrals. */
+const PALETTE = ['#f6751b', '#955c6b', '#c49b55', '#c2405a', '#3d5a80', '#e3a8b7', '#6b7d4f', '#7a4e9c', '#3a3a3a', '#d98b5f', '#4f8a8b', '#a8573f'];
 export const playerColor = (i: number) => PALETTE[((i % PALETTE.length) + PALETTE.length) % PALETTE.length];

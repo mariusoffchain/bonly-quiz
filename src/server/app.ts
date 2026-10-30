@@ -173,7 +173,7 @@ export class App {
       if (url.pathname === '/api/health') return json(res, { ok: true, version: VERSION, session: this.game.state.code, phase: this.game.phase });
       if (url.pathname === '/api/qr.svg') {
         const text = url.searchParams.get('text') || this.joinUrl();
-        const svg = await QRCode.toString(text, { type: 'svg', margin: 1, color: { dark: '#111110', light: '#ffffff' } });
+        const svg = await QRCode.toString(text, { type: 'svg', margin: 1, color: { dark: '#141827', light: '#ffffff' } });
         res.writeHead(200, { 'content-type': 'image/svg+xml', 'cache-control': 'no-store' });
         return void res.end(svg);
       }

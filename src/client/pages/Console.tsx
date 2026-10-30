@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import type { SessionConfig } from '../../shared/config';
 import type { ConsoleView } from '../../shared/views';
-import { ConnBadge, Countdown, Swatch } from '../components/ui';
+import { ConnBadge, Countdown, Swatch, Wordmark } from '../components/ui';
 import { LETTERS, difficultyLabel, pct, ths } from '../lib/format';
 import { useQuizSocket } from '../lib/ws';
 
@@ -57,7 +57,7 @@ function Login({ onToken }: { onToken: (t: string) => void }) {
   };
   return (
     <form className="narrow" onSubmit={(e) => void check(e)}>
-      <h1 className="wordmark">Console</h1>
+      <Wordmark size="lg" />
       <input className="input" placeholder="Jeton" value={t} onChange={(e) => setT(e.target.value)} autoFocus />
       <button className="btn primary">Entrer</button>
       {err ? <p className="error">{err}</p> : null}
@@ -108,9 +108,9 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
     <div className="console">
       <ConnBadge conn={sock.conn} />
       <header className="console-head">
-        <span className="wordmark">Console</span>
+        <Wordmark />
         <span className="muted">
-          {view.code} · {view.packName}
+          console · {view.code} · {view.packName}
         </span>
         <nav>
           <a href="/board" target="_blank" rel="noreferrer">

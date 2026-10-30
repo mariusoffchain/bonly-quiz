@@ -1,7 +1,9 @@
+import { Wordmark } from '../components/ui';
+
 export function Home() {
   return (
     <main className="narrow">
-      <h1 className="wordmark">B-only quiz</h1>
+      <Wordmark size="lg" />
       <ul className="links">
         <li>
           <a href="/play">Jouer</a>

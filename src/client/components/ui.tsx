@@ -1,7 +1,30 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { BlockPublic, PlayerPublic, PublicConfig } from '../../shared/views';
 import { pct, playerColor, ths } from '../lib/format';
 import { remaining, useTicker } from '../lib/ws';
+
+import mountainsUrl from '../assets/mountains.webp';
+
+export function Wordmark({ size = 'md' }: { size?: 'md' | 'lg' }) {
+  return (
+    <span className={'wordmark ' + size}>
+      <span className="pixel">B-ONLY</span> quiz
+    </span>
+  );
+}
+
+/** Section label in the site's style: "// texte". */
+export function Label({ children }: { children: ReactNode }) {
+  return (
+    <p className="label">
+      <span className="slashes">//</span> {children}
+    </p>
+  );
+}
+
+export function Mountains() {
+  return <img className="mountains" src={mountainsUrl} alt="" aria-hidden />;
+}
 
 export function Swatch({ color }: { color: number }) {
   return <span className="swatch" style={{ background: playerColor(color) }} aria-hidden />;
@@ -140,7 +163,7 @@ export function Mining({
     const mine = meId ? candidates.find((c) => c.id === meId) : undefined;
     return (
       <div className={'mining' + (compact ? ' compact' : '')}>
-        <p className="muted">{title}</p>
+        <Label>{title}</Label>
         <p className="mining-status">Minage en cours</p>
         <p className="mono muted">nonce {Math.floor(elapsed * 9871).toLocaleString('fr-FR')}</p>
         {meId ? <p>{mine ? `Vos chances : ${pct(mine.share)}` : 'Vous ne participez pas à ce tirage.'}</p> : null}
@@ -163,7 +186,7 @@ export function Mining({
   const isMe = !!meId && meId === block.winnerId;
   return (
     <div className={'found' + (compact ? ' compact' : '')}>
-      <p className="muted">{title}</p>
+      <Label>{title}</Label>
       {winner ? (
         <>
           <p className="winner">{isMe ? 'Vous' : winner.name}</p>

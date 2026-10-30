@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { PlayerView } from '../../shared/views';
-import { ConnBadge, Countdown, Mining, NetworkBar, Rules } from '../components/ui';
+import { ConnBadge, Countdown, Label, Mining, NetworkBar, Rules, Wordmark } from '../components/ui';
 import { LETTERS, difficultyLabel, pct, seconds, ths } from '../lib/format';
 import { useQuizSocket, useTicker } from '../lib/ws';
 
@@ -129,7 +129,7 @@ function Join({ view, onJoin, conn, error }: { view: PlayerView; onJoin: (name: 
     <div className="phone">
       <ConnBadge conn={conn} />
       <main className="phone-body join">
-        <h1 className="wordmark">B-only quiz</h1>
+        <Wordmark size="lg" />
         <p>
           {view.questionTotal} questions sur Bitcoin. Les bonnes réponses rapportent du hashrate, et à la fin on mine un bloc.
         </p>
@@ -167,9 +167,9 @@ function QuestionPad({
   const timeUp = serverNow() >= q.closesAt;
   return (
     <>
-      <p className="muted small">
+      <Label>
         Question {q.index + 1}/{q.total} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH/s
-      </p>
+      </Label>
       <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={serverNow} />
       <h2 className="q-text">{q.text}</h2>
       <div className="answers">
@@ -247,17 +247,17 @@ function Standing({ view }: { view: PlayerView }) {
     <section className="standing">
       <div className="figures">
         <div>
-          <span className="label">Hashrate</span>
+          <span className="cap">Hashrate</span>
           <span className="value">{ths(me.hashrate)}</span>
         </div>
         <div>
-          <span className="label">Rang</span>
+          <span className="cap">Rang</span>
           <span className="value">
             {me.rank}/{view.players.length}
           </span>
         </div>
         <div>
-          <span className="label">Chances de bloc</span>
+          <span className="cap">Chances</span>
           <span className="value">{pct(me.share)}</span>
         </div>
       </div>
