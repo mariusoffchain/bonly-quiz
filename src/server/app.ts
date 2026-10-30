@@ -46,6 +46,7 @@ export class App {
   private closeTimer?: NodeJS.Timeout;
   private revealTimer?: NodeJS.Timeout;
   private broadcastTimer?: NodeJS.Timeout;
+  private broadcastScope?: 'screens' | 'all';
   private clientDist: string;
 
   constructor(public readonly opts: AppOptions) {
@@ -54,7 +55,8 @@ export class App {
     this.consoleToken = this.store.consoleToken(opts.consoleToken);
     this.clientDist = opts.clientDist ?? path.resolve(__dirname, '../../client');
     this.server = http.createServer((req, res) => void this.handleHttp(req, res));
-    this.wss = new WebSocketServer({ server: this.server, path: '/ws' });
+    // Compression: a state message is mostly repeated JSON keys, it shrinks ~5x. Matters for phones on 4G.
+    this.wss = new WebSocketServer({ server: this.server, path: '/ws', perMessageDeflate: { threshold: 512 } });
     this.wss.on('connection', (ws) => this.handleWs(ws));
     if (!this.restore()) this.newSession();
   }
@@ -242,7 +244,7 @@ export class App {
       const id = conn.playerId;
       if (id && ![...this.conns].some((c) => c.playerId === id)) {
         this.game.setConnected(id, false);
-        if (!this.closeIfAllAnswered()) this.broadcastSoon();
+        if (!this.closeIfAllAnswered()) this.broadcastSoon('screens');
       }
     });
   }
@@ -265,7 +267,7 @@ export class App {
       }
       this.send(conn, { type: 'hello-ok', role: conn.role, serverNow: now, playerId: conn.playerId ?? null, tokenRecognized: Boolean(conn.playerId) });
       this.sendState(conn);
-      if (conn.playerId) this.broadcastSoon();
+      if (conn.playerId) this.broadcastSoon('screens');
       return;
     }
     if (!conn.role) throw new GameError('no-hello', 'send hello first');
@@ -284,7 +286,7 @@ export class App {
         this.send(conn, { type: 'answer-ack', questionIndex: msg.questionIndex, option: msg.option, ok: r.ok, reason: r.reason });
         if (r.ok && this.closeIfAllAnswered()) return;
         if (r.ok) this.sendState(conn);
-        return this.broadcastSoon();
+        return this.broadcastSoon('screens');
       }
       throw new GameError('forbidden', `players cannot send ${msg.type}`);
     }
@@ -292,7 +294,7 @@ export class App {
 
     switch (msg.type) {
       case 'next':
-        g.advance(msg.key, now, { label: msg.label });
+        g.advance(msg.key, now);
         break;
       case 'cancel-question':
         g.cancelQuestion(now);
@@ -339,15 +341,18 @@ export class App {
     this.send(conn, { type: 'state', serverNow: now, view });
   }
 
-  broadcast(): void {
+  /** 'screens' = board and console only: answer counts and connection marks, which phones don't show. */
+  broadcast(scope: 'screens' | 'all' = 'all'): void {
     clearTimeout(this.broadcastTimer);
     this.broadcastTimer = undefined;
-    for (const c of this.conns) if (c.role) this.sendState(c);
+    this.broadcastScope = undefined;
+    for (const c of this.conns) if (c.role && (scope === 'all' || c.role !== 'player')) this.sendState(c);
   }
 
   /** Coalesce frequent updates (answers, reconnections) into one broadcast. */
-  private broadcastSoon(): void {
-    this.broadcastTimer ??= setTimeout(() => this.broadcast(), 150);
+  private broadcastSoon(scope: 'screens' | 'all' = 'all'): void {
+    this.broadcastScope = this.broadcastScope === 'all' || scope === 'all' ? 'all' : 'screens';
+    this.broadcastTimer ??= setTimeout(() => this.broadcast(this.broadcastScope), 150);
   }
 }
 

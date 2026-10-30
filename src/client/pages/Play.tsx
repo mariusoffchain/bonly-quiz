@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { PlayerView } from '../../shared/views';
 import { ConnBadge, Countdown, Label, Mining, NetworkBar, Rules, Wordmark } from '../components/ui';
-import { LETTERS, difficultyLabel, pct, seconds, ths } from '../lib/format';
+import { LETTERS, difficultyLabel, pct, placeLabel, seconds, ths } from '../lib/format';
 import { useQuizSocket, useTicker } from '../lib/ws';
 
 const TOKEN_KEY = 'bq_token';
@@ -269,15 +269,17 @@ function Standing({ view }: { view: PlayerView }) {
 function Final({ view, serverNow }: { view: PlayerView; serverNow: () => number }) {
   const me = view.me!;
   const last = view.blocks[view.blocks.length - 1];
+  const won = view.blocks.find((b) => b.found && b.winnerId === me.id);
   return (
     <>
       {last ? (
-        <Mining block={last} players={view.players} serverNow={serverNow} meId={me.id} compact />
+        <Mining block={last} players={view.players} serverNow={serverNow} meId={me.id} myPlace={won?.n} compact />
       ) : (
         <p className="big-line">
-          Quiz terminé, {me.correctCount} bonne{me.correctCount > 1 ? 's' : ''} réponse{me.correctCount > 1 ? 's' : ''} sur {view.questionTotal}. Le minage va commencer.
+          Quiz terminé, {me.correctCount} bonne{me.correctCount > 1 ? 's' : ''} réponse{me.correctCount > 1 ? 's' : ''} sur {view.questionTotal}. Le tirage va commencer.
         </p>
       )}
+      {won && won !== last ? <p className="big-line">Vous avez la {placeLabel(won.n)} place.</p> : null}
       <Standing view={view} />
     </>
   );

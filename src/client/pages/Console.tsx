@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import type { SessionConfig } from '../../shared/config';
+import { DIFFICULTIES, PRESETS, type SessionConfig } from '../../shared/config';
 import type { ConsoleView } from '../../shared/views';
 import { ConnBadge, Countdown, Swatch, Wordmark } from '../components/ui';
-import { LETTERS, difficultyLabel, pct, ths } from '../lib/format';
+import { LETTERS, difficultyLabel, pct, placeLabel, ths } from '../lib/format';
 import { useQuizSocket } from '../lib/ws';
 
 const TOKEN_KEY = 'bq_console_token';
@@ -24,8 +24,6 @@ const writeToken = (t: string | null) => {
 };
 
 type Send = ReturnType<typeof useQuizSocket>['send'];
-
-const plural = (n: number, one: string, many: string) => `${n} ${n > 1 ? many : one}`;
 
 export function Console() {
   const [token, setToken] = useState<string | null>(() => new URLSearchParams(location.search).get('token') ?? readToken());
@@ -69,7 +67,6 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
   const sock = useQuizSocket<ConsoleView>(() => ({ type: 'hello', role: 'console', consoleToken: token }));
   const { view, send } = sock;
   const [sentKey, setSentKey] = useState<string | null>(null);
-  const [label, setLabel] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(
@@ -94,14 +91,13 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
     if (!next || sentKey === next.key) return;
     setSentKey(next.key);
     setError(null);
-    send({ type: 'next', key: next.key, label: next.action === 'mine' ? label : undefined });
-    if (next.action === 'mine') setLabel('');
+    send({ type: 'next', key: next.key });
   };
   const status =
     view.phase === 'lobby'
       ? `${view.players.length} inscrit${view.players.length > 1 ? 's' : ''}`
       : view.phase === 'final'
-        ? `Fin du quiz, ${plural(view.blocks.filter((b) => b.found).length, 'bloc trouvé', 'blocs trouvés')}`
+        ? `Fin du quiz, podium ${view.blocks.filter((b) => b.found).length} / ${view.config.podiumSize}`
         : `Question ${(q?.index ?? 0) + 1} / ${view.questionTotal}${view.phase === 'reveal' ? ', réponse affichée' : ''}`;
 
   return (
@@ -137,14 +133,13 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
                 </p>
               </>
             ) : null}
-            {next?.action === 'mine' ? <input className="input" placeholder="Lot (facultatif)" value={label} maxLength={60} onChange={(e) => setLabel(e.target.value)} /> : null}
             {next ? (
               <button className="btn primary big" onClick={go} disabled={sentKey === next.key}>
                 {next.label}
               </button>
             ) : view.phase === 'final' ? (
               <button className="btn big" disabled>
-                Minage en cours…
+                {view.blocks.some((b) => !b.found) ? 'Tirage en cours…' : 'Podium complet'}
               </button>
             ) : null}
             {view.phase === 'question' ? (
@@ -229,15 +224,14 @@ function Blocks({ view }: { view: ConsoleView }) {
     return (
       <section>
         <p className="muted">
-          Un clic sur « Miner le bloc » tire un gagnant, chances = part du hashrate.
-          {view.config.excludeBlockWinners ? ' Un gagnant ne participe plus aux tirages suivants.' : ''}
+          Chaque clic tire une place, de la 1re à la {placeLabel(view.config.podiumSize)}. Chances = part du hashrate parmi les joueurs pas encore placés.
         </p>
       </section>
     );
   }
   return (
     <section>
-      <h3>Blocs</h3>
+      <h3>Podium</h3>
       <table className="standings">
         <tbody>
           {view.blocks.map((b) => {
@@ -245,8 +239,7 @@ function Blocks({ view }: { view: ConsoleView }) {
             const share = b.candidates.find((c) => c.id === b.winnerId)?.share;
             return (
               <tr key={b.n}>
-                <td className="rank">{b.n}</td>
-                <td className="muted">{b.label ?? ''}</td>
+                <td className="rank">{placeLabel(b.n)}</td>
                 {b.found ? (
                   <>
                     <td className="who">
@@ -259,7 +252,7 @@ function Blocks({ view }: { view: ConsoleView }) {
                   </>
                 ) : (
                   <td className="muted" colSpan={3}>
-                    minage…
+                    tirage…
                   </td>
                 )}
               </tr>
@@ -312,9 +305,21 @@ function Settings({ view, send }: { view: ConsoleView; send: Send }) {
   const set = (patch: Partial<SessionConfig>) => setDraft((d) => ({ ...d, ...patch }));
   const dirty = JSON.stringify(draft) !== JSON.stringify(c);
   const currentPack = view.packs.find((p) => p.name === view.packName);
+  const preset = PRESETS.find((p) => (Object.keys(p.scoring) as (keyof typeof p.scoring)[]).every((k) => JSON.stringify(p.scoring[k]) === JSON.stringify(draft[k])));
   return (
     <details className="settings">
-      <summary>Réglages</summary>
+      <summary>Réglages{preset ? ` · ${preset.name}` : ' · personnalisés'}</summary>
+      <fieldset className="presets">
+        <legend>Profil de points</legend>
+        {PRESETS.map((p) => (
+          <label key={p.id} className="check">
+            <input type="radio" name="preset" checked={preset?.id === p.id} onChange={() => set(p.scoring)} />
+            <span>
+              <b>{p.name}</b> <span className="muted small">{p.description}</span>
+            </span>
+          </label>
+        ))}
+      </fieldset>
       <label>
         Questions
         <select value={currentPack?.file ?? ''} onChange={(e) => send({ type: 'set-pack', file: e.target.value })}>
@@ -334,7 +339,7 @@ function Settings({ view, send }: { view: ConsoleView; send: Send }) {
           Chrono (s)
           <input type="number" min={3} value={draft.questionDurationMs / 1000} onChange={(e) => set({ questionDurationMs: num(e.target.value) * 1000 })} />
         </label>
-        {(['easy', 'intermediate', 'hard'] as const).map((d) => (
+        {DIFFICULTIES.map((d) => (
           <label key={d}>
             Gain {difficultyLabel[d]} (TH/s)
             <input type="number" min={0} value={draft.baseGainThs[d]} onChange={(e) => set({ baseGainThs: { ...draft.baseGainThs, [d]: num(e.target.value) } })} />
@@ -357,17 +362,17 @@ function Settings({ view, send }: { view: ConsoleView; send: Send }) {
           <input type="number" min={0} value={Math.round(draft.streakBonusMax * 100)} onChange={(e) => set({ streakBonusMax: num(e.target.value) / 100 })} />
         </label>
         <label>
-          Durée du minage (s)
+          Places tirées au sort
+          <input type="number" min={1} max={20} value={draft.podiumSize} onChange={(e) => set({ podiumSize: num(e.target.value) })} />
+        </label>
+        <label>
+          Durée du tirage (s)
           <input type="number" min={0} max={60} value={draft.miningDurationMs / 1000} onChange={(e) => set({ miningDurationMs: num(e.target.value) * 1000 })} />
         </label>
       </div>
       <label className="check">
         <input type="checkbox" checked={draft.closeWhenAllAnswered} onChange={(e) => set({ closeWhenAllAnswered: e.target.checked })} />
         Afficher la réponse dès que tout le monde a répondu
-      </label>
-      <label className="check">
-        <input type="checkbox" checked={draft.excludeBlockWinners} onChange={(e) => set({ excludeBlockWinners: e.target.checked })} />
-        Un seul bloc par joueur
       </label>
       <div className="row">
         <button className="btn primary" disabled={!dirty} onClick={() => send({ type: 'set-config', patch: draft })}>

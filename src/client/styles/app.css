@@ -210,7 +210,10 @@ h3 { font-size: 0.85rem; font-weight: 500; color: var(--muted); margin: 0 0 10px
 .settings label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--body); }
 .settings label.check { flex-direction: row; align-items: center; gap: 10px; color: var(--ink); }
 .settings input[type='number'], .settings select { padding: 8px 10px; }
-.settings input[type='checkbox'] { accent-color: var(--orange); }
+.settings input[type='checkbox'], .settings input[type='radio'] { accent-color: var(--orange); }
+.settings .presets { border: 1px solid var(--rule-soft); padding: 10px 14px 12px; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.settings .presets legend { padding: 0 6px; font-size: 0.85rem; color: var(--body); }
+.settings .presets label.check { align-items: baseline; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .narrow { max-width: 380px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: 20px; }

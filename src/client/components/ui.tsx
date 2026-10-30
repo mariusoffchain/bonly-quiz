@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { BlockPublic, PlayerPublic, PublicConfig } from '../../shared/views';
-import { pct, playerColor, ths } from '../lib/format';
+import { pct, placeLabel, playerColor, ths } from '../lib/format';
 import { remaining, useTicker } from '../lib/ws';
 
 import mountainsUrl from '../assets/mountains.webp';
@@ -66,7 +66,8 @@ export function Standings({
   limit?: number;
   highlightId?: string;
   showGain?: boolean;
-  winners?: string[];
+  /** Podium so far: winners[0] is 1st place. */
+  winners?: (string | null | undefined)[];
 }) {
   const top = players.slice(0, limit);
   const me = highlightId ? players.find((p) => p.id === highlightId) : undefined;
@@ -81,7 +82,7 @@ export function Standings({
             <td className="who">
               <Swatch color={p.color} />
               <span className="nm">{p.name}</span>
-              {winners.includes(p.id) ? <span className="mark">bloc</span> : null}
+              {winners.includes(p.id) ? <span className="mark">{placeLabel(winners.indexOf(p.id) + 1)}</span> : null}
             </td>
             {showGain ? <td className={'gain' + (p.lastGain ? '' : ' none')}>{p.lastGain ? `+${ths(p.lastGain, false)}` : '–'}</td> : null}
             <td className="num">{ths(p.hashrate, false)}</td>
@@ -97,9 +98,15 @@ export function Rules({ config }: { config: PublicConfig }) {
   const g = config.baseGainThs;
   return (
     <dl className="rules">
+      {config.startHashrateThs > 0 ? (
+        <>
+          <dt>Départ</dt>
+          <dd>{ths(config.startHashrateThs)} pour tout le monde</dd>
+        </>
+      ) : null}
       <dt>Bonne réponse</dt>
       <dd>
-        {g.easy}, {g.intermediate} ou {g.hard} TH/s selon la difficulté
+        {g.easy}, {g.intermediate} ou {g.hard} TH/s selon la difficulté, {g.expert} pour une question expert
       </dd>
       <dt>Rapidité</dt>
       <dd>jusqu’à +{Math.round(config.speedBonusMax * 100)} %</dd>
@@ -108,7 +115,9 @@ export function Rules({ config }: { config: PublicConfig }) {
         +{Math.round(config.streakBonusStep * 100)} % par bonne réponse d’affilée, max +{Math.round(config.streakBonusMax * 100)} %
       </dd>
       <dt>Fin</dt>
-      <dd>un bloc est miné, vos chances = votre part du hashrate</dd>
+      <dd>
+        tirage {config.podiumSize > 1 ? `des ${config.podiumSize} places du podium` : 'du gagnant'}, vos chances = votre part du hashrate
+      </dd>
     </dl>
   );
 }
@@ -128,12 +137,15 @@ export function Mining({
   players,
   serverNow,
   meId,
+  myPlace,
   compact = false,
 }: {
   block: BlockPublic;
   players: PlayerPublic[];
   serverNow: () => number;
   meId?: string;
+  /** Place already won by this phone's player, if any. */
+  myPlace?: number;
   compact?: boolean;
 }) {
   useTicker(100);
@@ -156,7 +168,7 @@ export function Mining({
     return () => window.clearInterval(id);
   }, [mining, candidates, compact, rows]);
 
-  const title = `Bloc ${block.n}${block.label ? ` · ${block.label}` : ''}`;
+  const title = `${placeLabel(block.n)} place · bloc ${block.n}`;
 
   if (mining) {
     const elapsed = Math.max(0, serverNow() - block.startedAt);
@@ -164,9 +176,11 @@ export function Mining({
     return (
       <div className={'mining' + (compact ? ' compact' : '')}>
         <Label>{title}</Label>
-        <p className="mining-status">Minage en cours</p>
+        <p className="mining-status">Tirage en cours</p>
         <p className="mono muted">nonce {Math.floor(elapsed * 9871).toLocaleString('fr-FR')}</p>
-        {meId ? <p>{mine ? `Vos chances : ${pct(mine.share)}` : 'Vous ne participez pas à ce tirage.'}</p> : null}
+        {meId ? (
+          <p>{mine ? `Vos chances : ${pct(mine.share)}` : myPlace ? `Vous avez déjà la ${placeLabel(myPlace)} place.` : 'Vous ne participez pas à ce tirage.'}</p>
+        ) : null}
         <ul className="hashes">
           {lines.map((l) => (
             <li key={l.k}>
@@ -191,7 +205,7 @@ export function Mining({
         <>
           <p className="winner">{isMe ? 'Vous' : winner.name}</p>
           <p>
-            {isMe ? 'trouvez le bloc' : 'trouve le bloc'} avec {pct(chance)} du hashrate
+            {isMe ? 'trouvez le bloc' : 'trouve le bloc'} avec {pct(chance)} de chances
           </p>
         </>
       ) : (

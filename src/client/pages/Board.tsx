@@ -1,6 +1,6 @@
 import type { BoardView } from '../../shared/views';
 import { ConnBadge, Countdown, Label, Mining, Mountains, NetworkBar, Rules, Standings, Swatch, Wordmark } from '../components/ui';
-import { LETTERS, difficultyLabel, pct, seconds, ths } from '../lib/format';
+import { LETTERS, difficultyLabel, pct, placeLabel, seconds, ths } from '../lib/format';
 import { useQuizSocket } from '../lib/ws';
 
 export function Board() {
@@ -164,6 +164,7 @@ function Final({ view, serverNow }: { view: BoardView; serverNow: () => number }
   const last = view.blocks[view.blocks.length - 1];
   const found = view.blocks.filter((b) => b.found);
   const byId = new Map(view.players.map((p) => [p.id, p]));
+  const places = view.config.podiumSize;
   return (
     <main className="split">
       <section>
@@ -172,8 +173,11 @@ function Final({ view, serverNow }: { view: BoardView; serverNow: () => number }
         ) : (
           <div className="final-intro">
             <Label>Fin du quiz</Label>
-            <h1>Le minage</h1>
-            <p>Chacun a une chance de trouver le bloc égale à sa part du hashrate. Le premier est favori, pas gagnant.</p>
+            <h1>Le tirage</h1>
+            <p>
+              {places > 1 ? `${places} places à tirer, de la 1re à la ${placeLabel(places)}.` : 'Un gagnant à tirer.'} À chaque tirage, vos chances sont votre
+              part du hashrate. Le premier du classement est favori, pas gagnant.
+            </p>
             <NetworkBar players={view.players} />
             <ol className="odds">
               {view.players.slice(0, 3).map((p) => (
@@ -190,23 +194,21 @@ function Final({ view, serverNow }: { view: BoardView; serverNow: () => number }
         )}
       </section>
       <aside>
-        <Label>Classement final</Label>
-        <Standings players={view.players} limit={12} winners={found.map((b) => b.winnerId ?? '')} />
         {found.length > 0 ? (
           <>
-            <Label>Blocs</Label>
-            <table className="standings">
+            <Label>Podium</Label>
+            <table className="standings podium">
               <tbody>
                 {found.map((b) => {
                   const w = b.winnerId ? byId.get(b.winnerId) : undefined;
                   return (
                     <tr key={b.n}>
-                      <td className="rank">{b.n}</td>
-                      <td className="muted">{b.label ?? ''}</td>
+                      <td className="rank">{placeLabel(b.n)}</td>
                       <td className="who">
                         {w ? <Swatch color={w.color} /> : null}
                         <span className="nm">{w?.name ?? 'personne'}</span>
                       </td>
+                      <td className="num share">{pct(b.candidates.find((c) => c.id === b.winnerId)?.share ?? 0)}</td>
                     </tr>
                   );
                 })}
@@ -214,6 +216,8 @@ function Final({ view, serverNow }: { view: BoardView; serverNow: () => number }
             </table>
           </>
         ) : null}
+        <Label>Classement final</Label>
+        <Standings players={view.players} limit={12} winners={found.map((b) => b.winnerId)} />
       </aside>
       <Mountains />
     </main>

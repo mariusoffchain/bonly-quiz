@@ -43,8 +43,8 @@ export interface QuestionPublic {
 }
 
 export interface BlockPublic {
+  /** Block number = podium place. */
   n: number;
-  label?: string;
   startedAt: number;
   revealAt: number;
   found: boolean;
@@ -58,7 +58,7 @@ export interface BlockPublic {
 
 export type PublicConfig = Pick<
   SessionConfig,
-  'baseGainThs' | 'speedBonusMax' | 'streakBonusStep' | 'streakBonusMax' | 'excludeBlockWinners' | 'miningDurationMs'
+  'baseGainThs' | 'speedBonusMax' | 'streakBonusStep' | 'streakBonusMax' | 'startHashrateThs' | 'podiumSize' | 'miningDurationMs'
 >;
 
 export interface BoardView {
@@ -163,7 +163,6 @@ function blocks(game: Game, now: number): BlockPublic[] {
     const found = now >= b.revealAt;
     const out: BlockPublic = {
       n: b.n,
-      label: b.label,
       startedAt: b.startedAt,
       revealAt: b.revealAt,
       found,
@@ -194,7 +193,8 @@ export function boardView(game: Game, now: number, joinUrl: string): BoardView {
       speedBonusMax: c.speedBonusMax,
       streakBonusStep: c.streakBonusStep,
       streakBonusMax: c.streakBonusMax,
-      excludeBlockWinners: c.excludeBlockWinners,
+      startHashrateThs: c.startHashrateThs,
+      podiumSize: c.podiumSize,
       miningDurationMs: c.miningDurationMs,
     },
   };
@@ -239,7 +239,7 @@ export type ClientMessage =
   | { type: 'join'; name: string }
   | { type: 'answer'; questionIndex: number; option: number }
   // console
-  | { type: 'next'; key: string; label?: string }
+  | { type: 'next'; key: string }
   | { type: 'cancel-question' }
   | { type: 'remove-player'; id: string }
   | { type: 'rename-player'; id: string; name: string }

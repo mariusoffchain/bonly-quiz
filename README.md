@@ -1,28 +1,32 @@
 # bonly-quiz
 
 Quiz interactif pour B-only 2026. 21 questions sur Bitcoin. Chaque bonne réponse rapporte
-du hashrate fictif (en TH/s). À la fin, on « mine » un bloc : chaque joueur a une chance de
-le trouver égale à sa part du hashrate total. Le plus gros mineur est favori, mais rien
-n'est garanti.
+du hashrate fictif (en TH/s). À la fin, on tire au sort le podium (1re, 2e, 3e place) comme
+on mine un bloc : à chaque tirage, les chances d'un joueur sont égales à sa part du
+hashrate. Le plus gros mineur est favori, mais rien n'est garanti.
 
 ## Règles
 
 | | Par défaut |
 |---|---|
-| Bonne réponse | 100 TH/s (facile), 150 (moyenne), 200 (difficile) |
+| Bonne réponse | 100 TH/s (facile), 200 (moyenne), 300 (difficile), 500 (expert) |
 | Rapidité | jusqu'à +50 % du gain de base pour une réponse instantanée, diminue linéairement jusqu'à 0 à la fin du chrono |
 | Série | +10 % du gain de base par bonne réponse d'affilée après la 1re (2e d'affilée +10 %, 3e +20 %…), plafonné à +50 % |
 | Mauvaise réponse / pas de réponse | 0 TH/s, série remise à zéro, aucune pénalité |
-| Bloc final | 1 gagnant tiré au hasard (Web Crypto), probabilité = hashrate du joueur / hashrate total |
+| Podium | 3 places tirées l'une après l'autre (Web Crypto), probabilité = hashrate du joueur / hashrate des joueurs pas encore placés |
 
 Une seule réponse par question, verrouillée dès l'envoi. Le chrono (20 s) est tenu par le
 serveur. La réponse s'affiche dès que tous les joueurs connectés ont répondu.
 
-La console peut miner plusieurs blocs à la suite, 1 par lot. Par défaut, un joueur qui a
-déjà trouvé un bloc ne participe plus aux tirages suivants. Le gagnant est fixé par le
-serveur au clic, puis révélé après 8 s d'animation.
+La console tire d'abord la 1re place, puis la 2e, puis la 3e. Un joueur déjà placé ne
+participe plus aux tirages suivants. Chaque gagnant est fixé par le serveur au clic, puis
+révélé après 8 s d'animation. Les lots se distribuent ensuite selon les places.
 
-Tous ces réglages se changent dans la console avant la 1re question.
+Tous ces réglages se changent dans la console avant la 1re question, à la main ou avec
+l'un des trois profils (Équilibré, Ouvert, Compétitif). `docs/reglages.md` compare leurs
+effets sur les chances de chacun, simulation à l'appui : avec 50 joueurs, le 1er du
+classement a environ 4 % de chances de gagner la 1re place, contre 2 % pour un joueur
+moyen.
 
 ## Démarrage
 
@@ -47,6 +51,42 @@ L'adresse `/play` ne change pas d'une partie à l'autre : un QR code imprimé re
 Développement avec rechargement : `npm run dev` (serveur 8787, client Vite 5173 ; les
 téléphones ouvrent le port 5173).
 
+## Jouer en ligne (4G, sans Wi-Fi commun)
+
+Avec `npm start`, les téléphones doivent être sur le même réseau que l'ordinateur. Pour
+qu'ils se connectent depuis n'importe où (4G, Wi-Fi de la salle qui isole les appareils),
+le serveur passe par un tunnel Cloudflare : il tourne toujours sur l'ordinateur, Cloudflare
+lui donne une adresse publique en HTTPS, et le QR code pointe vers elle.
+
+1. Installer `cloudflared` : `brew install cloudflared` (macOS),
+   `winget install --id Cloudflare.cloudflared` (Windows).
+2. Lancer :
+
+   ```bash
+   npm run build
+   npm run online
+   ```
+
+   Sans réglage, l'adresse est temporaire (`https://xxx.trycloudflare.com`, sans compte,
+   nouvelle à chaque lancement, sans garantie de disponibilité) : bien pour répéter.
+3. Pour l'événement, une adresse fixe sur votre domaine est plus sûre : dans le tableau de
+   bord Cloudflare (Zero Trust, Networks, Tunnels), créer un tunnel, lui ajouter le nom
+   public `quiz.votre-domaine` vers `http://localhost:8787`, copier son jeton, puis :
+
+   ```bash
+   TUNNEL_TOKEN=eyJ... PUBLIC_URL=https://quiz.votre-domaine npm run online
+   ```
+
+   Le domaine doit être géré par Cloudflare (offre gratuite suffisante).
+
+L'écran et la console s'ouvrent sur l'ordinateur en `http://localhost:8787/board` et
+`/console`. L'ordinateur doit avoir une connexion internet fiable (prévoir un partage 4G
+en secours) ; si elle coupe, les téléphones se reconnectent seuls dès son retour et la
+partie reprend où elle en était.
+
+Le trafic est faible : environ 40 Ko par téléphone pour une partie complète (voir
+« Test de charge »).
+
 ## Déroulé d'une partie
 
 1. Projeter `/board`, ouvrir `/console` sur l'ordinateur ou un téléphone de l'animateur.
@@ -55,8 +95,8 @@ téléphones ouvrent le port 5173).
    tout le monde a répondu. L'écran montre la bonne réponse, les meilleurs gains et le
    classement ; chaque téléphone montre le gain détaillé, le rang et les chances de bloc.
 4. Console : « Question 2 / 21 », et ainsi de suite.
-5. Après la 21e : « Classement final », puis « Miner le bloc » (champ optionnel pour le
-   nom du lot). Recommencer pour chaque lot.
+5. Après la 21e : « Classement final », puis « Tirer la 1re place », « Tirer la 2e
+   place », « Tirer la 3e place ».
 
 En cas d'erreur sur une question : « Annuler la question » la ferme sans attribuer de
 points et sans casser les séries. « Nouvelle partie » repart de zéro (les joueurs se
@@ -90,7 +130,7 @@ Format d'un pack :
   "name": "Nom du pack",
   "questions": [
     { "id": "q1", "type": "single-choice", "text": "…", "options": ["a", "b", "c", "d"],
-      "correctIndex": 2, "difficulty": "easy|intermediate|hard", "durationMs": 20000,
+      "correctIndex": 2, "difficulty": "easy|intermediate|hard|expert", "durationMs": 20000,
       "explanation": "…", "source": { "provider": "…", "license": "…" } }
   ]
 }
@@ -105,7 +145,31 @@ dépôt Plan B Network.
 ```bash
 npm test         # règles de score, tirage, partie complète, serveur WebSocket multi-clients
 npm run typecheck
+npm run simulate # chances de chacun selon les réglages (voir docs/reglages.md)
 ```
+
+### Test de charge
+
+`npm run build` puis `npm run loadtest -- 50` lance un vrai serveur et 50 téléphones
+simulés qui jouent les 21 questions et le podium : réponses à des moments aléatoires
+(un tiers dans les 2 premières secondes), 5 % de questions sans réponse, 5 téléphones qui
+perdent la connexion à la 11e question et reviennent. Résultats sur la machine de
+développement :
+
+| 50 téléphones | |
+|---|---|
+| question affichée sur les téléphones après le clic console | médiane 19 ms, max 33 ms |
+| réponse → accusé de réception | médiane 2 ms, max 18 ms |
+| trafic par téléphone pour toute la partie | environ 40 Ko |
+| serveur | 2,4 % d'un cœur, 100 Mo de mémoire |
+| erreurs, hashrates incohérents | 0 |
+
+Ces temps ne comptent pas le réseau : en 4G et via le tunnel, ajouter de l'ordre de 50 à
+200 ms.
+
+Un serveur déjà en ligne peut être testé avec
+`npm run loadtest -- 50 https://quiz.votre-domaine JETON_CONSOLE` (crée une nouvelle partie
+sur ce serveur : pas pendant l'événement).
 
 ## Architecture
 

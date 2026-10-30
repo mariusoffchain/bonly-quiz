@@ -35,8 +35,9 @@ describe('scoreAnswer', () => {
   });
 
   it('scales with difficulty', () => {
-    expect(scoreAnswer(q('a', 'intermediate'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG).gain).toBe(150);
-    expect(scoreAnswer(q('a', 'hard'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG).gain).toBe(200);
+    expect(scoreAnswer(q('a', 'intermediate'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG).gain).toBe(200);
+    expect(scoreAnswer(q('a', 'hard'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG).gain).toBe(300);
+    expect(scoreAnswer(q('a', 'expert'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG).gain).toBe(500);
   });
 
   it('adds 10 % per consecutive correct answer, capped at 50 %', () => {
@@ -75,7 +76,7 @@ describe('drawWinner', () => {
 });
 
 describe('Game', () => {
-  it('plays a full game: questions, streaks, final ranking, block draw', () => {
+  it('plays a full game: questions, streaks, final ranking, podium draw', () => {
     const g = Game.create('TEST', T0, pack(3), {}, deps(() => 0));
     const alice = g.join('Alice', T0);
     const bob = g.join('  Bob  ', T0);
@@ -119,10 +120,10 @@ describe('Game', () => {
 
     const now = T0 + 80_000;
     step = g.nextStep(now)!;
-    expect(step).toMatchObject({ action: 'mine', label: 'Miner le bloc' });
-    g.advance(step.key, now, { label: 'Bitaxe' });
+    expect(step).toMatchObject({ action: 'mine', label: 'Tirer la 1re place' });
+    g.advance(step.key, now);
     const block = g.state.blocks[0];
-    expect(block).toMatchObject({ n: 1, label: 'Bitaxe', winnerId: alice.id, total: 385, roll: 0 });
+    expect(block).toMatchObject({ n: 1, winnerId: alice.id, total: 385, roll: 0 });
     expect(block.hash).toMatch(/^0{10}[0-9a-f]{54}$/);
     // Nothing else while mining; winner hidden from views until revealAt.
     expect(g.nextStep(now + 1)).toBeNull();
@@ -130,10 +131,32 @@ describe('Game', () => {
     expect(boardView(g, now + 1, 'u').blocks[0].winnerId).toBeUndefined();
     expect(boardView(g, block.revealAt, 'u').blocks[0]).toMatchObject({ found: true, winnerId: alice.id });
 
-    // Next block excludes the previous winner: Bob is the only one left with hashrate.
-    g.advance(g.nextStep(block.revealAt)!.key, block.revealAt);
+    // 2nd place excludes the 1st: Bob is the only one left with hashrate, then nobody.
+    step = g.nextStep(block.revealAt)!;
+    expect(step.label).toBe('Tirer la 2e place');
+    g.advance(step.key, block.revealAt);
     expect(g.state.blocks[1].winnerId).toBe(bob.id);
+    expect(g.nextStep(g.state.blocks[1].revealAt)).toBeNull();
     expect(() => g.mineBlock(g.state.blocks[1].revealAt)).toThrow(/Aucun mineur/);
+  });
+
+  it('draws podiumSize places, each player at most once', () => {
+    const g = Game.create('TEST', T0, pack(1), { startHashrateThs: 100 }, deps());
+    const ids = ['A', 'B', 'C', 'D', 'E'].map((n) => g.join(n, T0).id);
+    g.openQuestion(T0);
+    g.closeQuestion(T0 + 1);
+    g.finish(T0 + 2);
+    let now = T0 + 10;
+    for (let i = 0; i < 3; i++) {
+      g.advance(g.nextStep(now)!.key, now);
+      now = g.state.blocks[i].revealAt;
+    }
+    const winners = g.state.blocks.map((b) => b.winnerId);
+    expect(new Set(winners).size).toBe(3);
+    expect(winners.every((w) => ids.includes(w!))).toBe(true);
+    expect(g.state.blocks[2].weights).toHaveLength(3);
+    expect(g.nextStep(now)).toBeNull();
+    expect(() => g.mineBlock(now)).toThrow(/complet/);
   });
 
   it('hides the answer from boards and phones until the question closes', () => {
@@ -180,7 +203,7 @@ describe('Game', () => {
   it('settings are locked once the game started', () => {
     const g = Game.create('TEST', T0, pack(2), {}, deps());
     const p = g.join('P', T0);
-    g.setConfig({ startHashrateThs: 10, baseGainThs: { easy: 1, intermediate: 2, hard: 3 } }, T0);
+    g.setConfig({ startHashrateThs: 10, baseGainThs: { easy: 1, intermediate: 2, hard: 3, expert: 5 } }, T0);
     expect(p.hashrate).toBe(10);
     expect(() => g.setConfig({ questionDurationMs: 100 }, T0)).toThrow(/durée/);
     g.openQuestion(T0);

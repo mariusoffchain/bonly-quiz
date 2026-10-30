@@ -129,9 +129,9 @@ describe('server', () => {
     consoleC.send({ type: 'next', key: 'old' });
     await consoleC.wait((m) => m.type === 'error' && m.code === 'stale-step');
 
-    consoleC.send({ type: 'next', key: cv.next!.key, label: 'Bitaxe Gamma' });
+    consoleC.send({ type: 'next', key: cv.next!.key });
     const mining = await board.waitView<any>((v) => v.blocks.length === 1);
-    expect(mining.blocks[0]).toMatchObject({ found: false, label: 'Bitaxe Gamma' });
+    expect(mining.blocks[0]).toMatchObject({ found: false, n: 1 });
     expect(mining.blocks[0].winnerId).toBeUndefined();
     const found = await board.waitView<any>((v) => v.blocks[0]?.found === true, 2000);
     expect(found.players.map((p: any) => p.id)).toContain(found.blocks[0].winnerId);

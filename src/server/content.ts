@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { DIFFICULTIES } from '../shared/config.js';
 import type { ContentPack, Question } from '../shared/types.js';
 import type { PackInfo } from '../shared/views.js';
 
-const DIFFS = new Set(['easy', 'intermediate', 'hard']);
+const DIFFS = new Set<string>(DIFFICULTIES);
 
 /** Checks a pack. Questions are played in file order; a legacy `rounds` field is ignored. */
 export function validatePack(pack: unknown, file = 'inline'): ContentPack {

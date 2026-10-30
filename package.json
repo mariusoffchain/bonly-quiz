@@ -12,7 +12,10 @@
     "start": "node dist/server/server/index.js",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.server.json --noEmit",
-    "import:planb": "node scripts/import-planb.mjs"
+    "import:planb": "node scripts/import-planb.mjs",
+    "simulate": "tsx scripts/simulate.ts",
+    "loadtest": "tsx scripts/loadtest.ts",
+    "online": "node scripts/online.mjs"
   },
   "dependencies": {
     "qrcode": "^1.5.4",

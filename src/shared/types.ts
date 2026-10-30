@@ -87,9 +87,8 @@ export interface QuestionRun {
 }
 
 export interface BlockDraw {
-  /** 1-based block number in this game. */
+  /** 1-based block number in this game, which is also the podium place. */
   n: number;
-  label?: string;
   startedAt: number;
   /** The winner is kept secret until this time. */
   revealAt: number;

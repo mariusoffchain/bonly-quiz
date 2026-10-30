@@ -1,4 +1,4 @@
-import { DEFAULT_CONFIG, validateConfig, type SessionConfig } from './config.js';
+import { DEFAULT_CONFIG, placeLabel, validateConfig, type SessionConfig } from './config.js';
 import { cryptoRng, drawWinner, fakeBlockHash, type Rng } from './draw.js';
 import { scoreAnswer } from './scoring.js';
 import type { BlockDraw, ContentPack, GameEvent, Phase, Player, QuestionRun, SessionState } from './types.js';
@@ -33,8 +33,8 @@ export const PLAYER_COLORS = 12;
 
 /**
  * Authoritative game engine. Time (`now`) and randomness (`rng`) are injected so
- * every rule is unit-testable. One game = N questions in a row, then block draws
- * weighted by the hashrate earned.
+ * every rule is unit-testable. One game = N questions in a row, then a podium
+ * drawn place by place, weighted by the hashrate earned.
  */
 export class Game {
   state: SessionState;
@@ -44,7 +44,7 @@ export class Game {
   private listeners: ((ev: GameEvent) => void)[] = [];
 
   constructor(state: SessionState, deps: GameDeps = {}) {
-    state.config = { ...DEFAULT_CONFIG, ...state.config };
+    state.config = { ...DEFAULT_CONFIG, ...state.config, baseGainThs: { ...DEFAULT_CONFIG.baseGainThs, ...state.config.baseGainThs } };
     this.state = state;
     this.rng = deps.rng ?? cryptoRng;
     this.newId = deps.newId ?? (() => hex(4));
@@ -189,17 +189,18 @@ export class Game {
           : { key, action: 'finish', label: 'Classement final' };
       case 'final':
         if (this.miningBlock(now)) return null;
-        return { key, action: 'mine', label: s.blocks.length ? `Miner le bloc ${s.blocks.length + 1}` : 'Miner le bloc' };
+        if (s.blocks.length >= s.config.podiumSize || this.drawCandidates().length === 0) return null;
+        return { key, action: 'mine', label: `Tirer la ${placeLabel(s.blocks.length + 1)} place` };
     }
   }
 
-  advance(expectedKey: string, now: number, opts: { label?: string } = {}): void {
+  advance(expectedKey: string, now: number): void {
     const step = this.nextStep(now);
     if (!step || step.key !== expectedKey) throw new GameError('stale-step', 'Cette étape a déjà changé.');
     if (step.action === 'open') this.openQuestion(now);
     else if (step.action === 'close') this.closeQuestion(now);
     else if (step.action === 'finish') this.finish(now);
-    else this.mineBlock(now, opts.label);
+    else this.mineBlock(now);
   }
 
   openQuestion(now: number): QuestionRun {
@@ -276,22 +277,28 @@ export class Game {
     this.emit(now, 'game.finished', { hashrates: Object.fromEntries(this.activePlayers().map((p) => [p.id, p.hashrate])) });
   }
 
-  /**
-   * Find a block: one winner drawn with probability = share of the hashrate.
-   * The result is fixed now and revealed after the mining animation.
-   */
-  mineBlock(now: number, label?: string): BlockDraw {
-    if (this.state.phase !== 'final') throw new GameError('bad-phase', 'Le minage commence après la dernière question.');
-    if (this.miningBlock(now)) throw new GameError('mining', 'Un bloc est déjà en cours de minage.');
-    const excluded = new Set(this.state.config.excludeBlockWinners ? this.state.blocks.map((b) => b.winnerId) : []);
-    const weights = this.activePlayers()
-      .filter((p) => p.hashrate > 0 && !excluded.has(p.id))
+  /** Players still in the draw: some hashrate and no place yet. */
+  drawCandidates(): { id: string; hashrate: number }[] {
+    const placed = new Set(this.state.blocks.map((b) => b.winnerId));
+    return this.activePlayers()
+      .filter((p) => p.hashrate > 0 && !placed.has(p.id))
       .map((p) => ({ id: p.id, hashrate: p.hashrate }));
+  }
+
+  /**
+   * Draw the next podium place (block n = place n): one winner with probability
+   * = share of the hashrate among players without a place. The result is fixed
+   * now and revealed after the mining animation.
+   */
+  mineBlock(now: number): BlockDraw {
+    if (this.state.phase !== 'final') throw new GameError('bad-phase', 'Le tirage commence après la dernière question.');
+    if (this.miningBlock(now)) throw new GameError('mining', 'Un tirage est déjà en cours.');
+    if (this.state.blocks.length >= this.state.config.podiumSize) throw new GameError('podium-full', 'Le podium est complet.');
+    const weights = this.drawCandidates();
     if (weights.length === 0) throw new GameError('no-candidates', 'Aucun mineur avec du hashrate.');
     const res = drawWinner(weights, this.rng);
     const block: BlockDraw = {
       n: this.state.blocks.length + 1,
-      label: label?.trim().slice(0, 60) || undefined,
       startedAt: now,
       revealAt: now + this.state.config.miningDurationMs,
       winnerId: res.winnerId,
