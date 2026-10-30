@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { PlayerView } from '../../shared/views';
-import { Avatar, ConnBadge, MiningScene, NetworkBar, Rules, TimerBar } from '../components/ui';
+import { ConnBadge, Countdown, Mining, NetworkBar, Rules } from '../components/ui';
 import { LETTERS, difficultyLabel, pct, seconds, ths } from '../lib/format';
 import { useQuizSocket, useTicker } from '../lib/ws';
 
@@ -25,9 +25,9 @@ const store = {
 };
 
 const REFUSED: Record<string, string> = {
-  'too-late': 'Trop tard, le temps est écoulé.',
+  'too-late': 'Trop tard.',
   'already-answered': 'Réponse déjà enregistrée.',
-  'not-open': 'La question est fermée.',
+  'not-open': 'Question fermée.',
 };
 
 export function Play() {
@@ -64,9 +64,8 @@ export function Play() {
 
   if (!view) {
     return (
-      <div className="phone center">
-        <div className="brand-lg">B-only Quiz</div>
-        <div className="muted">{sock.conn === 'open' ? 'Chargement…' : 'Connexion au serveur…'}</div>
+      <div className="phone">
+        <p className="muted pad">{sock.conn === 'open' ? 'Chargement…' : 'Connexion…'}</p>
       </div>
     );
   }
@@ -78,18 +77,23 @@ export function Play() {
     <div className="phone">
       <ConnBadge conn={sock.conn} />
       <header className="phone-head">
-        <Avatar name={me.name} color={me.color} size={36} />
-        <div className="grow">
+        <div>
           <div className="me-name">{me.name}</div>
           <div className="muted small">
-            Rang {me.rank}/{view.players.length}
-            {me.streak >= 2 ? ` · 🔥 série de ${me.streak}` : ''}
+            {me.rank}
+            {me.rank === 1 ? 'er' : 'e'} sur {view.players.length}
+            {me.streak >= 2 ? ` · série de ${me.streak}` : ''}
           </div>
         </div>
-        <div className="hr-chip">{ths(me.hashrate)}</div>
+        <div className="me-hr">{ths(me.hashrate)}</div>
       </header>
       <main className="phone-body">
-        {view.phase === 'lobby' ? <Lobby view={view} /> : null}
+        {view.phase === 'lobby' ? (
+          <>
+            <p className="big-line">Inscrit. La partie commence bientôt.</p>
+            <Rules config={view.config} />
+          </>
+        ) : null}
         {view.phase === 'question' && view.question ? (
           <QuestionPad
             view={view}
@@ -125,35 +129,21 @@ function Join({ view, onJoin, conn, error }: { view: PlayerView; onJoin: (name: 
     <div className="phone">
       <ConnBadge conn={conn} />
       <main className="phone-body join">
-        <div className="brand-lg">B-only Quiz</div>
-        <p className="lead">
-          {view.questionTotal} questions sur Bitcoin. Chaque bonne réponse vous rapporte du <b>hashrate</b>. À la fin, on mine un bloc.
+        <h1 className="wordmark">B-only quiz</h1>
+        <p>
+          {view.questionTotal} questions sur Bitcoin. Les bonnes réponses rapportent du hashrate, et à la fin on mine un bloc.
         </p>
         <form onSubmit={submit} className="join-form">
-          <label htmlFor="name">Votre nom ou celui de votre équipe</label>
-          <input id="name" className="input" maxLength={24} value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Satoshi’s pool" autoComplete="off" autoFocus />
-          <button className="btn primary big" disabled={!name.trim() || sent || conn !== 'open'}>
-            {sent ? 'Inscription…' : 'Rejoindre la partie'}
+          <label htmlFor="name">Nom (le vôtre ou celui de l’équipe)</label>
+          <input id="name" className="input" maxLength={24} value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" autoFocus />
+          <button className="btn primary" disabled={!name.trim() || sent || conn !== 'open'}>
+            Rejoindre
           </button>
-          {error ? <div className="notice bad">{error}</div> : null}
+          {error ? <p className="error">{error}</p> : null}
         </form>
-        {view.phase !== 'lobby' ? <div className="notice">La partie a déjà commencé, vous partez de 0 TH/s.</div> : null}
+        {view.phase !== 'lobby' ? <p className="muted">La partie a commencé, vous partez de 0 TH/s.</p> : null}
         <Rules config={view.config} />
       </main>
-    </div>
-  );
-}
-
-function Lobby({ view }: { view: PlayerView }) {
-  return (
-    <div className="stack">
-      <div className="card hero">
-        <div className="big-emoji">⛏️</div>
-        <h2>Vous êtes inscrit</h2>
-        <p className="muted">La partie commence bientôt. Gardez cet écran ouvert.</p>
-        <div className="muted small">{view.players.length} mineur{view.players.length > 1 ? 's' : ''} connecté{view.players.length > 1 ? 's' : ''}</div>
-      </div>
-      <Rules config={view.config} />
     </div>
   );
 }
@@ -176,22 +166,17 @@ function QuestionPad({
   const chosen = view.myAnswer?.option ?? (pending?.q === q.index ? pending.option : undefined);
   const timeUp = serverNow() >= q.closesAt;
   return (
-    <div className="stack">
-      <div className="q-meta">
-        <span>
-          Question {q.index + 1}/{q.total}
-        </span>
-        <span className={'diff ' + q.difficulty}>
-          {difficultyLabel[q.difficulty]} · {q.baseGain} TH/s
-        </span>
-      </div>
-      <TimerBar closesAt={q.closesAt} durationMs={q.durationMs} serverNow={serverNow} />
+    <>
+      <p className="muted small">
+        Question {q.index + 1}/{q.total} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH/s
+      </p>
+      <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={serverNow} />
       <h2 className="q-text">{q.text}</h2>
       <div className="answers">
         {q.options.map((opt, i) => (
           <button
             key={i}
-            className={'answer opt-' + i + (chosen === i ? ' chosen' : chosen !== undefined ? ' faded' : '')}
+            className={'answer' + (chosen === i ? ' chosen' : chosen !== undefined ? ' faded' : '')}
             disabled={chosen !== undefined || timeUp}
             onClick={() => onAnswer(i)}
           >
@@ -201,109 +186,99 @@ function QuestionPad({
         ))}
       </div>
       {view.myAnswer ? (
-        <div className="notice ok">Réponse verrouillée en {seconds(view.myAnswer.ms)}. Résultat à la fin du chrono.</div>
-      ) : chosen !== undefined ? (
-        <div className="notice">Envoi…</div>
-      ) : timeUp ? (
-        <div className="notice bad">Temps écoulé.</div>
+        <p className="muted">
+          Réponse {LETTERS[view.myAnswer.option]} envoyée en {seconds(view.myAnswer.ms)}.
+        </p>
+      ) : timeUp && chosen === undefined ? (
+        <p className="muted">Temps écoulé.</p>
       ) : null}
-      {notice ? <div className="notice bad">{notice}</div> : null}
-    </div>
+      {notice ? <p className="error">{notice}</p> : null}
+    </>
   );
 }
 
 function Reveal({ view }: { view: PlayerView }) {
   const q = view.question!;
   const r = view.myResult;
-  const me = view.me!;
-  const correctText = q.correctIndex !== undefined ? `${LETTERS[q.correctIndex]}. ${q.options[q.correctIndex]}` : '';
+  const answer = q.correctIndex !== undefined ? `${LETTERS[q.correctIndex]}. ${q.options[q.correctIndex]}` : '';
   return (
-    <div className="stack">
+    <>
       {q.cancelled ? (
-        <div className="card result neutral">
-          <h2>Question annulée</h2>
-          <p className="muted">Aucun point, votre série est conservée.</p>
-        </div>
+        <p className="big-line">Question annulée, aucun point.</p>
       ) : r?.correct ? (
-        <div className="card result good">
-          <div className="result-title">Bonne réponse !</div>
-          <div className="gain-big">+{ths(r.gain)}</div>
-          <dl className="breakdown">
-            <dt>Bonne réponse</dt>
-            <dd>+{ths(r.base, false)}</dd>
-            <dt>⚡ Rapidité ({seconds(r.ms ?? 0)})</dt>
-            <dd>+{ths(r.speedBonus, false)}</dd>
-            {r.streakBonus > 0 ? (
-              <>
-                <dt>🔥 Série de {r.streak}</dt>
-                <dd>+{ths(r.streakBonus, false)}</dd>
-              </>
-            ) : null}
-          </dl>
-        </div>
+        <section className="result">
+          <p className="gain-big ok">+{ths(r.gain)}</p>
+          <table className="breakdown">
+            <tbody>
+              <tr>
+                <td>Bonne réponse</td>
+                <td>{r.base}</td>
+              </tr>
+              <tr>
+                <td>Rapidité, {seconds(r.ms ?? 0)}</td>
+                <td>+{r.speedBonus}</td>
+              </tr>
+              {r.streakBonus > 0 ? (
+                <tr>
+                  <td>Série de {r.streak}</td>
+                  <td>+{r.streakBonus}</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </section>
       ) : (
-        <div className="card result bad">
-          <div className="result-title">{r?.option === null || !r ? 'Pas de réponse' : 'Raté'}</div>
+        <section className="result">
+          <p className="gain-big">0 TH/s</p>
           <p>
-            La bonne réponse était <b>{correctText}</b>
+            {r?.option === null || !r ? 'Pas de réponse.' : 'Faux.'} La réponse était <b>{answer}</b>
           </p>
-          {me.streak === 0 && r ? <p className="muted small">Série remise à zéro.</p> : null}
-        </div>
+        </section>
       )}
       <Standing view={view} />
       {q.explanation ? <p className="explain">{q.explanation}</p> : null}
-      <div className="muted small center-text">Prochaine question sur l’écran principal.</div>
-    </div>
+    </>
   );
 }
 
 function Standing({ view }: { view: PlayerView }) {
   const me = view.me!;
   return (
-    <div className="card standing">
-      <div className="stat-row">
+    <section className="standing">
+      <div className="figures">
         <div>
-          <div className="label">Votre hashrate</div>
-          <div className="value">{ths(me.hashrate)}</div>
+          <span className="label">Hashrate</span>
+          <span className="value">{ths(me.hashrate)}</span>
         </div>
         <div>
-          <div className="label">Rang</div>
-          <div className="value">
-            {me.rank}
-            <small>/{view.players.length}</small>
-          </div>
+          <span className="label">Rang</span>
+          <span className="value">
+            {me.rank}/{view.players.length}
+          </span>
         </div>
         <div>
-          <div className="label">Chances de bloc</div>
-          <div className="value accent">{pct(me.share)}</div>
+          <span className="label">Chances de bloc</span>
+          <span className="value">{pct(me.share)}</span>
         </div>
       </div>
       <NetworkBar players={view.players} highlightId={me.id} />
-    </div>
+    </section>
   );
 }
 
 function Final({ view, serverNow }: { view: PlayerView; serverNow: () => number }) {
   const me = view.me!;
   const last = view.blocks[view.blocks.length - 1];
-  const won = view.blocks.filter((b) => b.found && b.winnerId === me.id);
   return (
-    <div className="stack">
+    <>
       {last ? (
-        <MiningScene block={last} players={view.players} serverNow={serverNow} meId={me.id} compact />
+        <Mining block={last} players={view.players} serverNow={serverNow} meId={me.id} compact />
       ) : (
-        <div className="card hero">
-          <div className="big-emoji">🏁</div>
-          <h2>Quiz terminé !</h2>
-          <p className="muted">
-            {me.correctCount} bonne{me.correctCount > 1 ? 's' : ''} réponse{me.correctCount > 1 ? 's' : ''} sur {view.questionTotal}. Le minage du bloc va commencer.
-          </p>
-        </div>
+        <p className="big-line">
+          Quiz terminé, {me.correctCount} bonne{me.correctCount > 1 ? 's' : ''} réponse{me.correctCount > 1 ? 's' : ''} sur {view.questionTotal}. Le minage va commencer.
+        </p>
       )}
-      {won.length > 0 && last && last.found && last.winnerId !== me.id ? (
-        <div className="notice ok">Vous avez déjà trouvé le bloc {won.map((b) => b.n).join(', ')}.</div>
-      ) : null}
       <Standing view={view} />
-    </div>
+    </>
   );
 }

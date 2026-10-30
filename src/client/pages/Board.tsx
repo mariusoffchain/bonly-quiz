@@ -1,250 +1,214 @@
 import type { BoardView } from '../../shared/views';
-import { Avatar, ConnBadge, Leaderboard, MiningScene, NetworkBar, Rules, TimerRing } from '../components/ui';
-import { LETTERS, difficultyLabel, pct, playerColor, seconds, ths } from '../lib/format';
+import { ConnBadge, Countdown, Mining, NetworkBar, Rules, Standings, Swatch } from '../components/ui';
+import { LETTERS, difficultyLabel, pct, seconds, ths } from '../lib/format';
 import { useQuizSocket } from '../lib/ws';
 
 export function Board() {
   const sock = useQuizSocket<BoardView>(() => ({ type: 'hello', role: 'board' }));
   const { view } = sock;
-  if (!view) {
-    return (
-      <div className="board center">
-        <div className="brand-lg">B-only Quiz</div>
-        <div className="muted">{sock.conn === 'open' ? 'Chargement…' : 'Connexion au serveur…'}</div>
-      </div>
-    );
-  }
+  if (!view) return <div className="board muted">{sock.conn === 'open' ? 'Chargement…' : 'Connexion…'}</div>;
   return (
     <div className="board">
       <ConnBadge conn={sock.conn} />
-      <BoardHead view={view} />
-      {view.phase === 'lobby' ? <LobbyScreen view={view} /> : null}
-      {view.phase === 'question' ? <QuestionScreen view={view} serverNow={sock.serverNow} /> : null}
-      {view.phase === 'reveal' ? <RevealScreen view={view} /> : null}
-      {view.phase === 'final' ? <FinalScreen view={view} serverNow={sock.serverNow} /> : null}
+      <Head view={view} />
+      {view.phase === 'lobby' ? <Lobby view={view} /> : null}
+      {view.phase === 'question' ? <Question view={view} serverNow={sock.serverNow} /> : null}
+      {view.phase === 'reveal' ? <Reveal view={view} /> : null}
+      {view.phase === 'final' ? <Final view={view} serverNow={sock.serverNow} /> : null}
     </div>
   );
 }
 
-function BoardHead({ view }: { view: BoardView }) {
-  const current = view.question?.index ?? -1;
-  const done = view.phase === 'final' ? view.questionTotal : view.phase === 'question' ? current : current + 1;
+function Head({ view }: { view: BoardView }) {
+  const q = view.question;
+  const done = view.phase === 'final' ? view.questionTotal : q ? q.index + (view.phase === 'question' ? 0 : 1) : 0;
   return (
     <header className="board-head">
-      <div className="brand">
-        <span className="logo">₿</span> B-only Quiz
-      </div>
-      <div className="progress-dots" aria-label={`Question ${current + 1} sur ${view.questionTotal}`}>
-        {Array.from({ length: view.questionTotal }, (_, i) => (
-          <span key={i} className={i < done ? 'done' : i === current && view.phase === 'question' ? 'now' : ''} />
-        ))}
-      </div>
-      <div className="network">
-        <div className="label">Réseau</div>
-        <div className="value">{ths(view.totalHashrate)}</div>
-        <div className="muted small">
-          {view.players.length} mineur{view.players.length > 1 ? 's' : ''}
-        </div>
-      </div>
+      <span className="wordmark">B-only quiz</span>
+      <span className="muted">
+        {view.phase === 'lobby' ? `${view.questionTotal} questions` : view.phase === 'final' ? 'Fin du quiz' : `Question ${q!.index + 1} / ${view.questionTotal}`}
+      </span>
+      <span className="head-right">
+        <span className="mono">{ths(view.totalHashrate)}</span>
+        <span className="muted">
+          {' '}
+          · {view.players.length} joueur{view.players.length > 1 ? 's' : ''}
+        </span>
+      </span>
+      <span className="head-progress">
+        <span style={{ width: `${(done / Math.max(1, view.questionTotal)) * 100}%` }} />
+      </span>
     </header>
   );
 }
 
-function LobbyScreen({ view }: { view: BoardView }) {
+function Lobby({ view }: { view: BoardView }) {
   return (
-    <main className="screen lobby-screen">
-      <section className="join-card">
-        <div className="eyebrow">Rejoignez la partie</div>
-        <img className="qr" src={`/api/qr.svg?text=${encodeURIComponent(view.joinUrl)}`} alt="QR code pour rejoindre" />
-        <div className="join-url mono">{view.joinUrl.replace(/^https?:\/\//, '')}</div>
-      </section>
-      <section className="lobby-side">
-        <h1 className="headline">
-          {view.questionTotal} questions.
-          <br />
-          Gagnez du hashrate.
-          <br />
-          <span className="accent">Minez le bloc.</span>
-        </h1>
+    <main className="lobby">
+      <figure className="qr-block">
+        <img src={`/api/qr.svg?text=${encodeURIComponent(view.joinUrl)}`} alt="QR code pour rejoindre" />
+        <figcaption className="mono">{view.joinUrl.replace(/^https?:\/\//, '')}</figcaption>
+      </figure>
+      <section className="lobby-text">
+        <h1>Scannez pour jouer.</h1>
         <Rules config={view.config} />
-        <div className="player-cloud">
+        <div className="names">
           {view.players.map((p) => (
-            <span key={p.id} className="chip" style={{ borderColor: playerColor(p.color) }}>
-              <Avatar name={p.name} color={p.color} size={26} />
+            <span key={p.id}>
+              <Swatch color={p.color} />
               {p.name}
             </span>
           ))}
-          {view.players.length === 0 ? <span className="muted">En attente des premiers mineurs…</span> : null}
         </div>
       </section>
     </main>
   );
 }
 
-function QuestionScreen({ view, serverNow }: { view: BoardView; serverNow: () => number }) {
+function Question({ view, serverNow }: { view: BoardView; serverNow: () => number }) {
   const q = view.question!;
   const n = view.players.filter((p) => p.connected).length;
   return (
-    <main className="screen question-screen">
-      <div className="q-top">
-        <div>
-          <div className="eyebrow">
-            Question {q.index + 1} / {q.total}
-          </div>
-          <div className={'diff ' + q.difficulty}>
-            {difficultyLabel[q.difficulty]} · {q.baseGain} TH/s
-          </div>
-        </div>
-        <TimerRing closesAt={q.closesAt} durationMs={q.durationMs} serverNow={serverNow} size={150} />
-      </div>
-      <h1 className="q-text-big">{q.text}</h1>
-      <div className="options-grid">
-        {q.options.map((opt, i) => (
-          <div key={i} className={'option opt-' + i}>
-            <span className="letter">{LETTERS[i]}</span>
-            <span>{opt}</span>
-          </div>
-        ))}
-      </div>
-      <div className="answered">
-        <div className="answered-bar">
-          <div style={{ width: `${n ? Math.min(100, (q.answerCount / n) * 100) : 0}%` }} />
-        </div>
-        <span>
-          {q.answerCount} / {n} réponse{q.answerCount > 1 ? 's' : ''}
+    <main className="question">
+      <div className="q-meta">
+        <span className="muted">
+          {difficultyLabel[q.difficulty]} · {q.baseGain} TH/s
+        </span>
+        <span className="muted">
+          {q.answerCount} / {n} réponses
         </span>
       </div>
+      <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={serverNow} />
+      <h1 className="q-big">{q.text}</h1>
+      <ol className="options">
+        {q.options.map((opt, i) => (
+          <li key={i}>
+            <span className="letter">{LETTERS[i]}</span>
+            <span>{opt}</span>
+          </li>
+        ))}
+      </ol>
     </main>
   );
 }
 
-function RevealScreen({ view }: { view: BoardView }) {
+function Reveal({ view }: { view: BoardView }) {
   const q = view.question!;
   const total = (q.optionCounts ?? []).reduce((s, x) => s + x, 0);
   const byId = new Map(view.players.map((p) => [p.id, p]));
   return (
-    <main className="screen reveal-screen">
-      <section className="reveal-main">
-        <div className="eyebrow">
-          Question {q.index + 1} / {q.total}
-          {q.cancelled ? ' · annulée, aucun point' : ''}
-        </div>
-        <h2 className="q-text-mid">{q.text}</h2>
-        <div className="options-list">
+    <main className="split">
+      <section>
+        <h2 className="q-mid">{q.text}</h2>
+        {q.cancelled ? <p className="muted">Question annulée, aucun point.</p> : null}
+        <ol className="results">
           {q.options.map((opt, i) => {
             const count = q.optionCounts?.[i] ?? 0;
-            const ok = i === q.correctIndex;
             return (
-              <div key={i} className={'option-result' + (ok ? ' correct' : ' wrong')}>
-                <span className={'letter opt-bg-' + i}>{LETTERS[i]}</span>
+              <li key={i} className={i === q.correctIndex ? 'right' : ''}>
+                <span className="letter">{LETTERS[i]}</span>
                 <span className="text">{opt}</span>
-                <span className="count">
-                  <span className="fill" style={{ width: `${total ? (count / total) * 100 : 0}%` }} />
-                  <b>{count}</b>
+                <span className="count">{count}</span>
+                <span className="bar">
+                  <span style={{ width: `${total ? (count / total) * 100 : 0}%` }} />
                 </span>
-                {ok ? <span className="check">✓</span> : null}
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ol>
         {q.explanation ? <p className="explain">{q.explanation}</p> : null}
         {q.source ? (
-          <div className="source">
+          <p className="source">
             Source : {q.source.provider}, {q.source.license}
-          </div>
+          </p>
         ) : null}
       </section>
-      <aside className="reveal-side">
-        <div className="panel">
-          <div className="panel-title">Meilleurs gains</div>
-          {q.top && q.top.length > 0 ? (
-            <ol className="top-gains">
-              {q.top.map((r, i) => {
+      <aside>
+        <h3>Meilleurs gains</h3>
+        {q.top && q.top.length > 0 ? (
+          <table className="standings">
+            <tbody>
+              {q.top.map((r) => {
                 const p = byId.get(r.id);
                 return (
-                  <li key={r.id}>
-                    <span className="rank">{i + 1}</span>
-                    {p ? <Avatar name={p.name} color={p.color} size={30} /> : null}
-                    <span className="name">{p?.name ?? '?'}</span>
-                    <span className="detail">
-                      ⚡{seconds(r.ms ?? 0)}
-                      {r.streak >= 2 ? ` · 🔥${r.streak}` : ''}
-                    </span>
-                    <span className="gain">+{ths(r.gain)}</span>
-                  </li>
+                  <tr key={r.id}>
+                    <td className="who">
+                      {p ? <Swatch color={p.color} /> : null}
+                      <span className="nm">{p?.name ?? '?'}</span>
+                    </td>
+                    <td className="num muted">
+                      {seconds(r.ms ?? 0)}
+                      {r.streak >= 2 ? ` · série ${r.streak}` : ''}
+                    </td>
+                    <td className="num gain">+{ths(r.gain, false)}</td>
+                  </tr>
                 );
               })}
-            </ol>
-          ) : (
-            <div className="muted">Personne n’a trouvé. Aucun hashrate distribué.</div>
-          )}
-        </div>
-        <div className="panel grow">
-          <div className="panel-title">Classement · part du réseau</div>
-          <NetworkBar players={view.players} />
-          <Leaderboard players={view.players} limit={8} showGain />
-        </div>
+            </tbody>
+          </table>
+        ) : (
+          <p className="muted">Personne n’a trouvé.</p>
+        )}
+        <h3>Classement</h3>
+        <NetworkBar players={view.players} />
+        <Standings players={view.players} limit={8} showGain />
       </aside>
     </main>
   );
 }
 
-function FinalScreen({ view, serverNow }: { view: BoardView; serverNow: () => number }) {
+function Final({ view, serverNow }: { view: BoardView; serverNow: () => number }) {
   const last = view.blocks[view.blocks.length - 1];
-  const winners = view.blocks.filter((b) => b.found && b.winnerId).map((b) => b.winnerId!);
+  const found = view.blocks.filter((b) => b.found);
   const byId = new Map(view.players.map((p) => [p.id, p]));
   return (
-    <main className="screen final-screen">
-      <section className="final-main">
+    <main className="split">
+      <section>
         {last ? (
-          <MiningScene block={last} players={view.players} serverNow={serverNow} />
+          <Mining block={last} players={view.players} serverNow={serverNow} />
         ) : (
           <div className="final-intro">
-            <div className="eyebrow">Fin du quiz</div>
-            <h1 className="headline">
-              Place au <span className="accent">minage</span>.
-            </h1>
-            <p className="lead">
-              Comme sur le réseau Bitcoin, chaque mineur a une chance de trouver le bloc égale à sa part du hashrate. Le plus gros mineur est favori, mais rien n’est garanti.
-            </p>
+            <h1>Le minage</h1>
+            <p>Chacun a une chance de trouver le bloc égale à sa part du hashrate. Le premier est favori, pas gagnant.</p>
             <NetworkBar players={view.players} />
-            <div className="odds">
+            <ol className="odds">
               {view.players.slice(0, 3).map((p) => (
-                <div key={p.id} className="odd">
-                  <Avatar name={p.name} color={p.color} size={44} />
-                  <div className="name">{p.name}</div>
-                  <div className="value accent">{pct(p.share)}</div>
-                </div>
+                <li key={p.id}>
+                  <span className="value">{pct(p.share)}</span>
+                  <span>
+                    <Swatch color={p.color} />
+                    {p.name}
+                  </span>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         )}
       </section>
-      <aside className="final-side">
-        <div className="panel grow">
-          <div className="panel-title">Classement final · chances de bloc</div>
-          <Leaderboard players={view.players} limit={12} winners={winners} />
-        </div>
-        {view.blocks.some((b) => b.found) ? (
-          <div className="panel">
-            <div className="panel-title">Blocs trouvés</div>
-            <ul className="blocks-list">
-              {view.blocks
-                .filter((b) => b.found)
-                .map((b) => {
+      <aside>
+        <h3>Classement final</h3>
+        <Standings players={view.players} limit={12} winners={found.map((b) => b.winnerId ?? '')} />
+        {found.length > 0 ? (
+          <>
+            <h3>Blocs</h3>
+            <table className="standings">
+              <tbody>
+                {found.map((b) => {
                   const w = b.winnerId ? byId.get(b.winnerId) : undefined;
                   return (
-                    <li key={b.n}>
-                      <span className="cube small" />
-                      <span className="mono">#{b.n}</span>
-                      <span className="grow">{b.label ?? ''}</span>
-                      {w ? <Avatar name={w.name} color={w.color} size={24} /> : null}
-                      <b>{w?.name ?? '—'}</b>
-                    </li>
+                    <tr key={b.n}>
+                      <td className="rank">{b.n}</td>
+                      <td className="muted">{b.label ?? ''}</td>
+                      <td className="who">
+                        {w ? <Swatch color={w.color} /> : null}
+                        <span className="nm">{w?.name ?? 'personne'}</span>
+                      </td>
+                    </tr>
                   );
                 })}
-            </ul>
-          </div>
+              </tbody>
+            </table>
+          </>
         ) : null}
       </aside>
     </main>

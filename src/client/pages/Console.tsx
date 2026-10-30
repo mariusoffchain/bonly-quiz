@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import type { SessionConfig } from '../../shared/config';
 import type { ConsoleView } from '../../shared/views';
-import { Avatar, ConnBadge, TimerRing } from '../components/ui';
+import { ConnBadge, Countdown, Swatch } from '../components/ui';
 import { LETTERS, difficultyLabel, pct, ths } from '../lib/format';
 import { useQuizSocket } from '../lib/ws';
 
@@ -22,6 +22,10 @@ const writeToken = (t: string | null) => {
     /* ignore */
   }
 };
+
+type Send = ReturnType<typeof useQuizSocket>['send'];
+
+const plural = (n: number, one: string, many: string) => `${n} ${n > 1 ? many : one}`;
 
 export function Console() {
   const [token, setToken] = useState<string | null>(() => new URLSearchParams(location.search).get('token') ?? readToken());
@@ -44,30 +48,22 @@ export function Console() {
 function Login({ onToken }: { onToken: (t: string) => void }) {
   const [t, setT] = useState('');
   const [err, setErr] = useState('');
-  const check = async () => {
+  const check = async (e: FormEvent) => {
+    e.preventDefault();
     const r = await fetch('/api/console/check', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: t.trim() }) });
     const j = (await r.json()) as { ok: boolean };
     if (j.ok) onToken(t.trim());
-    else setErr('Jeton invalide. Il est affiché dans le terminal du serveur au démarrage, et dans data/console-token.txt.');
+    else setErr('Jeton invalide. Il s’affiche au démarrage du serveur et se trouve dans data/console-token.txt.');
   };
   return (
-    <div className="login">
-      <div className="brand-lg">Console</div>
-      <input className="input" placeholder="Jeton console" value={t} onChange={(e) => setT(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && void check()} autoFocus />
-      <button className="btn primary big" onClick={() => void check()}>
-        Entrer
-      </button>
-      {err ? <div className="notice bad">{err}</div> : null}
-    </div>
+    <form className="narrow" onSubmit={(e) => void check(e)}>
+      <h1 className="wordmark">Console</h1>
+      <input className="input" placeholder="Jeton" value={t} onChange={(e) => setT(e.target.value)} autoFocus />
+      <button className="btn primary">Entrer</button>
+      {err ? <p className="error">{err}</p> : null}
+    </form>
   );
 }
-
-const PHASE_TEXT: Record<ConsoleView['phase'], string> = {
-  lobby: 'Inscriptions ouvertes',
-  question: 'Question en cours',
-  reveal: 'Réponse affichée',
-  final: 'Quiz terminé · minage',
-};
 
 function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }) {
   const sock = useQuizSocket<ConsoleView>(() => ({ type: 'hello', role: 'console', consoleToken: token }));
@@ -89,14 +85,7 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
     [sock.onMessage, onLogout],
   );
 
-  if (!view) {
-    return (
-      <div className="login">
-        <div className="brand-lg">Console</div>
-        <div className="muted">{sock.conn === 'open' ? 'Chargement…' : 'Connexion au serveur…'}</div>
-      </div>
-    );
-  }
+  if (!view) return <p className="narrow muted">{sock.conn === 'open' ? 'Chargement…' : 'Connexion…'}</p>;
 
   const next = view.next;
   const q = view.question;
@@ -108,23 +97,27 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
     send({ type: 'next', key: next.key, label: next.action === 'mine' ? label : undefined });
     if (next.action === 'mine') setLabel('');
   };
+  const status =
+    view.phase === 'lobby'
+      ? `${view.players.length} inscrit${view.players.length > 1 ? 's' : ''}`
+      : view.phase === 'final'
+        ? `Fin du quiz, ${plural(view.blocks.filter((b) => b.found).length, 'bloc trouvé', 'blocs trouvés')}`
+        : `Question ${(q?.index ?? 0) + 1} / ${view.questionTotal}${view.phase === 'reveal' ? ', réponse affichée' : ''}`;
 
   return (
     <div className="console">
       <ConnBadge conn={sock.conn} />
       <header className="console-head">
-        <div className="brand">
-          <span className="logo">₿</span> Console
-        </div>
-        <span className="muted small">
-          Partie {view.code} · {view.packName}
+        <span className="wordmark">Console</span>
+        <span className="muted">
+          {view.code} · {view.packName}
         </span>
         <nav>
           <a href="/board" target="_blank" rel="noreferrer">
-            Ouvrir l’écran ↗
+            Écran
           </a>
           <a href={view.joinUrl} target="_blank" rel="noreferrer">
-            Page joueur ↗
+            Page joueur
           </a>
           <button className="link" onClick={onLogout}>
             Déconnexion
@@ -133,103 +126,83 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
       </header>
 
       <div className="console-grid">
-        <section className="stack">
-          <div className="card control">
-            <div className="row between">
-              <div>
-                <div className="eyebrow">{PHASE_TEXT[view.phase]}</div>
-                <div className="control-title">
-                  {view.phase === 'lobby'
-                    ? `${view.players.length} inscrit${view.players.length > 1 ? 's' : ''}`
-                    : view.phase === 'final'
-                      ? `${view.blocks.filter((b) => b.found).length} bloc(s) trouvé(s)`
-                      : `Question ${(q?.index ?? 0) + 1} / ${view.questionTotal}`}
-                </div>
-              </div>
-              {view.phase === 'question' && q ? <TimerRing closesAt={q.closesAt} durationMs={q.durationMs} serverNow={sock.serverNow} size={72} /> : null}
-            </div>
+        <div>
+          <section className="control">
+            <p className="status">{status}</p>
             {view.phase === 'question' && q ? (
-              <div className="answered">
-                <div className="answered-bar">
-                  <div style={{ width: `${connected ? Math.min(100, (q.answerCount / connected) * 100) : 0}%` }} />
-                </div>
-                <span>
-                  {q.answerCount} / {connected} ont répondu
-                </span>
-              </div>
+              <>
+                <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={sock.serverNow} />
+                <p className="muted">
+                  {q.answerCount} / {connected} réponses
+                </p>
+              </>
             ) : null}
-            {next?.action === 'mine' ? (
-              <input className="input" placeholder="Lot pour ce bloc (optionnel)" value={label} maxLength={60} onChange={(e) => setLabel(e.target.value)} />
-            ) : null}
+            {next?.action === 'mine' ? <input className="input" placeholder="Lot (facultatif)" value={label} maxLength={60} onChange={(e) => setLabel(e.target.value)} /> : null}
             {next ? (
-              <button className="btn primary huge" onClick={go} disabled={sentKey === next.key}>
-                {next.label} →
+              <button className="btn primary big" onClick={go} disabled={sentKey === next.key}>
+                {next.label}
               </button>
             ) : view.phase === 'final' ? (
-              <button className="btn huge" disabled>
+              <button className="btn big" disabled>
                 Minage en cours…
               </button>
             ) : null}
             {view.phase === 'question' ? (
-              <button className="btn ghost" onClick={() => confirm('Annuler cette question ? Personne ne gagne de TH/s.') && send({ type: 'cancel-question' })}>
-                Annuler la question (aucun point)
+              <button className="link" onClick={() => confirm('Annuler cette question ? Personne ne marque.') && send({ type: 'cancel-question' })}>
+                Annuler la question sans points
               </button>
             ) : null}
-            {error ? <div className="notice bad">{error}</div> : null}
-          </div>
+            {error ? <p className="error">{error}</p> : null}
+          </section>
 
-          {q && view.phase !== 'final' ? <QuestionCard view={view} /> : null}
+          {q && view.phase !== 'final' ? <QuestionPanel view={view} /> : null}
           {view.phase === 'lobby' || view.phase === 'reveal' ? <UpNext view={view} /> : null}
           {view.phase === 'final' ? <Blocks view={view} /> : null}
           {view.phase === 'lobby' ? <Settings view={view} send={send} /> : null}
-        </section>
+        </div>
 
-        <section className="stack">
+        <div>
           <Players view={view} send={send} />
-          <div className="card">
-            <div className="panel-title">Pour rejoindre</div>
+          <section>
+            <h3>Rejoindre</h3>
             <div className="join-mini">
               <img src={`/api/qr.svg?text=${encodeURIComponent(view.joinUrl)}`} alt="" />
               <div>
-                <div className="mono">{view.joinUrl}</div>
-                {view.lanUrls.length > 1 ? <div className="muted small">Autres adresses : {view.lanUrls.join(', ')}</div> : null}
+                <p className="mono">{view.joinUrl}</p>
+                {view.lanUrls.length > 1 ? <p className="muted small">Autres adresses : {view.lanUrls.join(', ')}</p> : null}
               </div>
             </div>
-          </div>
-          <div className="card row between">
-            <a className="btn ghost" href={`/api/export?token=${encodeURIComponent(token)}`}>
-              Exporter la partie (JSON)
-            </a>
-            <button
-              className="btn danger"
-              onClick={() => confirm('Démarrer une nouvelle partie ? Les joueurs devront se réinscrire.') && send({ type: 'new-session' })}
-            >
+          </section>
+          <section className="row">
+            <a href={`/api/export?token=${encodeURIComponent(token)}`}>Exporter la partie (JSON)</a>
+            <button className="link danger" onClick={() => confirm('Nouvelle partie ? Les joueurs devront se réinscrire.') && send({ type: 'new-session' })}>
               Nouvelle partie
             </button>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   );
 }
 
-function QuestionCard({ view }: { view: ConsoleView }) {
+function QuestionPanel({ view }: { view: ConsoleView }) {
   const q = view.question!;
   return (
-    <div className="card">
-      <div className="panel-title">
+    <section>
+      <h3>
         Question {q.index + 1} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH/s
-      </div>
-      <div className="q-console">{q.text}</div>
+      </h3>
+      <p className="q-console">{q.text}</p>
       <ol className="opts-console">
         {q.options.map((o, i) => (
-          <li key={i} className={i === q.correctIndex ? 'correct' : ''}>
-            <b>{LETTERS[i]}</b> {o}
-            {q.optionCounts ? <span className="muted"> · {q.optionCounts[i]}</span> : null}
+          <li key={i} className={i === q.correctIndex ? 'right' : ''}>
+            <span className="letter">{LETTERS[i]}</span>
+            <span className="grow">{o}</span>
+            {q.optionCounts ? <span className="mono">{q.optionCounts[i]}</span> : null}
           </li>
         ))}
       </ol>
-    </div>
+    </section>
   );
 }
 
@@ -238,15 +211,15 @@ function UpNext({ view }: { view: ConsoleView }) {
   const q = view.questions[i];
   if (!q) return null;
   return (
-    <div className="card upnext">
-      <div className="panel-title">
-        À suivre · question {i + 1} · {difficultyLabel[q.difficulty]}
-      </div>
-      <div>{q.text}</div>
-      <div className="muted small">
-        Réponse : {LETTERS[q.correctIndex]}. {q.options[q.correctIndex]}
-      </div>
-    </div>
+    <section>
+      <h3>
+        Ensuite · question {i + 1} · {difficultyLabel[q.difficulty]}
+      </h3>
+      <p>{q.text}</p>
+      <p className="muted small">
+        Réponse {LETTERS[q.correctIndex]} : {q.options[q.correctIndex]}
+      </p>
+    </section>
   );
 }
 
@@ -254,77 +227,84 @@ function Blocks({ view }: { view: ConsoleView }) {
   const byId = new Map(view.players.map((p) => [p.id, p]));
   if (view.blocks.length === 0) {
     return (
-      <div className="card muted">
-        Chaque clic sur « Miner le bloc » tire 1 gagnant, chances = part du hashrate.
-        {view.config.excludeBlockWinners ? ' Un gagnant ne peut pas retrouver un bloc.' : ''}
-      </div>
+      <section>
+        <p className="muted">
+          Un clic sur « Miner le bloc » tire un gagnant, chances = part du hashrate.
+          {view.config.excludeBlockWinners ? ' Un gagnant ne participe plus aux tirages suivants.' : ''}
+        </p>
+      </section>
     );
   }
   return (
-    <div className="card">
-      <div className="panel-title">Blocs</div>
-      <ul className="blocks-list">
-        {view.blocks.map((b) => {
-          const w = b.winnerId ? byId.get(b.winnerId) : undefined;
-          const share = b.candidates.find((c) => c.id === b.winnerId)?.share;
-          return (
-            <li key={b.n}>
-              <span className="mono">#{b.n}</span>
-              <span className="grow">{b.label ?? ''}</span>
-              {b.found ? (
-                <>
-                  <b>{w?.name ?? 'personne'}</b>
-                  {share !== undefined ? <span className="muted">{pct(share)}</span> : null}
-                  <span className="muted small mono">
-                    tirage {b.roll?.toLocaleString('fr-FR')} / {b.total?.toLocaleString('fr-FR')}
-                  </span>
-                </>
-              ) : (
-                <span className="muted">minage…</span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+    <section>
+      <h3>Blocs</h3>
+      <table className="standings">
+        <tbody>
+          {view.blocks.map((b) => {
+            const w = b.winnerId ? byId.get(b.winnerId) : undefined;
+            const share = b.candidates.find((c) => c.id === b.winnerId)?.share;
+            return (
+              <tr key={b.n}>
+                <td className="rank">{b.n}</td>
+                <td className="muted">{b.label ?? ''}</td>
+                {b.found ? (
+                  <>
+                    <td className="who">
+                      <span className="nm">{w?.name ?? 'personne'}</span>
+                    </td>
+                    <td className="num">{share !== undefined ? pct(share) : ''}</td>
+                    <td className="num muted small">
+                      {b.roll?.toLocaleString('fr-FR')} / {b.total?.toLocaleString('fr-FR')}
+                    </td>
+                  </>
+                ) : (
+                  <td className="muted" colSpan={3}>
+                    minage…
+                  </td>
+                )}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </section>
   );
 }
 
-function Players({ view, send }: { view: ConsoleView; send: ReturnType<typeof useQuizSocket>['send'] }) {
+function Players({ view, send }: { view: ConsoleView; send: Send }) {
   const answered = new Set(view.answeredIds);
   return (
-    <div className="card">
-      <div className="panel-title">
-        Joueurs ({view.players.length}, {view.players.filter((p) => p.connected).length} connectés)
-      </div>
-      {view.players.length === 0 ? <div className="muted">Personne pour l’instant. Affichez l’écran avec le QR code.</div> : null}
-      <ul className="players-console">
-        {view.players.map((p) => (
-          <li key={p.id} className={p.connected ? '' : 'offline'}>
-            <span className="rank">{p.rank}</span>
-            <Avatar name={p.name} color={p.color} size={26} />
-            <span className="grow">
-              {p.name}
-              {view.phase === 'question' && answered.has(p.id) ? <span className="tick"> ✓</span> : null}
-              {!p.connected ? <span className="muted small"> · hors ligne</span> : null}
-            </span>
-            {p.streak >= 2 ? <span className="small">🔥{p.streak}</span> : null}
-            <span className="mono small">{ths(p.hashrate)}</span>
-            <button
-              className="icon-btn"
-              title="Retirer"
-              onClick={() => confirm(`Retirer ${p.name} de la partie ?`) && send({ type: 'remove-player', id: p.id })}
-            >
-              ✕
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <section>
+      <h3>
+        Joueurs · {view.players.length} ({view.players.filter((p) => p.connected).length} en ligne)
+      </h3>
+      {view.players.length === 0 ? <p className="muted">Personne pour l’instant.</p> : null}
+      <table className="standings players">
+        <tbody>
+          {view.players.map((p) => (
+            <tr key={p.id} className={p.connected ? '' : 'off'}>
+              <td className="rank">{p.rank}</td>
+              <td className="who">
+                <Swatch color={p.color} />
+                <span className="nm">{p.name}</span>
+                {view.phase === 'question' && answered.has(p.id) ? <span className="mark">a répondu</span> : null}
+              </td>
+              <td className="num muted">{p.streak >= 2 ? `série ${p.streak}` : ''}</td>
+              <td className="num">{ths(p.hashrate)}</td>
+              <td>
+                <button className="link" title="Retirer" onClick={() => confirm(`Retirer ${p.name} ?`) && send({ type: 'remove-player', id: p.id })}>
+                  retirer
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
   );
 }
 
-function Settings({ view, send }: { view: ConsoleView; send: ReturnType<typeof useQuizSocket>['send'] }) {
+function Settings({ view, send }: { view: ConsoleView; send: Send }) {
   const c = view.fullConfig;
   const [draft, setDraft] = useState<SessionConfig>(c);
   useEffect(() => setDraft(c), [JSON.stringify(c)]);
@@ -333,8 +313,8 @@ function Settings({ view, send }: { view: ConsoleView; send: ReturnType<typeof u
   const dirty = JSON.stringify(draft) !== JSON.stringify(c);
   const currentPack = view.packs.find((p) => p.name === view.packName);
   return (
-    <details className="card settings">
-      <summary>Réglages de la partie</summary>
+    <details className="settings">
+      <summary>Réglages</summary>
       <label>
         Questions
         <select value={currentPack?.file ?? ''} onChange={(e) => send({ type: 'set-pack', file: e.target.value })}>
@@ -356,7 +336,7 @@ function Settings({ view, send }: { view: ConsoleView; send: ReturnType<typeof u
         </label>
         {(['easy', 'intermediate', 'hard'] as const).map((d) => (
           <label key={d}>
-            Gain {difficultyLabel[d].toLowerCase()} (TH/s)
+            Gain {difficultyLabel[d]} (TH/s)
             <input type="number" min={0} value={draft.baseGainThs[d]} onChange={(e) => set({ baseGainThs: { ...draft.baseGainThs, [d]: num(e.target.value) } })} />
           </label>
         ))}
@@ -377,23 +357,23 @@ function Settings({ view, send }: { view: ConsoleView; send: ReturnType<typeof u
           <input type="number" min={0} value={Math.round(draft.streakBonusMax * 100)} onChange={(e) => set({ streakBonusMax: num(e.target.value) / 100 })} />
         </label>
         <label>
-          Animation de minage (s)
+          Durée du minage (s)
           <input type="number" min={0} max={60} value={draft.miningDurationMs / 1000} onChange={(e) => set({ miningDurationMs: num(e.target.value) * 1000 })} />
         </label>
       </div>
       <label className="check">
         <input type="checkbox" checked={draft.closeWhenAllAnswered} onChange={(e) => set({ closeWhenAllAnswered: e.target.checked })} />
-        Révéler dès que tout le monde a répondu
+        Afficher la réponse dès que tout le monde a répondu
       </label>
       <label className="check">
         <input type="checkbox" checked={draft.excludeBlockWinners} onChange={(e) => set({ excludeBlockWinners: e.target.checked })} />
-        Un gagnant de bloc ne peut pas en gagner un autre
+        Un seul bloc par joueur
       </label>
       <div className="row">
         <button className="btn primary" disabled={!dirty} onClick={() => send({ type: 'set-config', patch: draft })}>
           Enregistrer
         </button>
-        <button className="btn ghost" disabled={!dirty} onClick={() => setDraft(c)}>
+        <button className="link" disabled={!dirty} onClick={() => setDraft(c)}>
           Annuler
         </button>
       </div>

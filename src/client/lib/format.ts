@@ -8,16 +8,8 @@ export const seconds = (ms: number) => `${(ms / 1000).toFixed(1).replace('.', ',
 
 export const LETTERS = ['A', 'B', 'C', 'D'];
 
-export const difficultyLabel = { easy: 'Facile', intermediate: 'Moyenne', hard: 'Difficile' } as const;
+export const difficultyLabel = { easy: 'facile', intermediate: 'moyenne', hard: 'difficile' } as const;
 
-/** Player colours, indexed by Player.color. */
-const PALETTE = ['#f7931a', '#4c7dff', '#2fd27a', '#ff5ca8', '#19c3b1', '#b062ff', '#ffd166', '#ff6b3d', '#5ad1ff', '#9be15d', '#e86bff', '#c9a26b'];
+/** Player colours, indexed by Player.color. Distinct but muted, so the accent stays the accent. */
+const PALETTE = ['#d9a25f', '#7d9fc9', '#8fb87a', '#c98aa6', '#6fb3ad', '#a593c9', '#cfc26b', '#c97f6b', '#8ab7cf', '#b5b08f', '#c7a0d6', '#9aa3a8'];
 export const playerColor = (i: number) => PALETTE[((i % PALETTE.length) + PALETTE.length) % PALETTE.length];
-
-export const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => [...w][0]?.toUpperCase() ?? '')
-    .join('') || '?';

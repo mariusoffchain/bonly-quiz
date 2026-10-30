@@ -10,8 +10,8 @@ n'est garanti.
 | | Par défaut |
 |---|---|
 | Bonne réponse | 100 TH/s (facile), 150 (moyenne), 200 (difficile) |
-| ⚡ Rapidité | jusqu'à +50 % du gain de base pour une réponse instantanée, diminue linéairement jusqu'à 0 à la fin du chrono |
-| 🔥 Série | +10 % du gain de base par bonne réponse d'affilée après la 1re (2e d'affilée +10 %, 3e +20 %…), plafonné à +50 % |
+| Rapidité | jusqu'à +50 % du gain de base pour une réponse instantanée, diminue linéairement jusqu'à 0 à la fin du chrono |
+| Série | +10 % du gain de base par bonne réponse d'affilée après la 1re (2e d'affilée +10 %, 3e +20 %…), plafonné à +50 % |
 | Mauvaise réponse / pas de réponse | 0 TH/s, série remise à zéro, aucune pénalité |
 | Bloc final | 1 gagnant tiré au hasard (Web Crypto), probabilité = hashrate du joueur / hashrate total |
 

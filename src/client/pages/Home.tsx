@@ -1,21 +1,18 @@
 export function Home() {
   return (
-    <div className="home">
-      <div className="brand-lg">
-        <span className="logo">₿</span> B-only Quiz
-      </div>
-      <p className="lead">21 questions, du hashrate à gagner, un bloc à miner.</p>
-      <div className="home-links">
-        <a className="btn primary big" href="/play">
-          Jouer
-        </a>
-        <a className="btn big" href="/board">
-          Écran de présentation
-        </a>
-        <a className="btn big" href="/console">
-          Console d’animation
-        </a>
-      </div>
-    </div>
+    <main className="narrow">
+      <h1 className="wordmark">B-only quiz</h1>
+      <ul className="links">
+        <li>
+          <a href="/play">Jouer</a>
+        </li>
+        <li>
+          <a href="/board">Écran</a>
+        </li>
+        <li>
+          <a href="/console">Console</a>
+        </li>
+      </ul>
+    </main>
   );
 }
