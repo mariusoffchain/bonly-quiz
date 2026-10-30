@@ -42,7 +42,7 @@ export function Board() {
   const nowS = sock.serverNow();
   const resultUntil = (q?.closedAt ?? 0) + view.config.revealHoldMs;
   const lbUntil = resultUntil + view.config.leaderboardHoldMs;
-  const showLeaderboard = !!q && q.closed && view.phase === 'question-closed' && nowS >= resultUntil;
+  const showLeaderboard = view.config.leaderboardHoldMs > 0 && !!q && q.closed && view.phase === 'question-closed' && nowS >= resultUntil;
   const lbTimerRunning = showLeaderboard && nowS < lbUntil && view.config.leaderboardHoldMs > 0;
 
   return (
@@ -65,7 +65,7 @@ export function Board() {
             <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div className="card-title">{round?.title} · classement après la question {q.questionIndex + 1}/{q.questionTotal}</div>
-                <div className="q">Classement de la manche</div>
+                <div className="q">Classement de la partie</div>
               </div>
               {lbTimerRunning ? <Countdown closesAt={lbUntil} durationMs={view.config.leaderboardHoldMs} serverNow={sock.serverNow} /> : <span className="badge">Prochaine question bientôt</span>}
             </div>
@@ -111,7 +111,7 @@ export function Board() {
             <div>
               <div className="card-title">Rejoignez la partie</div>
               <div className="big-url">{view.joinUrl ?? '—'}</div>
-              <p className="muted">Scannez le QR code. 1 téléphone par pool classique (3 membres minimum), ou jouez seul en Bitaxe.</p>
+              <p className="muted">Scannez le QR code. 1 téléphone par pool classique (3 membres minimum), ou jouez en solo.</p>
               <div className="row" style={{ marginTop: 20, gap: 20 }}>
                 <div className="stat">
                   <div className="label">Concurrents</div>
@@ -130,7 +130,7 @@ export function Board() {
                   <div className="value">{view.rounds.length}</div>
                 </div>
               </div>
-              {view.phase === 'round-ready' ? <div className="alert" style={{ marginTop: 16 }}>{round?.title} commence. Hashrate initial {view.config.initialHashrateThs} TH/s pour tous.</div> : null}
+              {view.phase === 'round-ready' ? <div className="alert" style={{ marginTop: 16 }}>{round?.title} commence. Votre hashrate est conservé tout au long de la partie.</div> : null}
             </div>
             <div className="qr">
               <img src={`/api/qr.svg?text=${encodeURIComponent(view.joinUrl ?? '')}&v=${view.code}`} alt="QR code pour rejoindre" />

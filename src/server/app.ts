@@ -403,6 +403,10 @@ export class App {
       case 'update-competitor':
         g.updateCompetitor(msg.id, { name: msg.name, members: msg.members }, now);
         break;
+      case 'next-step':
+        g.advance(msg.expectedKey, now);
+        this.rescheduleClose();
+        break;
       case 'start-round':
         g.startRound(msg.index, now, g.state.blockFeed.tipHeight);
         break;

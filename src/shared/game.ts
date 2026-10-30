@@ -1,6 +1,7 @@
 import { DEFAULT_CONFIG, type Difficulty, type SessionConfig } from './config.js';
 import { cryptoRng, drawPrizeSeries, weightedDraw, type PrizeDef, type Rng, type WeightedCandidate } from './draw.js';
 import { applyPercent, nanoFromJSON, parsePercent, percentToString, thsToNano, type Nano } from './hashrate.js';
+import { nextStep } from './progression.js';
 import { rankCorrectAnswers } from './scoring.js';
 import type {
   BlockBonusEvent,
@@ -51,6 +52,7 @@ export class Game {
     state.config = { ...DEFAULT_CONFIG, ...state.config };
     state.nextAvatarIndex ??= Object.keys(state.competitors).length;
     for (const c of Object.values(state.competitors)) c.avatar ??= { shape: 0, color: 0 };
+    migrateHashrates(state);
     this.state = state;
     this.rng = deps.rng ?? cryptoRng;
     this.newId = deps.newId ?? defaultId;
@@ -60,6 +62,8 @@ export class Game {
   static create(code: string, now: number, content: ContentPack, config: Partial<SessionConfig> = {}, deps: GameDeps = {}): Game {
     const state: SessionState = {
       code,
+      hashrateMode: 'continuous',
+      hashrates: {},
       createdAt: now,
       config: { ...DEFAULT_CONFIG, ...config },
       contentName: content.name,
@@ -203,10 +207,11 @@ export class Game {
 
   private registerCompetitor(c: Competitor, now: number): void {
     this.state.competitors[c.id] = c;
-    // Late joiners during a running round start at the initial hashrate of that round.
+    this.state.hashrates[c.id] = thsToNano(this.state.config.initialHashrateThs).toString();
+    // New competitors receive their starting balance once, including between rounds.
     const r = this.round;
     if (r && r.status === 'running' && r.hashrates[c.id] === undefined) {
-      r.hashrates[c.id] = thsToNano(this.state.config.initialHashrateThs).toString();
+      r.hashrates[c.id] = this.state.hashrates[c.id];
     }
     this.emit(now, 'competitor.joined', { id: c.id, kind: c.kind, name: c.name, members: c.members.length });
   }
@@ -249,7 +254,18 @@ export class Game {
   }
 
   // ------------------------------------------------------------------ rounds
-  /** Prepare a round: every competitor starts from the configured initial hashrate. */
+  advance(expectedKey: string, now: number): void {
+    const step = nextStep(this.state);
+    if (!step || step.key !== expectedKey) throw new GameError('stale-step', 'Cette étape a déjà changé. Le déroulé est à jour.');
+    switch (step.action) {
+      case 'start-round': this.startRound(step.index!, now, this.state.blockFeed.tipHeight); break;
+      case 'open-question': this.openNextQuestion(now); break;
+      case 'close-question': this.closeQuestion(now); break;
+      case 'end-round': this.endRound(now); break;
+    }
+  }
+
+  /** Prepare the next round with every competitor's existing game balance. */
   startRound(index: number, now: number, tipHeight: number | null): RoundState {
     const r = this.state.roundStates[index];
     if (!r) throw new GameError('not-found', 'unknown round');
@@ -259,9 +275,8 @@ export class Game {
     r.status = 'running';
     r.startedAt = now;
     r.tipHeightAtStart = tipHeight;
-    r.hashrates = {};
+    r.hashrates = { ...this.state.hashrates };
     const init = thsToNano(this.state.config.initialHashrateThs).toString();
-    for (const c of this.activeCompetitors()) r.hashrates[c.id] = init;
     r.questionRuns = [];
     r.currentQuestion = -1;
     r.blockBonuses = [];
@@ -351,6 +366,7 @@ export class Game {
     for (const g of ranked) {
       const before = this.hashrate(r, g.competitorId);
       r.hashrates[g.competitorId] = (before + g.gain).toString();
+      this.state.hashrates[g.competitorId] = r.hashrates[g.competitorId];
     }
     const wrong = Object.entries(run.answers)
       .filter(([, a]) => a.optionIndex !== q.correctIndex)
@@ -389,6 +405,7 @@ export class Game {
     const r = this.round;
     if (!r || r.status !== 'running') throw new GameError('no-round', 'no running round');
     if (this.state.phase === 'question-open') throw new GameError('question-open', 'close the question first');
+    this.state.hashrates = { ...this.state.hashrates, ...r.hashrates };
     r.status = 'ended';
     r.endedAt = now;
     r.finalHashrates = { ...r.hashrates };
@@ -443,6 +460,7 @@ export class Game {
       const pctv = parsePercent(this.state.config.blockBonusPercent);
       const bonus = applyPercent(this.state.config.blockBonusBase === 'own' ? before : total, pctv);
       r.hashrates[res.winnerId] = (before + bonus).toString();
+      this.state.hashrates[res.winnerId] = r.hashrates[res.winnerId];
       ev.before = before.toString();
       ev.bonus = bonus.toString();
       ev.after = (before + bonus).toString();
@@ -480,10 +498,17 @@ export class Game {
     const scope = input.scope ?? this.state.config.prizeScope;
     let roundIndexes = input.roundIndexes;
     if (!roundIndexes || roundIndexes.length === 0) {
-      const ended = this.state.roundStates.filter((r) => r.status === 'ended');
+      const ended = this.state.roundStates.filter((r) => r.status === 'ended').sort((a, b) => (a.endedAt ?? 0) - (b.endedAt ?? 0));
       if (ended.length === 0) throw new GameError('no-ended-round', 'no ended round to draw from');
       roundIndexes = scope === 'sumOfRounds' ? ended.map((r) => r.index) : [ended[ended.length - 1].index];
     }
+    // Legacy clients may still request a sum. Cumulative snapshots must never be added.
+    for (const idx of roundIndexes) {
+      const r = this.state.roundStates[idx];
+      if (!r || r.status !== 'ended' || !r.finalHashrates) throw new GameError('round-not-ended', `round ${idx + 1} has no final hashrate`);
+    }
+    roundIndexes = [roundIndexes.reduce((latest, idx) =>
+      (this.state.roundStates[idx].endedAt ?? 0) >= (this.state.roundStates[latest].endedAt ?? 0) ? idx : latest)];
     const weights: Record<string, bigint> = {};
     for (const idx of roundIndexes) {
       const r = this.state.roundStates[idx];
@@ -502,7 +527,8 @@ export class Game {
     const series: PrizeSeries = {
       id: 's_' + this.newId(),
       createdAt: now,
-      scope,
+      scope: 'round',
+      weightBasis: 'cumulative',
       roundIndexes,
       prizes: [...this.state.prizesDraft],
       weights: Object.fromEntries(Object.entries(weights).map(([k, v]) => [k, v.toString()])),
@@ -526,4 +552,36 @@ function emptyRound(index: number, defId: string, title: string): RoundState {
     currentQuestion: -1,
     blockBonuses: [],
   };
+}
+
+
+/** Upgrade once, preserving earned gains and historical prize audits verbatim.
+ * Infer each competitor's first allocation from their first recorded balance minus
+ * credited gains, so later config changes cannot alter that initial allocation.
+ * Past block bonuses retain their actual amounts; they are never redrawn/recomputed.
+ */
+function migrateHashrates(state: SessionState): void {
+  if (state.hashrateMode === 'continuous') return;
+  state.legacyRoundBalances = state.roundStates.filter((r) => r.status !== 'pending').map((r) => ({
+    index: r.index, hashrates: { ...r.hashrates }, finalHashrates: r.finalHashrates ? { ...r.finalHashrates } : undefined,
+  }));
+  const balances: Record<string, string> = {};
+  const played = state.roundStates.filter((r) => r.status !== 'pending').sort((a, b) => (a.startedAt ?? 0) - (b.startedAt ?? 0));
+  for (const round of played) {
+    const gains: Record<string, bigint> = {};
+    for (const run of round.questionRuns) for (const gain of run.results?.gains ?? [])
+      gains[gain.competitorId] = (gains[gain.competitorId] ?? 0n) + BigInt(gain.gain);
+    for (const bonus of round.blockBonuses) if (bonus.winnerId && bonus.bonus)
+      gains[bonus.winnerId] = (gains[bonus.winnerId] ?? 0n) + BigInt(bonus.bonus);
+    for (const [id, value] of Object.entries(round.finalHashrates ?? round.hashrates)) {
+      const earned = gains[id] ?? 0n;
+      const initial = BigInt(value) - earned;
+      balances[id] = ((balances[id] === undefined ? initial : BigInt(balances[id])) + earned).toString();
+    }
+    round.hashrates = { ...balances };
+    if (round.finalHashrates) round.finalHashrates = { ...balances };
+  }
+  for (const c of Object.values(state.competitors)) balances[c.id] ??= thsToNano(state.config.initialHashrateThs).toString();
+  state.hashrates = balances;
+  state.hashrateMode = 'continuous';
 }

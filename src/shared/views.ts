@@ -1,3 +1,4 @@
+import { nextStep } from './progression.js';
 import { nanoFromJSON, shareOf } from './hashrate.js';
 import type { Avatar, BlockBonusEvent, BlockFeedStatus, BlockInfo, Competitor, GameEvent, Phase, PrizeSeries, Question, QuestionRun, RoundDef, RoundState, SessionConfig, SessionState } from './types.js';
 
@@ -10,7 +11,7 @@ export interface CompetitorView {
   bitaxeNumber?: number;
   avatar: Avatar;
   connected: boolean;
-  hashrate: string; // nano, current round (or final of last round)
+  hashrate: string; // nano, cumulative balance for the entire game
   /** Gain credited on the last closed question of the round (nano), for the ranking screen. */
   lastGain?: string;
   lastRank?: number;
@@ -84,6 +85,7 @@ export interface PlayerView extends Omit<BoardView, 'kind'> {
 
 export interface ConsoleView extends Omit<BoardView, 'kind' | 'competitors'> {
   kind: 'console';
+  nextStep?: ReturnType<typeof nextStep>;
   competitors: (CompetitorView & { token: string; joinedAt: number; lastSeenAt: number })[];
   questions: Record<string, Question>;
   roundDefs: RoundDef[];
@@ -97,7 +99,7 @@ export type AnyView = BoardView | PlayerView | ConsoleView;
 
 function rankedCompetitors(state: SessionState): { list: CompetitorView[]; total: bigint } {
   const round = state.roundStates[state.currentRoundIndex];
-  const source = round?.status === 'ended' ? round.finalHashrates ?? round.hashrates : round?.hashrates ?? {};
+  const source = state.hashrates;
   const active = Object.values(state.competitors).filter((c) => !c.removed);
   const withHr = active.map((c) => ({ c, hr: nanoFromJSON(source[c.id] ?? '0') }));
   const total = withHr.reduce((s, x) => s + x.hr, 0n);
@@ -215,6 +217,7 @@ export function consoleView(
   return {
     ...b,
     kind: 'console',
+    nextStep: nextStep(state),
     competitors,
     question: questionView(state, true),
     questions: state.questions,
@@ -239,6 +242,7 @@ export type PlayerMessage =
   | { type: 'answer'; questionId: string; optionIndex: number; clientId?: string };
 
 export type ConsoleCommand =
+  | { type: 'next-step'; expectedKey: string }
   | { type: 'new-session'; packName?: string; config?: Partial<SessionConfig> }
   | { type: 'set-config'; patch: Partial<SessionConfig> }
   | { type: 'set-content'; packName: string }

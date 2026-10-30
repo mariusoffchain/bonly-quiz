@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SessionConfig } from '../../shared/config';
 import type { ConsoleView } from '../../shared/views';
 import { BlocksStrip, Countdown, FeedBadge, PoolList } from '../components/Shared';
@@ -38,6 +38,15 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
   const sock = useQuizSocket<ConsoleView>(() => ({ type: 'hello', role: 'console', consoleToken: token }));
   const { view, send } = sock;
   const now = useTicker(500);
+  const [pendingStep, setPendingStep] = useState<string | null>(null);
+  const sentStep = useRef<string | null>(null);
+  const lastStepClick = useRef(0);
+  useEffect(() => sock.onMessage((message) => {
+    if (message.type === 'state' || message.type === 'error') {
+      sentStep.current = null;
+      setPendingStep(null);
+    }
+  }), [sock.onMessage]);
   const names = useMemo(() => new Map((view?.competitors ?? []).map((c) => [c.id, c.name])), [view?.competitors]);
 
   useEffect(() => {
@@ -63,10 +72,9 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
   const def = view.roundDefs[view.currentRoundIndex];
   const q = view.question;
   const open = view.phase === 'question-open';
-  const canOpen = round?.status === 'running' && !open && (round.currentQuestion + 1) < (def?.questionIds.length ?? 0);
   const canEnd = round?.status === 'running' && !open;
   const nextRoundIndex = view.roundStates.findIndex((r) => r.status === 'pending');
-  const noRunning = !view.roundStates.some((r) => r.status === 'running');
+  const step = view.nextStep;
 
   return (
     <div className="console">
@@ -175,26 +183,29 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
             ))}
           </div>
           <div className="commands">
-            <div className="row">
-              <button className="btn" disabled={!noRunning || nextRoundIndex < 0} onClick={() => send({ type: 'start-round', index: nextRoundIndex })}>
-                Lancer {nextRoundIndex >= 0 ? view.roundDefs[nextRoundIndex]?.title : 'la manche'}
-              </button>
-              {noRunning && nextRoundIndex >= 0 ? <span className="small muted">Hashrate initial {view.config.initialHashrateThs} TH/s, pointe actuelle {view.blockFeed.tipHeight ?? '—'}</span> : null}
-            </div>
-            <div className="row">
-              <button className="btn" disabled={!canOpen} onClick={() => send({ type: 'open-question' })}>
-                Question suivante ({round ? round.currentQuestion + 2 : '-'}/{def?.questionIds.length ?? '-'})
-              </button>
-              <button className="btn secondary" disabled={!open} onClick={() => send({ type: 'close-question' })}>
-                Clore maintenant
-              </button>
-              <button className="btn ghost" disabled={!open} onClick={() => confirm('Annuler la question sans la compter ?') && send({ type: 'cancel-question' })}>
-                Annuler la question
-              </button>
-              <button className="btn danger" disabled={!canEnd} onClick={() => confirm(`Terminer ${def?.title} ? Le hashrate final sera figé.`) && send({ type: 'end-round' })}>
-                Terminer la manche
-              </button>
-            </div>
+            <button className="btn next-step" disabled={!step || pendingStep === step.key || sock.conn !== 'open'}
+              onClick={() => {
+                if (!step || sentStep.current === step.key || Date.now() - lastStepClick.current < 600) return;
+                lastStepClick.current = Date.now();
+                sentStep.current = step.key;
+                setPendingStep(step.key);
+                sock.clearError();
+                send({ type: 'next-step', expectedKey: step.key });
+              }}>
+              {step ? 'Prochaine étape →' : 'Partie terminée'}
+            </button>
+            <div className="small muted" aria-live="polite">{step?.label ?? 'Le classement final est affiché. Vous pouvez tirer les lots.'}</div>
+            <details>
+              <summary>Commandes avancées</summary>
+              <div className="row" style={{ marginTop: 8 }}>
+                <button className="btn ghost" disabled={!open} onClick={() => confirm('Annuler la question sans la compter ?') && send({ type: 'cancel-question' })}>
+                  Annuler la question
+                </button>
+                <button className="btn ghost" disabled={!canEnd} onClick={() => confirm(`Passer les questions restantes de ${def?.title} et afficher son bilan ? Le hashrate sera conservé.`) && send({ type: 'end-round' })}>
+                  Passer les questions restantes
+                </button>
+              </div>
+            </details>
           </div>
           {q ? (
             <div className="stat" style={{ marginTop: 10 }}>
@@ -369,7 +380,7 @@ function ConfigForm({ config, onSave }: { config: SessionConfig; onSave: (p: Par
         <input value={c.baseGainThs.hard} onChange={(e) => set('baseGainThs', { ...c.baseGainThs, hard: e.target.value })} />
         <label>Durée par défaut (s)</label>
         <input type="number" value={c.defaultQuestionDurationMs / 1000} onChange={(e) => set('defaultQuestionDurationMs', Number(e.target.value) * 1000)} />
-        <label>Hashrate initial par manche (TH/s)</label>
+        <label>Hashrate de départ des nouveaux joueurs (TH/s)</label>
         <input value={c.initialHashrateThs} onChange={(e) => set('initialHashrateThs', e.target.value)} />
         <label>Référence rapidité si réponse modifiée</label>
         <select value={c.speedReference} onChange={(e) => set('speedReference', e.target.value as 'last')}>
@@ -384,11 +395,6 @@ function ConfigForm({ config, onSave }: { config: SessionConfig; onSave: (p: Par
         <select value={c.blockBonusBase} onChange={(e) => set('blockBonusBase', e.target.value as 'own')}>
           <option value="own">hashrate du gagnant</option>
           <option value="total">hashrate total du quiz</option>
-        </select>
-        <label>Poids des lots</label>
-        <select value={c.prizeScope} onChange={(e) => set('prizeScope', e.target.value as 'round')}>
-          <option value="round">manche terminée (défaut)</option>
-          <option value="sumOfRounds">somme des manches</option>
         </select>
         <label>Exclure les gagnants des séries précédentes</label>
         <select value={String(c.excludePrizeWinnersAcrossSeries)} onChange={(e) => set('excludePrizeWinnersAcrossSeries', e.target.value === 'true')}>
@@ -424,18 +430,17 @@ function Prizes({ view, onSave, onDraw, names }: { view: ConsoleView; onSave: (p
           Enregistrer les lots ({lines.length})
         </button>
         <select className="input" style={{ width: 'auto', padding: 6, fontSize: 12 }} value={roundSel} onChange={(e) => setRoundSel(e.target.value)}>
-          <option value="last">dernière manche terminée</option>
+          <option value="last">hashrate cumulé actuel (dernière manche terminée)</option>
           {ended.map((r) => (
             <option key={r.index} value={String(r.index)}>
-              manche {r.index + 1} seule
+              hashrate cumulé après la manche {r.index + 1}
             </option>
           ))}
-          <option value="sum">somme de toutes les manches terminées</option>
         </select>
         <button
           className="btn sm"
           disabled={view.prizesDraft.length === 0 || ended.length === 0}
-          onClick={() => confirm('Lancer les tirages des lots maintenant ?') && (roundSel === 'sum' ? onDraw('sumOfRounds') : onDraw('round', roundSel === 'last' ? undefined : [Number(roundSel)]))}
+          onClick={() => confirm('Lancer les tirages des lots maintenant ?') && onDraw('round', roundSel === 'last' ? undefined : [Number(roundSel)])}
         >
           Tirer les lots
         </button>
@@ -443,7 +448,7 @@ function Prizes({ view, onSave, onDraw, names }: { view: ConsoleView; onSave: (p
       {view.prizeSeries.map((s) => (
         <div key={s.id} className="stat small" style={{ marginTop: 8 }}>
           <div className="label">
-            Série {fmtClock(s.createdAt)} · {s.scope === 'round' ? 'manche' : 'somme des manches'} {s.roundIndexes.map((i) => i + 1).join(', ')}
+            Série {fmtClock(s.createdAt)} · {s.weightBasis === 'cumulative' ? 'cumul après la manche' : s.scope === 'round' ? 'ancienne manche' : 'ancienne somme des manches'} {s.roundIndexes.map((i) => i + 1).join(', ')}
           </div>
           {s.awards.map((a) => {
             const prize = s.prizes.find((p) => p.id === a.prizeId);

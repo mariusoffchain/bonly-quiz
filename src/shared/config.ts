@@ -12,7 +12,7 @@ export interface SessionConfig {
   baseGainThs: Record<Difficulty, string>;
   /** Default countdown per question in ms (provisional 10 s). Each question may override. */
   defaultQuestionDurationMs: number;
-  /** Hashrate every competitor starts each round with, in TH/s (open point, provisional 10). */
+  /** Starting hashrate allocated once at registration, in TH/s (open point, provisional 10). */
   initialHashrateThs: string;
   /**
    * Timestamp used for the speed ranking when an answer was modified (open point).
@@ -29,8 +29,7 @@ export interface SessionConfig {
    */
   blockBonusBase: 'own' | 'total';
   /**
-   * Weights used for the final prize draws (open point). 'round' = final hashrate of one round
-   * (provisional default, respects the per-round reset); 'sumOfRounds' = sum of completed rounds.
+   * Weights used for the final prize draws. 'round' = cumulative balance after a completed round; legacy 'sumOfRounds' requests use the latest selected snapshot.
    */
   prizeScope: 'round' | 'sumOfRounds';
   /** Exclude previous prize winners from later prize series (open point, provisional false). */

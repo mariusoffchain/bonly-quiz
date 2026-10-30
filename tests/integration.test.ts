@@ -83,10 +83,10 @@ let dataDir: string;
 
 beforeAll(async () => {
   dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bonly-quiz-test-'));
-  app = new App({ port: 0, dataDir, contentDir: path.resolve('content/questions'), consoleToken: 'test-token', blockSource: 'off', quiet: true, clientDist: '/nonexistent' });
+  app = new App({ host: '127.0.0.1', port: 0, dataDir, contentDir: path.resolve('content/questions'), consoleToken: 'test-token', blockSource: 'off', quiet: true, clientDist: '/nonexistent' });
   port = await app.listen();
   url = `ws://127.0.0.1:${port}/ws`;
-  app.newSession(app.content.loadByName('Démo (questions fictives)'), { initialHashrateThs: '0', defaultQuestionDurationMs: 1500 });
+  app.newSession(app.content.loadByName('Démo (questions fictives)'), { initialHashrateThs: '0', defaultQuestionDurationMs: 3000 });
 });
 
 afterAll(async () => {
@@ -234,10 +234,14 @@ describe('multi-client game over WebSocket', () => {
     expect(app.game!.state.processedBlockIds.length).toBe(realIgnored);
   });
 
-  it('ends the round, resets hashrate for the next one, draws prizes with exclusion, survives a restart', async () => {
+  it('ends the round, preserves hashrate for the next one, draws prizes with exclusion, survives a restart', async () => {
     consoleC.send({ type: 'open-question' });
     await board.waitState((v) => v.phase === 'question-closed' && v.question?.questionIndex === 2, 5000);
-    consoleC.send({ type: 'end-round' });
+    await consoleC.waitState((v) => v.phase === 'question-closed' && v.question?.questionIndex === 2);
+    const recapKey = (consoleC.state as ConsoleView).nextStep!.key;
+    consoleC.send({ type: 'next-step', expectedKey: recapKey });
+    consoleC.send({ type: 'next-step', expectedKey: recapKey });
+    expect(await consoleC.waitFor((m) => m.type === 'error')).toMatchObject({ code: 'stale-step' });
     const ended = await board.waitState((v) => v.phase === 'round-ended');
     const finals = Object.fromEntries(ended.competitors.map((c) => [c.name, c.hashrate]));
     expect(BigInt(finals['Bravo'])).toBeGreaterThan(0n);
@@ -254,9 +258,12 @@ describe('multi-client game over WebSocket', () => {
     for (const z of zero) expect(winners).not.toContain(z);
     expect(s.awards.filter((a) => a.winnerId === null).length).toBeGreaterThanOrEqual(5 - (4 - zero.length));
 
-    consoleC.send({ type: 'start-round', index: 1 });
+    await consoleC.waitState((v) => v.phase === 'round-ended');
+    consoleC.send({ type: 'next-step', expectedKey: (consoleC.state as ConsoleView).nextStep!.key });
     const r2 = await board.waitState((v) => v.currentRoundIndex === 1);
-    expect(r2.competitors.every((c) => c.hashrate === '0')).toBe(true); // reset (initial 0 in this test)
+    expect(Object.fromEntries(r2.competitors.map((c) => [c.name, c.hashrate]))).toEqual(finals);
+    const phoneR2 = await poolA.waitState((v) => v.currentRoundIndex === 1);
+    expect(phoneR2.me?.hashrate).toBe(finals['Alpha Pool']);
     expect(r2.rounds[0].status).toBe('ended');
 
     // Restart the server process state from disk: snapshot (debounced write) + event log exist and reload the same state.
@@ -266,9 +273,10 @@ describe('multi-client game over WebSocket', () => {
     const log = fs.readFileSync(path.join(dataDir, 'sessions', `${r2.code}.events.jsonl`), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
     expect(log.some((e) => e.type === 'block.bonus')).toBe(true);
     expect(log.some((e) => e.type === 'prizes.drawn')).toBe(true);
-    const app2 = new App({ port: 0, dataDir, contentDir: path.resolve('content/questions'), consoleToken: 'test-token', blockSource: 'off', quiet: true, clientDist: '/nonexistent' });
+    const app2 = new App({ host: '127.0.0.1', port: 0, dataDir, contentDir: path.resolve('content/questions'), consoleToken: 'test-token', blockSource: 'off', quiet: true, clientDist: '/nonexistent' });
     expect(app2.game?.state.code).toBe(r2.code);
     expect(app2.game?.state.currentRoundIndex).toBe(1);
+    expect(app2.game?.state.hashrates).toEqual(app.game!.state.hashrates);
     expect(app2.game?.findByToken(tokenA)?.name).toBe('Alpha Pool');
     await app2.close();
   });

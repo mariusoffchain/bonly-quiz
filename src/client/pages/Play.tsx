@@ -207,7 +207,7 @@ function Game({ sock, view }: { sock: ReturnType<typeof useQuizSocket<PlayerView
   const closedAt = q?.closedAt ?? 0;
   const resultUntil = closedAt + view.config.revealHoldMs;
   const lbUntil = resultUntil + view.config.leaderboardHoldMs;
-  const showLeaderboard = !!q && q.closed && view.phase === 'question-closed' && nowS >= resultUntil;
+  const showLeaderboard = view.config.leaderboardHoldMs > 0 && !!q && q.closed && view.phase === 'question-closed' && nowS >= resultUntil;
   const lbTimerRunning = showLeaderboard && nowS < lbUntil && view.config.leaderboardHoldMs > 0;
   const open = !!q && !q.closed && view.phase === 'question-open' && q.closesAt > sock.serverNow();
   const canAnswer = open && sock.conn === 'open';
@@ -258,7 +258,7 @@ function Game({ sock, view }: { sock: ReturnType<typeof useQuizSocket<PlayerView
       {q && questionPhase ? (
         <section className="player-question" aria-label={q.closed ? 'Résultat' : 'Question en cours'}>
           <div className="question-heading">
-            <span className="question-progress">Question {q.questionIndex + 1} / {q.questionTotal}</span>
+            <span className="question-progress">Manche {view.currentRoundIndex + 1} / {view.rounds.length} · Question {q.questionIndex + 1} / {q.questionTotal}</span>
             {q.question.demo ? <span className="badge sim">Démo</span> : null}
             {open ? <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={sock.serverNow} small /> : null}
           </div>
@@ -323,8 +323,9 @@ function Game({ sock, view }: { sock: ReturnType<typeof useQuizSocket<PlayerView
         <section className="player-waiting" aria-label="Salle d’attente">
           <p className="waiting-name">{me.name}</p>
           <div className="waiting-check" aria-hidden="true">✓</div>
-          <h1>{me.kind === 'pool' ? 'Vous êtes inscrits' : 'Vous êtes inscrit'}</h1>
+          <h1>{view.phase === 'round-ready' ? `Manche ${view.currentRoundIndex + 1} / ${view.rounds.length}` : me.kind === 'pool' ? 'Vous êtes inscrits' : 'Vous êtes inscrit'}</h1>
           <p className="muted">{view.phase === 'lobby' ? 'La partie va commencer.' : 'La première question arrive.'}</p>
+          {view.phase === 'round-ready' ? <p className="player-balance">{playerThs(me.hashrate)}{view.currentRoundIndex > 0 ? ' · hashrate conservé' : ''}</p> : null}
           <details className="waiting-help">
             <summary>Comment jouer ?</summary>
             <ul className="waiting-rules">
@@ -371,21 +372,21 @@ function FinalScreen({ view }: { view: PlayerView }) {
         <AvatarBadge competitor={me} size={64} />
         <div className="headline">{me.name}</div>
         <div className="big-num">{medal(me.rank)}{me.rank > 3 ? `/${view.competitors.length}` : ''}</div>
-        <div className="detail">{me.rank <= 3 ? `${me.rank}${me.rank === 1 ? 'er' : 'e'} sur ${view.competitors.length}` : 'au classement de la manche'}</div>
+        <div className="detail">{me.rank <= 3 ? `${me.rank}${me.rank === 1 ? 'er' : 'e'} sur ${view.competitors.length}` : 'au classement de la partie'}</div>
       </div>
       <div className="stats">
-        <div className="stat"><div className="label">Hashrate final</div><div className="value">{ths(me.hashrate)}</div></div>
+        <div className="stat"><div className="label">{view.phase === 'finished' ? 'Hashrate final' : 'Hashrate cumulé'}</div><div className="value">{ths(me.hashrate)}</div></div>
         <div className="stat"><div className="label">Part du total</div><div className="value">{pctText(me.share)}</div></div>
       </div>
-      {myPrizes.length > 0 ? myPrizes.map((label, i) => <div key={i} className="prize-won">🎁 Vous gagnez : {label}</div>) : view.prizeSeries.some((s) => s.roundIndexes.includes(view.currentRoundIndex)) ? <p className="small muted">Pas de lot cette fois. Chances = part du hashrate final.</p> : <p className="small muted">Les tirages des lots arrivent sur l’écran. Vos chances valent votre part du hashrate.</p>}
-      <div className="card-title" style={{ marginTop: 14 }}>Top 10 de la manche</div>
+      {myPrizes.length > 0 ? myPrizes.map((label, i) => <div key={i} className="prize-won">🎁 Vous gagnez : {label}</div>) : view.prizeSeries.some((s) => s.roundIndexes.includes(view.currentRoundIndex)) ? <p className="small muted">Pas de lot cette fois. Chances = part du hashrate final.</p> : <p className="small muted">Vos chances pour les lots suivent votre part du hashrate cumulé.</p>}
+      <div className="card-title" style={{ marginTop: 14 }}>Classement de la partie</div>
       <Leaderboard competitors={view.competitors} meId={me.id} />
       {view.prizeSeries.filter((s) => s.roundIndexes.includes(view.currentRoundIndex)).map((s) => (
         <div key={s.id} className="small" style={{ marginTop: 10 }}>
           {s.awards.map((a) => <div key={a.prizeId}>{s.prizes.find((p) => p.id === a.prizeId)?.label} → <b>{a.winnerId ? names.get(a.winnerId) ?? '?' : 'non attribué'}</b></div>)}
         </div>
       ))}
-      <p className="small muted" style={{ marginTop: 12 }}>{remaining > 0 ? `${remaining} manche${remaining > 1 ? 's' : ''} à venir, tout le monde repart de ${view.config.initialHashrateThs} TH/s.` : 'Merci d’avoir joué.'}</p>
+      <p className="small muted" style={{ marginTop: 12 }}>{remaining > 0 ? `${remaining} manche${remaining > 1 ? 's' : ''} à venir, votre hashrate est conservé.` : 'Merci d’avoir joué.'}</p>
     </section>
   );
 }

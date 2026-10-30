@@ -80,7 +80,7 @@ describe('speed ranking', () => {
 });
 
 describe('game flow', () => {
-  it('credits 10/50/100 with speed bonuses, 0 for wrong answers, no penalty, resets between rounds', () => {
+  it('credits 10/50/100 with speed bonuses, 0 for wrong answers, no penalty, keeps gains between rounds', () => {
     const { g, a, b, x, y } = setup('0');
     g.startRound(0, 10, 100);
     // Q1 easy: a first, b second, x wrong, y silent
@@ -116,10 +116,10 @@ describe('game flow', () => {
     g.endRound(60_000);
     expect(g.state.phase).toBe('round-ended');
     expect(r.finalHashrates).toEqual(r.hashrates);
-    // Round 2 starts from scratch
+    // Round 2 retains all earned hashrate
     g.startRound(1, 70_000, 101);
-    expect(g.round!.hashrates[y.id]).toBe('0');
-    expect(g.round!.hashrates[b.id]).toBe('0');
+    expect(g.round!.hashrates[y.id]).toBe((103n * T).toString());
+    expect(g.round!.hashrates[b.id]).toBe(r.finalHashrates![b.id]);
     expect(g.state.roundStates[0].finalHashrates![y.id]).toBe((103n * T).toString());
   });
 
@@ -272,7 +272,7 @@ describe('weighted draws and prizes', () => {
     expect(awards[3].reason).toBe('no-candidates');
   });
 
-  it('draws prizes from one round final hashrate by default, or the sum of rounds explicitly', () => {
+  it('draws prizes from cumulative snapshots and never sums overlapping balances', () => {
     const { g, a, b } = setup('0');
     g.startRound(0, 0, null);
     g.round!.hashrates[a.id] = (10n * T).toString();
@@ -285,12 +285,12 @@ describe('weighted draws and prizes', () => {
     const s1 = g.drawPrizes({}, 5); // last ended round only (round 2)
     expect(s1.roundIndexes).toEqual([1]);
     expect(s1.weights[a.id]).toBe((100n * T).toString());
-    expect(s1.weights[b.id] ?? '0').toBe('0');
+    expect(s1.weights[b.id]).toBe((90n * T).toString());
     const s2 = g.drawPrizes({ scope: 'sumOfRounds' }, 6);
-    expect(s2.roundIndexes).toEqual([0, 1]);
-    expect(s2.weights[a.id]).toBe((110n * T).toString());
+    expect(s2.roundIndexes).toEqual([1]);
+    expect(s2.weights[a.id]).toBe((100n * T).toString());
     expect(s2.weights[b.id]).toBe((90n * T).toString());
     // Round hashrates are untouched by the prize computation.
-    expect(g.state.roundStates[1].finalHashrates![b.id]).toBe('0');
+    expect(g.state.roundStates[1].finalHashrates![b.id]).toBe((90n * T).toString());
   });
 });

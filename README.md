@@ -92,8 +92,8 @@ redémarrage.
 ## Règles implémentées et hypothèses provisoires
 
 Décidées (fiche) : gains 10/50/100 TH/s, bonus de rapidité 3/2/1 % puis division par 2 sans
-fin, bonus appliqué au gain de base seulement, mauvaise réponse = 0 sans pénalité, manches
-indépendantes, bonus de bloc 2,1 % pour un seul gagnant tiré selon les parts de hashrate,
+fin, bonus appliqué au gain de base seulement, mauvaise réponse = 0 sans pénalité, hashrate cumulé
+sur les 5 manches, bonus de bloc 2,1 % pour un seul gagnant tiré selon les parts de hashrate,
 lots tirés du plus gros au plus petit avec exclusion des gagnants dans une même série.
 
 Provisoires (modifiables dans la console) :
@@ -102,14 +102,15 @@ Provisoires (modifiables dans la console) :
 - ex æquo au même instant : même rang, rang suivant sauté ;
 - arrondi au nano-TH/s le plus proche ;
 - absence de réponse = 0, sans bonus ni pénalité ;
-- hashrate initial 10 TH/s par manche (`initialHashrateThs`), tirage ignoré et journalisé si
+- hashrate initial 10 TH/s attribué 1 fois à chaque concurrent (`initialHashrateThs`), tirage ignoré et journalisé si
   le total vaut 0 ;
 - assiette du 2,1 % = hashrate courant du gagnant (`blockBonusBase: own`), alternative
   `total` ;
 - bloc éligible = reçu pendant une manche en cours, hauteur supérieure à la pointe connue au
   début de la manche, hash jamais traité ;
-- lots : une série par manche sur son hashrate final (`prizeScope: round`), option explicite
-  `sumOfRounds`, option d'exclusion entre séries ;
+- lots : poids du hashrate cumulé après la dernière manche terminée ou une manche choisie ;
+  les anciennes commandes `sumOfRounds` utilisent le dernier instantané sélectionné, sans addition ;
+  option d'exclusion entre séries ;
 - numéros Bitaxe dans l'ordre d'inscription ;
 - un seul format jouable, choix simple ; le champ `type` des questions est prévu pour
   d'autres formats.
@@ -132,3 +133,19 @@ Un pack est un fichier JSON dans `content/questions/` :
 
 Le nombre de manches et de questions est libre. La console permet de changer la difficulté
 et la durée de chaque question, et de charger un autre pack tant qu'aucune manche ne tourne.
+
+
+## Continuité de la partie (2026-10-23)
+
+La console expose 1 bouton « Prochaine étape » et l'action annoncée par le serveur.
+Le parcours passe par question, réponse, bilan de manche, manche suivante et bilan final.
+Une clé de transition empêche les doubles clics et les commandes envoyées depuis un écran périmé.
+Les commandes permettant de passer les questions restantes ou d'annuler restent dans « Commandes avancées ».
+
+Le solde `SessionState.hashrates` fait autorité et persiste après rechargement/redémarrage.
+Les gains de questions et de blocs s'ajoutent au même solde. Le début d'une manche ne le remet jamais à zéro.
+Les instantanés sans `hashrateMode: continuous` sont migrés au chargement. Le moteur conserve
+les soldes d'origine dans `legacyRoundBalances`, déduit la première allocation des gains journalisés,
+puis additionne les gains réellement crédités de chaque manche. Il conserve les bonus historiques
+sans les recalculer et ne modifie aucun tirage de lots déjà effectué. Le marqueur rend cette migration idempotente.
+Sauvegarder le dossier `data` avant mise à jour, conserver cette sauvegarde avec l'ancienne version pour revenir en arrière.

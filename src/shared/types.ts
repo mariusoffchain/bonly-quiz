@@ -155,6 +155,7 @@ export interface PrizeSeries {
   id: string;
   createdAt: number;
   scope: 'round' | 'sumOfRounds';
+  weightBasis?: 'cumulative';
   roundIndexes: number[];
   prizes: PrizeDef[];
   weights: Record<string, string>;
@@ -180,6 +181,12 @@ export interface GameEvent {
 }
 
 export interface SessionState {
+  /** Absent in snapshots created with independent rounds. */
+  hashrateMode?: 'continuous';
+  /** One balance per competitor for the entire game. */
+  hashrates: Record<string, string>;
+  /** Original balances retained when upgrading independent-round snapshots. */
+  legacyRoundBalances?: { index: number; hashrates: Record<string, string>; finalHashrates?: Record<string, string> }[];
   code: string;
   createdAt: number;
   config: SessionConfig;

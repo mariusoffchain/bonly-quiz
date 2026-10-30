@@ -271,3 +271,12 @@
   .play .question-text { font-size: 21px; }
   .result-gain { font-size: 34px; }
 }
+
+.next-step { width: 100%; min-height: 52px; font-size: 18px; }
+.commands > .small { margin: 8px 0 14px; }
+
+@media (max-width: 480px) {
+  .play .lb-row { grid-template-columns: 26px 30px minmax(0, 1fr) auto; gap: 7px; }
+  .play .lb-gain { display: none; }
+  .play .lb-name .kind { display: none; }
+}
