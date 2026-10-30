@@ -278,7 +278,9 @@ export class App {
         const p = g.join(String(msg.name ?? ''), now);
         conn.playerId = p.id;
         this.send(conn, { type: 'joined', playerId: p.id, token: p.token });
-        return this.broadcast();
+        this.sendState(conn);
+        // Coalesced: when a room scans the QR code at once, one broadcast covers many joins.
+        return this.broadcastSoon();
       }
       if (msg.type === 'answer') {
         if (!conn.playerId) throw new GameError('not-joined', 'Inscrivez-vous d’abord.');

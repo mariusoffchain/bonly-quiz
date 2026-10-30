@@ -156,13 +156,14 @@ simulés qui jouent les 21 questions et le podium : réponses à des moments al�
 perdent la connexion à la 11e question et reviennent. Résultats sur la machine de
 développement :
 
-| 50 téléphones | |
-|---|---|
-| question affichée sur les téléphones après le clic console | médiane 19 ms, max 33 ms |
-| réponse → accusé de réception | médiane 2 ms, max 18 ms |
-| trafic par téléphone pour toute la partie | environ 40 Ko |
-| serveur | 2,4 % d'un cœur, 100 Mo de mémoire |
-| erreurs, hashrates incohérents | 0 |
+| | 50 téléphones | 150 téléphones |
+|---|---|---|
+| inscription (confirmation reçue) | médiane 7 ms | médiane 2 ms, max 51 ms |
+| question affichée sur les téléphones après le clic console | médiane 19 ms, max 33 ms | médiane 92 ms, max 183 ms |
+| réponse → accusé de réception | médiane 2 ms, max 18 ms | médiane 3 ms, max 158 ms |
+| trafic par téléphone pour toute la partie | environ 40 Ko (800 Ko si un proxy retire la compression) | environ 135 Ko |
+| serveur | 2,4 % d'un cœur, 100 Mo de mémoire | 7,6 % d'un cœur, 180 Mo |
+| erreurs, hashrates incohérents | 0 | 0 |
 
 Ces temps ne comptent pas le réseau : en 4G et via le tunnel, ajouter de l'ordre de 50 à
 200 ms.
