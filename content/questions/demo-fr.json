@@ -1,16 +1,11 @@
 {
-  "name": "Démo (questions fictives)",
-  "description": "Pack de démonstration pour les tests, 2 manches de 3 questions. Questions écrites pour le test, sans aucune source externe. Ne pas utiliser en public.",
+  "name": "Démo rapide (5 questions)",
+  "description": "Pack de répétition, questions écrites pour tester le déroulé. Ne pas utiliser en public.",
   "questions": [
-    { "id": "demo-1", "type": "single-choice", "demo": true, "difficulty": "easy", "text": "[DÉMO] Combien de bitcoins au maximum seront émis ?", "options": ["21 millions", "42 millions", "100 millions", "Illimité"], "correctIndex": 0 },
-    { "id": "demo-2", "type": "single-choice", "demo": true, "difficulty": "intermediate", "text": "[DÉMO] Quel intervalle moyen sépare 2 blocs Bitcoin ?", "options": ["1 minute", "10 minutes", "1 heure", "1 jour"], "correctIndex": 1 },
-    { "id": "demo-3", "type": "single-choice", "demo": true, "difficulty": "hard", "text": "[DÉMO] Tous les combien de blocs la difficulté est-elle ajustée ?", "options": ["144", "1 008", "2 016", "210 000"], "correctIndex": 2 },
-    { "id": "demo-4", "type": "single-choice", "demo": true, "difficulty": "easy", "text": "[DÉMO] Quelle unité est utilisée pour le hashrate dans ce quiz ?", "options": ["TH/s", "sats", "BTC", "kWh"], "correctIndex": 0 },
-    { "id": "demo-5", "type": "single-choice", "demo": true, "difficulty": "intermediate", "text": "[DÉMO] Que déclenche un nouveau bloc réel dans ce quiz ?", "options": ["Une pause", "Un tirage de bonus", "La fin de la manche", "Rien"], "correctIndex": 1 },
-    { "id": "demo-6", "type": "single-choice", "demo": true, "difficulty": "hard", "text": "[DÉMO] Combien d'équipes sont nécessaires au minimum pour une pool classique ?", "options": ["1", "2", "3", "5"], "correctIndex": 2 }
-  ],
-  "rounds": [
-    { "id": "demo-r1", "title": "Manche démo 1", "questionIds": ["demo-1", "demo-2", "demo-3"] },
-    { "id": "demo-r2", "title": "Manche démo 2", "questionIds": ["demo-4", "demo-5", "demo-6"] }
+    { "id": "demo-1", "type": "single-choice", "demo": true, "difficulty": "easy", "text": "Combien de bitcoins seront émis au maximum ?", "options": ["21 millions", "42 millions", "100 millions", "Illimité"], "correctIndex": 0, "explanation": "L'émission diminue de moitié tous les 210 000 blocs et tend vers 21 millions." },
+    { "id": "demo-2", "type": "single-choice", "demo": true, "difficulty": "easy", "text": "Quel intervalle moyen sépare 2 blocs Bitcoin ?", "options": ["1 minute", "10 minutes", "1 heure", "1 jour"], "correctIndex": 1 },
+    { "id": "demo-3", "type": "single-choice", "demo": true, "difficulty": "intermediate", "text": "Tous les combien de blocs la difficulté est-elle ajustée ?", "options": ["144", "1 008", "2 016", "210 000"], "correctIndex": 2 },
+    { "id": "demo-4", "type": "single-choice", "demo": true, "difficulty": "intermediate", "text": "Que cherche un mineur en faisant varier le nonce ?", "options": ["Une signature", "Un hash inférieur à la cible", "Une clé privée", "Une adresse"], "correctIndex": 1 },
+    { "id": "demo-5", "type": "single-choice", "demo": true, "difficulty": "hard", "text": "Un mineur avec 10 % du hashrate trouve en moyenne combien de blocs par jour ?", "options": ["1,4", "14,4", "144", "0,14"], "correctIndex": 1, "explanation": "144 blocs par jour × 10 % = 14,4 blocs." }
   ]
 }

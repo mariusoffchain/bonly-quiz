@@ -1,75 +1,50 @@
-import { pct, type Percent } from './hashrate.js';
-
 export type Difficulty = 'easy' | 'intermediate' | 'hard';
 
-/**
- * Session configuration. Every value marked "provisional" implements an open
- * point of the spec with an explicit default; change it from the console or in
- * `data/<session>.json` without touching the engine.
- */
+/** Session settings. Every value can be changed from the console while the game is in the lobby. */
 export interface SessionConfig {
-  /** Base gain in TH/s for a correct answer, by difficulty (validated provisionally: 10/50/100). */
-  baseGainThs: Record<Difficulty, string>;
-  /** Default countdown per question in ms (provisional 10 s). Each question may override. */
-  defaultQuestionDurationMs: number;
-  /** Starting hashrate allocated once at registration, in TH/s (open point, provisional 10). */
-  initialHashrateThs: string;
-  /**
-   * Timestamp used for the speed ranking when an answer was modified (open point).
-   * 'last' = server time of the last modification (provisional default), 'first' = first answer.
-   */
-  speedReference: 'last' | 'first';
-  /** Bonus percentage per rank among correct answers; ranks beyond the list keep halving. */
-  speedBonusHeadPercents: string[]; // provisional: ["3", "2", "1"], then 0.5, 0.25, ...
-  /** Block bonus percentage (decided: 2.1). */
-  blockBonusPercent: string;
-  /**
-   * Base of the block bonus (open point). 'own' = 2.1 % of the winner's current hashrate
-   * (provisional default); 'total' = 2.1 % of the total game hashrate, credited to the winner.
-   */
-  blockBonusBase: 'own' | 'total';
-  /**
-   * Weights used for the final prize draws. 'round' = cumulative balance after a completed round; legacy 'sumOfRounds' requests use the latest selected snapshot.
-   */
-  prizeScope: 'round' | 'sumOfRounds';
-  /** Exclude previous prize winners from later prize series (open point, provisional false). */
-  excludePrizeWinnersAcrossSeries: boolean;
-  /** Minimum members for a classic pool (decided: 3). */
-  minPoolMembers: number;
-  /** Duration of the personal result screen after a question closes (UI only). */
-  revealHoldMs: number;
-  /** Duration of the ranking screen shown after the result screen (UI only, 0 disables). */
-  leaderboardHoldMs: number;
+  /** Number of questions played from the pack (the first N, in order). */
+  questionCount: number;
+  /** Countdown per question, unless the question sets its own durationMs. */
+  questionDurationMs: number;
+  /** TH/s earned for a correct answer, by difficulty. */
+  baseGainThs: Record<Difficulty, number>;
+  /** Speed bonus for an instant answer, as a fraction of the base gain; decreases linearly to 0 at the buzzer. */
+  speedBonusMax: number;
+  /** Streak bonus per consecutive correct answer after the first, as a fraction of the base gain. */
+  streakBonusStep: number;
+  /** Cap of the streak bonus, as a fraction of the base gain. */
+  streakBonusMax: number;
+  /** Hashrate given to every player when joining. */
+  startHashrateThs: number;
+  /** Reveal the answer as soon as every connected player has answered. */
+  closeWhenAllAnswered: boolean;
+  /** A player who already found a block cannot find another one. */
+  excludeBlockWinners: boolean;
+  /** Length of the mining animation before the winner is revealed. */
+  miningDurationMs: number;
 }
 
 export const DEFAULT_CONFIG: SessionConfig = {
-  baseGainThs: { easy: '10', intermediate: '50', hard: '100' },
-  defaultQuestionDurationMs: 10_000,
-  initialHashrateThs: '10',
-  speedReference: 'last',
-  speedBonusHeadPercents: ['3', '2', '1'],
-  blockBonusPercent: '2.1',
-  blockBonusBase: 'own',
-  prizeScope: 'round',
-  excludePrizeWinnersAcrossSeries: false,
-  minPoolMembers: 3,
-  revealHoldMs: 4000,
-  leaderboardHoldMs: 15000,
+  questionCount: 21,
+  questionDurationMs: 20_000,
+  baseGainThs: { easy: 100, intermediate: 150, hard: 200 },
+  speedBonusMax: 0.5,
+  streakBonusStep: 0.1,
+  streakBonusMax: 0.5,
+  startHashrateThs: 0,
+  closeWhenAllAnswered: true,
+  excludeBlockWinners: true,
+  miningDurationMs: 8_000,
 };
 
-/** Speed bonus for a 1-based rank, as an exact Percent. */
-export function speedBonusForRank(rank: number, head: string[] = DEFAULT_CONFIG.speedBonusHeadPercents): Percent {
-  if (rank < 1) throw new Error('rank must be >= 1');
-  if (rank <= head.length) return parseHeadPercent(head[rank - 1]);
-  // After the head: last head value halved once per extra rank.
-  const last = parseHeadPercent(head[head.length - 1]);
-  const extra = BigInt(rank - head.length);
-  return { num: last.num, den: last.den * 2n ** extra };
-}
-
-function parseHeadPercent(text: string): Percent {
-  const m = /^(\d+)(?:\.(\d+))?$/.exec(text.trim());
-  if (!m) throw new Error(`Invalid percent ${text}`);
-  const frac = m[2] ?? '';
-  return pct(BigInt(m[1] + frac), 10n ** BigInt(frac.length));
+export function validateConfig(c: SessionConfig): string | null {
+  const nonNeg = (n: unknown) => typeof n === 'number' && Number.isFinite(n) && n >= 0;
+  if (!Number.isInteger(c.questionCount) || c.questionCount < 1) return 'questionCount doit être un entier >= 1';
+  if (!nonNeg(c.questionDurationMs) || c.questionDurationMs < 3000) return 'la durée doit être >= 3 s';
+  for (const d of ['easy', 'intermediate', 'hard'] as const) if (!nonNeg(c.baseGainThs[d])) return `gain ${d} invalide`;
+  for (const k of ['speedBonusMax', 'streakBonusStep', 'streakBonusMax', 'startHashrateThs'] as const) {
+    if (!nonNeg(c[k])) return `${k} invalide`;
+  }
+  if (!nonNeg(c.miningDurationMs) || c.miningDurationMs > 60_000) return 'durée de minage invalide';
+  return null;
 }

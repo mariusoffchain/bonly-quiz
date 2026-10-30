@@ -1,19 +1,20 @@
 export function Home() {
   return (
     <div className="home">
-      <h1>B-only Quiz</h1>
-      <p className="muted">Quiz interactif, pools de minage fictives et vrais blocs Bitcoin.</p>
-      <div className="card">
-        <div className="card-title">Interfaces</div>
-        <p>
-          <a href="/play">/play</a> téléphone des participants (via le QR code de la session)
-        </p>
-        <p>
-          <a href="/board">/board</a> écran de présentation
-        </p>
-        <p>
-          <a href="/console">/console</a> console d’animation (jeton requis, affiché au démarrage du serveur)
-        </p>
+      <div className="brand-lg">
+        <span className="logo">₿</span> B-only Quiz
+      </div>
+      <p className="lead">21 questions, du hashrate à gagner, un bloc à miner.</p>
+      <div className="home-links">
+        <a className="btn primary big" href="/play">
+          Jouer
+        </a>
+        <a className="btn big" href="/board">
+          Écran de présentation
+        </a>
+        <a className="btn big" href="/console">
+          Console d’animation
+        </a>
       </div>
     </div>
   );

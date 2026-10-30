@@ -1,308 +1,252 @@
-import { useEffect, useMemo, useState } from 'react';
 import type { BoardView } from '../../shared/views';
-import { AvatarBadge, BlocksStrip, Countdown, Donut, FeedBadge, Leaderboard, PoolList } from '../components/Shared';
-import { difficultyLabel, fmtClock, pctText, ths } from '../lib/format';
-import { useQuizSocket, useTicker } from '../lib/ws';
-
-const LETTERS = 'ABCDEFGH';
+import { Avatar, ConnBadge, Leaderboard, MiningScene, NetworkBar, Rules, TimerRing } from '../components/ui';
+import { LETTERS, difficultyLabel, pct, playerColor, seconds, ths } from '../lib/format';
+import { useQuizSocket } from '../lib/ws';
 
 export function Board() {
   const sock = useQuizSocket<BoardView>(() => ({ type: 'hello', role: 'board' }));
   const { view } = sock;
-  const now = useTicker(1000);
-  const [flash, setFlash] = useState<string | null>(null);
-  const names = useMemo(() => new Map((view?.competitors ?? []).map((c) => [c.id, c.name])), [view?.competitors]);
-
-  // Flash the winner of the latest block bonus.
-  useEffect(() => {
-    const w = view?.lastBlockBonus?.winnerId;
-    if (!w) return;
-    setFlash(w);
-    const t = setTimeout(() => setFlash(null), 1500);
-    return () => clearTimeout(t);
-  }, [view?.lastBlockBonus?.blockId]);
-
   if (!view) {
     return (
-      <div className="board">
-        <div className="head">
-          <div className="title">B-only Quiz</div>
-          <div className="muted">{sock.conn === 'open' ? 'Chargement…' : 'Connexion au serveur…'}</div>
-        </div>
+      <div className="board center">
+        <div className="brand-lg">B-only Quiz</div>
+        <div className="muted">{sock.conn === 'open' ? 'Chargement…' : 'Connexion au serveur…'}</div>
       </div>
     );
   }
-
-  const q = view.question;
-  const round = view.rounds[view.currentRoundIndex];
-  const showQuestion = q && (view.phase === 'question-open' || view.phase === 'question-closed');
-  const open = showQuestion && !q.closed && q.closesAt > sock.serverNow();
-  const lastBonus = view.lastBlockBonus;
-  // Reveal first, then the ranking with its own timer (same holds as the phones).
-  const nowS = sock.serverNow();
-  const resultUntil = (q?.closedAt ?? 0) + view.config.revealHoldMs;
-  const lbUntil = resultUntil + view.config.leaderboardHoldMs;
-  const showLeaderboard = view.config.leaderboardHoldMs > 0 && !!q && q.closed && view.phase === 'question-closed' && nowS >= resultUntil;
-  const lbTimerRunning = showLeaderboard && nowS < lbUntil && view.config.leaderboardHoldMs > 0;
-
   return (
     <div className="board">
-      <div className="head">
-        <div className="title">
-          B-only Quiz
-          <span>{round ? `${round.title} · ${round.status === 'ended' ? 'terminée' : q ? `question ${q.questionIndex + 1}/${round.questionCount}` : 'prête'}` : 'Lobby'}</span>
-        </div>
-        <div className="row">
-          <FeedBadge feed={view.blockFeed} />
-          {sock.conn !== 'open' ? <span className="badge down">Écran déconnecté du serveur</span> : null}
-          <span className="mono muted">{fmtClock(now)}</span>
-        </div>
-      </div>
-
-      <div className="main">
-        {showLeaderboard ? (
-          <div className="card question-card">
-            <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <div className="card-title">{round?.title} · classement après la question {q.questionIndex + 1}/{q.questionTotal}</div>
-                <div className="q">Classement de la partie</div>
-              </div>
-              {lbTimerRunning ? <Countdown closesAt={lbUntil} durationMs={view.config.leaderboardHoldMs} serverNow={sock.serverNow} /> : <span className="badge">Prochaine question bientôt</span>}
-            </div>
-            <Leaderboard competitors={view.competitors} limit={10} big />
-          </div>
-        ) : showQuestion ? (
-          <div className="card question-card">
-            <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ flex: 1 }}>
-                <div className="row" style={{ marginBottom: 10 }}>
-                  <span className={'badge ' + q.question.difficulty}>
-                    {difficultyLabel[q.question.difficulty]} · {view.config.baseGainThs[q.question.difficulty]} TH/s
-                  </span>
-                  {q.question.demo ? <span className="badge sim">démo</span> : null}
-                  <span className="muted small">
-                    {q.answerCount} réponse{q.answerCount > 1 ? 's' : ''} reçue{q.answerCount > 1 ? 's' : ''} sur {view.competitors.length}
-                  </span>
-                </div>
-                <div className="q">{q.question.text}</div>
-              </div>
-              {open ? <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={sock.serverNow} /> : null}
-            </div>
-            {q.closed && !q.cancelled && q.results ? (
-              <Results view={view} names={names} />
-            ) : (
-              <div className="options">
-                {q.question.options.map((opt, i) => {
-                  const revealed = q.closed && q.question.correctIndex !== undefined;
-                  const cls = ['option'];
-                  if (revealed) cls.push(i === q.question.correctIndex ? 'correct' : 'dim');
-                  return (
-                    <div key={i} className={cls.join(' ')}>
-                      <span className="letter">{LETTERS[i]}</span>
-                      <span>{opt}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ) : view.phase === 'lobby' || view.phase === 'round-ready' ? (
-          <div className="card lobby">
-            <div>
-              <div className="card-title">Rejoignez la partie</div>
-              <div className="big-url">{view.joinUrl ?? '—'}</div>
-              <p className="muted">Scannez le QR code. 1 téléphone par pool classique (3 membres minimum), ou jouez en solo.</p>
-              <div className="row" style={{ marginTop: 20, gap: 20 }}>
-                <div className="stat">
-                  <div className="label">Concurrents</div>
-                  <div className="value">{view.competitors.length}</div>
-                </div>
-                <div className="stat">
-                  <div className="label">Pools</div>
-                  <div className="value">{view.competitors.filter((c) => c.kind === 'pool').length}</div>
-                </div>
-                <div className="stat">
-                  <div className="label">Bitaxe</div>
-                  <div className="value">{view.competitors.filter((c) => c.kind === 'bitaxe').length}</div>
-                </div>
-                <div className="stat">
-                  <div className="label">Manches</div>
-                  <div className="value">{view.rounds.length}</div>
-                </div>
-              </div>
-              {view.phase === 'round-ready' ? <div className="alert" style={{ marginTop: 16 }}>{round?.title} commence. Votre hashrate est conservé tout au long de la partie.</div> : null}
-            </div>
-            <div className="qr">
-              <img src={`/api/qr.svg?text=${encodeURIComponent(view.joinUrl ?? '')}&v=${view.code}`} alt="QR code pour rejoindre" />
-            </div>
-          </div>
-        ) : (
-          <RoundEnd view={view} names={names} />
-        )}
-
-        <div className="ticker">
-          {lastBonus && lastBonus.roundIndex === view.currentRoundIndex ? (
-            <>
-              <span className="tag">{lastBonus.origin === 'simulated' ? 'BLOC SIMULÉ' : 'NOUVEAU BLOC'} {lastBonus.height.toLocaleString('fr-FR')}</span>
-              {lastBonus.winnerId ? (
-                <span>
-                  Tirage pondéré par le hashrate : <b>{names.get(lastBonus.winnerId) ?? '?'}</b> gagne +{view.config.blockBonusPercent.replace('.', ',')} % ({ths(lastBonus.bonus)}), {ths(lastBonus.before)} → {ths(lastBonus.after)}
-                </span>
-              ) : (
-                <span>aucun concurrent éligible (hashrate total nul)</span>
-              )}
-            </>
-          ) : (
-            <span className="muted">Chaque nouveau bloc Bitcoin réel déclenche un tirage, chances = part du hashrate fictif. Le gagnant reçoit +{view.config.blockBonusPercent.replace('.', ',')} %.</span>
-          )}
-        </div>
-      </div>
-
-      <div className="side">
-        <div className="card">
-          <div className="card-title">Derniers blocs Bitcoin ({view.blockFeed.mode === 'simulated' ? 'simulation' : 'réseau réel'})</div>
-          <BlocksStrip blocks={view.recentBlocks} bonuses={view.blockBonuses} names={names} limit={4} />
-          <div className="small muted">
-            Pointe {view.blockFeed.tipHeight?.toLocaleString('fr-FR') ?? '—'}
-            {round?.tipHeightAtStart !== null && round?.tipHeightAtStart !== undefined ? ` · éligibles au-dessus de ${round.tipHeightAtStart.toLocaleString('fr-FR')}` : ''} · {view.blockBonuses.length} bonus cette manche
-          </div>
-        </div>
-        <div className="card pools">
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <div className="card-title">Pools du quiz, hashrate fictif</div>
-            <div className="mono small">{ths(view.totalHashrate)}</div>
-          </div>
-          <div className="row" style={{ alignItems: 'flex-start' }}>
-            <Donut competitors={view.competitors} size={120} />
-            <div className="grow small muted">
-              {view.competitors.slice(0, 3).map((c) => (
-                <div key={c.id}>
-                  {c.rank}. {c.name} {pctText(c.share)}
-                </div>
-              ))}
-            </div>
-          </div>
-          <PoolList competitors={view.competitors} highlightId={flash} />
-        </div>
-      </div>
+      <ConnBadge conn={sock.conn} />
+      <BoardHead view={view} />
+      {view.phase === 'lobby' ? <LobbyScreen view={view} /> : null}
+      {view.phase === 'question' ? <QuestionScreen view={view} serverNow={sock.serverNow} /> : null}
+      {view.phase === 'reveal' ? <RevealScreen view={view} /> : null}
+      {view.phase === 'final' ? <FinalScreen view={view} serverNow={sock.serverNow} /> : null}
     </div>
   );
 }
 
-function Results({ view, names }: { view: BoardView; names: Map<string, string> }) {
-  const q = view.question!;
-  const r = q.results!;
+function BoardHead({ view }: { view: BoardView }) {
+  const current = view.question?.index ?? -1;
+  const done = view.phase === 'final' ? view.questionTotal : view.phase === 'question' ? current : current + 1;
   return (
-    <div>
-      <div className="options" style={{ marginBottom: 14 }}>
-        {q.question.options.map((opt, i) => (
-          <div key={i} className={'option ' + (i === q.question.correctIndex ? 'correct' : 'dim')}>
+    <header className="board-head">
+      <div className="brand">
+        <span className="logo">₿</span> B-only Quiz
+      </div>
+      <div className="progress-dots" aria-label={`Question ${current + 1} sur ${view.questionTotal}`}>
+        {Array.from({ length: view.questionTotal }, (_, i) => (
+          <span key={i} className={i < done ? 'done' : i === current && view.phase === 'question' ? 'now' : ''} />
+        ))}
+      </div>
+      <div className="network">
+        <div className="label">Réseau</div>
+        <div className="value">{ths(view.totalHashrate)}</div>
+        <div className="muted small">
+          {view.players.length} mineur{view.players.length > 1 ? 's' : ''}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function LobbyScreen({ view }: { view: BoardView }) {
+  return (
+    <main className="screen lobby-screen">
+      <section className="join-card">
+        <div className="eyebrow">Rejoignez la partie</div>
+        <img className="qr" src={`/api/qr.svg?text=${encodeURIComponent(view.joinUrl)}`} alt="QR code pour rejoindre" />
+        <div className="join-url mono">{view.joinUrl.replace(/^https?:\/\//, '')}</div>
+      </section>
+      <section className="lobby-side">
+        <h1 className="headline">
+          {view.questionTotal} questions.
+          <br />
+          Gagnez du hashrate.
+          <br />
+          <span className="accent">Minez le bloc.</span>
+        </h1>
+        <Rules config={view.config} />
+        <div className="player-cloud">
+          {view.players.map((p) => (
+            <span key={p.id} className="chip" style={{ borderColor: playerColor(p.color) }}>
+              <Avatar name={p.name} color={p.color} size={26} />
+              {p.name}
+            </span>
+          ))}
+          {view.players.length === 0 ? <span className="muted">En attente des premiers mineurs…</span> : null}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function QuestionScreen({ view, serverNow }: { view: BoardView; serverNow: () => number }) {
+  const q = view.question!;
+  const n = view.players.filter((p) => p.connected).length;
+  return (
+    <main className="screen question-screen">
+      <div className="q-top">
+        <div>
+          <div className="eyebrow">
+            Question {q.index + 1} / {q.total}
+          </div>
+          <div className={'diff ' + q.difficulty}>
+            {difficultyLabel[q.difficulty]} · {q.baseGain} TH/s
+          </div>
+        </div>
+        <TimerRing closesAt={q.closesAt} durationMs={q.durationMs} serverNow={serverNow} size={150} />
+      </div>
+      <h1 className="q-text-big">{q.text}</h1>
+      <div className="options-grid">
+        {q.options.map((opt, i) => (
+          <div key={i} className={'option opt-' + i}>
             <span className="letter">{LETTERS[i]}</span>
             <span>{opt}</span>
           </div>
         ))}
       </div>
-      <table className="ranking-table">
-        <thead>
-          <tr>
-            <th>Rang rapidité</th>
-            <th>Concurrent</th>
-            <th>Bonus</th>
-            <th style={{ textAlign: 'right' }}>Gain</th>
-          </tr>
-        </thead>
-        <tbody>
-          {r.gains.map((g) => (
-            <tr key={g.competitorId}>
-              <td className="mono">
-                {g.rank}
-                {g.tied ? '=' : ''}
-              </td>
-              <td><span className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>{(() => { const c = view.competitors.find((x) => x.id === g.competitorId); return c ? <AvatarBadge competitor={c} size={26} /> : null; })()}{names.get(g.competitorId) ?? '?'}</span></td>
-              <td className="mono">+{g.bonusPercent.replace('.', ',')} %</td>
-              <td className="num">{ths(g.gain)}</td>
-            </tr>
-          ))}
-          {r.gains.length === 0 ? (
-            <tr>
-              <td colSpan={4} className="muted">
-                Aucune bonne réponse.
-              </td>
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
-      <div className="small muted" style={{ marginTop: 8 }}>
-        {r.wrong.length} mauvaise{r.wrong.length > 1 ? 's' : ''} réponse{r.wrong.length > 1 ? 's' : ''}, {r.silent.length} sans réponse. 0 TH/s, aucune pénalité.
-        {q.question.explanation ? <div style={{ marginTop: 6 }}>{q.question.explanation}</div> : null}
-        {q.question.source ? (
-          <div style={{ marginTop: 6 }}>
-            Source : {q.question.source.provider}, {q.question.source.license}
-            {q.question.source.chapter ? `, ${q.question.source.chapter}` : ''}
-          </div>
-        ) : null}
+      <div className="answered">
+        <div className="answered-bar">
+          <div style={{ width: `${n ? Math.min(100, (q.answerCount / n) * 100) : 0}%` }} />
+        </div>
+        <span>
+          {q.answerCount} / {n} réponse{q.answerCount > 1 ? 's' : ''}
+        </span>
       </div>
-    </div>
+    </main>
   );
 }
 
-function RoundEnd({ view, names }: { view: BoardView; names: Map<string, string> }) {
-  const round = view.rounds[view.currentRoundIndex];
-  const series = view.prizeSeries.filter((s) => s.roundIndexes.includes(view.currentRoundIndex));
+function RevealScreen({ view }: { view: BoardView }) {
+  const q = view.question!;
+  const total = (q.optionCounts ?? []).reduce((s, x) => s + x, 0);
+  const byId = new Map(view.players.map((p) => [p.id, p]));
   return (
-    <div className="card question-card">
-      <div>
-        <div className="card-title">{view.phase === 'finished' ? 'Partie terminée' : `${round?.title ?? 'Manche'} terminée`}</div>
-        <div className="q">Classement final de la manche</div>
-      </div>
-      <div className="row" style={{ alignItems: 'flex-start', gap: 24 }}>
-        <table className="ranking-table" style={{ flex: 1 }}>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Concurrent</th>
-              <th style={{ textAlign: 'right' }}>Hashrate final</th>
-              <th style={{ textAlign: 'right' }}>Part</th>
-            </tr>
-          </thead>
-          <tbody>
-            {view.competitors.map((c) => (
-              <tr key={c.id}>
-                <td className="mono">{c.rank}</td>
-                <td>
-                  <span className="row" style={{ gap: 8, flexWrap: 'nowrap' }}><AvatarBadge competitor={c} size={26} />{c.name}</span> <span className="muted small">{c.kind === 'pool' ? c.members.join(', ') : c.members[0] ?? ''}</span>
-                </td>
-                <td className="num">{ths(c.hashrate)}</td>
-                <td className="num">{pctText(c.share)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div style={{ flex: 1 }}>
-          <div className="card-title">Lots</div>
-          {series.length === 0 ? <div className="muted">Tirages à venir. Chances = part du hashrate final, 1 lot maximum par concurrent.</div> : null}
-          {series.map((s) => (
-            <div key={s.id} style={{ marginBottom: 12 }}>
-              {s.awards.map((a, i) => {
-                const prize = s.prizes.find((p) => p.id === a.prizeId);
-                const w = a.winnerId ? view.competitors.find((c) => c.id === a.winnerId) : undefined;
+    <main className="screen reveal-screen">
+      <section className="reveal-main">
+        <div className="eyebrow">
+          Question {q.index + 1} / {q.total}
+          {q.cancelled ? ' · annulée, aucun point' : ''}
+        </div>
+        <h2 className="q-text-mid">{q.text}</h2>
+        <div className="options-list">
+          {q.options.map((opt, i) => {
+            const count = q.optionCounts?.[i] ?? 0;
+            const ok = i === q.correctIndex;
+            return (
+              <div key={i} className={'option-result' + (ok ? ' correct' : ' wrong')}>
+                <span className={'letter opt-bg-' + i}>{LETTERS[i]}</span>
+                <span className="text">{opt}</span>
+                <span className="count">
+                  <span className="fill" style={{ width: `${total ? (count / total) * 100 : 0}%` }} />
+                  <b>{count}</b>
+                </span>
+                {ok ? <span className="check">✓</span> : null}
+              </div>
+            );
+          })}
+        </div>
+        {q.explanation ? <p className="explain">{q.explanation}</p> : null}
+        {q.source ? (
+          <div className="source">
+            Source : {q.source.provider}, {q.source.license}
+          </div>
+        ) : null}
+      </section>
+      <aside className="reveal-side">
+        <div className="panel">
+          <div className="panel-title">Meilleurs gains</div>
+          {q.top && q.top.length > 0 ? (
+            <ol className="top-gains">
+              {q.top.map((r, i) => {
+                const p = byId.get(r.id);
                 return (
-                  <div key={a.prizeId} className="stat" style={{ marginBottom: 6 }}>
-                    <div className="label">
-                      Lot {i + 1} · {prize?.label}
-                    </div>
-                    <div className="value">{a.winnerId ? names.get(a.winnerId) ?? '?' : 'non attribué'}</div>
-                    {w ? <div className="small muted">{w.kind === 'pool' ? w.members.join(', ') : w.members[0] ?? ''}</div> : null}
-                  </div>
+                  <li key={r.id}>
+                    <span className="rank">{i + 1}</span>
+                    {p ? <Avatar name={p.name} color={p.color} size={30} /> : null}
+                    <span className="name">{p?.name ?? '?'}</span>
+                    <span className="detail">
+                      ⚡{seconds(r.ms ?? 0)}
+                      {r.streak >= 2 ? ` · 🔥${r.streak}` : ''}
+                    </span>
+                    <span className="gain">+{ths(r.gain)}</span>
+                  </li>
                 );
               })}
-              <div className="small muted">
-                Série {s.scope === 'round' ? 'sur la manche' : 'sur la somme des manches'} {s.roundIndexes.map((i) => i + 1).join(', ')} · {fmtClock(s.createdAt)}
-              </div>
-            </div>
-          ))}
+            </ol>
+          ) : (
+            <div className="muted">Personne n’a trouvé. Aucun hashrate distribué.</div>
+          )}
         </div>
-      </div>
-    </div>
+        <div className="panel grow">
+          <div className="panel-title">Classement · part du réseau</div>
+          <NetworkBar players={view.players} />
+          <Leaderboard players={view.players} limit={8} showGain />
+        </div>
+      </aside>
+    </main>
+  );
+}
+
+function FinalScreen({ view, serverNow }: { view: BoardView; serverNow: () => number }) {
+  const last = view.blocks[view.blocks.length - 1];
+  const winners = view.blocks.filter((b) => b.found && b.winnerId).map((b) => b.winnerId!);
+  const byId = new Map(view.players.map((p) => [p.id, p]));
+  return (
+    <main className="screen final-screen">
+      <section className="final-main">
+        {last ? (
+          <MiningScene block={last} players={view.players} serverNow={serverNow} />
+        ) : (
+          <div className="final-intro">
+            <div className="eyebrow">Fin du quiz</div>
+            <h1 className="headline">
+              Place au <span className="accent">minage</span>.
+            </h1>
+            <p className="lead">
+              Comme sur le réseau Bitcoin, chaque mineur a une chance de trouver le bloc égale à sa part du hashrate. Le plus gros mineur est favori, mais rien n’est garanti.
+            </p>
+            <NetworkBar players={view.players} />
+            <div className="odds">
+              {view.players.slice(0, 3).map((p) => (
+                <div key={p.id} className="odd">
+                  <Avatar name={p.name} color={p.color} size={44} />
+                  <div className="name">{p.name}</div>
+                  <div className="value accent">{pct(p.share)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+      <aside className="final-side">
+        <div className="panel grow">
+          <div className="panel-title">Classement final · chances de bloc</div>
+          <Leaderboard players={view.players} limit={12} winners={winners} />
+        </div>
+        {view.blocks.some((b) => b.found) ? (
+          <div className="panel">
+            <div className="panel-title">Blocs trouvés</div>
+            <ul className="blocks-list">
+              {view.blocks
+                .filter((b) => b.found)
+                .map((b) => {
+                  const w = b.winnerId ? byId.get(b.winnerId) : undefined;
+                  return (
+                    <li key={b.n}>
+                      <span className="cube small" />
+                      <span className="mono">#{b.n}</span>
+                      <span className="grow">{b.label ?? ''}</span>
+                      {w ? <Avatar name={w.name} color={w.color} size={24} /> : null}
+                      <b>{w?.name ?? '—'}</b>
+                    </li>
+                  );
+                })}
+            </ul>
+          </div>
+        ) : null}
+      </aside>
+    </main>
   );
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import './styles/tokens.css';
 import './styles/app.css';
 import { Play } from './pages/Play';
 import { Board } from './pages/Board';

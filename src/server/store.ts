@@ -52,10 +52,12 @@ export class Store {
     fs.appendFileSync(this.eventsPath(code), JSON.stringify(ev) + '\n');
   }
 
+  /** Snapshots from the earlier round-based format (no version 2) are not restored. */
   loadSnapshot(code: string): SessionState | null {
     const p = this.snapshotPath(code);
     if (!fs.existsSync(p)) return null;
-    return JSON.parse(fs.readFileSync(p, 'utf8')) as SessionState;
+    const state = JSON.parse(fs.readFileSync(p, 'utf8')) as SessionState;
+    return state.version === 2 ? state : null;
   }
 
   setCurrent(code: string | null): void {
@@ -87,12 +89,5 @@ export class Store {
     const token = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
     fs.writeFileSync(p, token + '\n', { mode: 0o600 });
     return token;
-  }
-
-  listSessions(): string[] {
-    return fs
-      .readdirSync(path.join(this.dataDir, 'sessions'))
-      .filter((f) => f.endsWith('.json') && !f.endsWith('.tmp'))
-      .map((f) => f.replace(/\.json$/, ''));
   }
 }

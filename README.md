@@ -1,151 +1,131 @@
 # bonly-quiz
 
-Quiz interactif pour B-only 2026 : les équipes sont des pools de minage fictives, leur
-hashrate (en TH/s) grandit avec les bonnes réponses et leur rapidité, et chaque nouveau bloc
-réel du réseau Bitcoin déclenche un tirage de bonus pondéré par les parts de hashrate.
-Direction visuelle inspirée du tableau de bord de minage de mempool.space (voir `NOTICE.md`).
+Quiz interactif pour B-only 2026. 21 questions sur Bitcoin. Chaque bonne réponse rapporte
+du hashrate fictif (en TH/s). À la fin, on « mine » un bloc : chaque joueur a une chance de
+le trouver égale à sa part du hashrate total. Le plus gros mineur est favori, mais rien
+n'est garanti.
 
-Le besoin et les décisions sont décrits dans la note Obsidian « B-only 2026, descriptif du
-quiz interactif ». La documentation de reconstruction est dans « B-only 2026, quiz interactif,
-fiche de reconstruction de l'application ».
+## Règles
 
-## Démarrage rapide
+| | Par défaut |
+|---|---|
+| Bonne réponse | 100 TH/s (facile), 150 (moyenne), 200 (difficile) |
+| ⚡ Rapidité | jusqu'à +50 % du gain de base pour une réponse instantanée, diminue linéairement jusqu'à 0 à la fin du chrono |
+| 🔥 Série | +10 % du gain de base par bonne réponse d'affilée après la 1re (2e d'affilée +10 %, 3e +20 %…), plafonné à +50 % |
+| Mauvaise réponse / pas de réponse | 0 TH/s, série remise à zéro, aucune pénalité |
+| Bloc final | 1 gagnant tiré au hasard (Web Crypto), probabilité = hashrate du joueur / hashrate total |
 
-Prérequis : Node 24 (testé avec 24.18), npm.
+Une seule réponse par question, verrouillée dès l'envoi. Le chrono (20 s) est tenu par le
+serveur. La réponse s'affiche dès que tous les joueurs connectés ont répondu.
+
+La console peut miner plusieurs blocs à la suite, 1 par lot. Par défaut, un joueur qui a
+déjà trouvé un bloc ne participe plus aux tirages suivants. Le gagnant est fixé par le
+serveur au clic, puis révélé après 8 s d'animation.
+
+Tous ces réglages se changent dans la console avant la 1re question.
+
+## Démarrage
+
+Prérequis : Node 22 ou plus, npm.
 
 ```bash
 npm install
-npm run import:planb      # optionnel, régénère le pack Plan B depuis le dépôt cloné
-npm run dev               # serveur 8787 + client Vite 5173, avec rechargement
-```
-
-Le terminal affiche le jeton de la console, l'URL de la console, du board et le lien à
-scanner. En développement les téléphones ouvrent le port 5173 (Vite relaie l'API et le
-WebSocket vers 8787).
-
-Version « production locale » sur un seul port :
-
-```bash
 npm run build
-npm start                 # http://<ip-du-mac>:8787
+npm start
 ```
 
-Interfaces :
+Le terminal affiche le jeton de la console et les 3 adresses :
 
 | Route | Rôle |
 |---|---|
-| `/play?s=CODE` | téléphone des participants (QR code affiché sur le board et la console) |
-| `/board` | écran de présentation |
-| `/console` | console d'animation, protégée par le jeton |
+| `/board` | écran projeté : QR code, questions, résultats, minage |
+| `/console` | console d'animation (jeton requis), 1 gros bouton « étape suivante » |
+| `/play` | téléphone des joueurs (le QR code y mène) |
+
+L'adresse `/play` ne change pas d'une partie à l'autre : un QR code imprimé reste valable.
+
+Développement avec rechargement : `npm run dev` (serveur 8787, client Vite 5173 ; les
+téléphones ouvrent le port 5173).
+
+## Déroulé d'une partie
+
+1. Projeter `/board`, ouvrir `/console` sur l'ordinateur ou un téléphone de l'animateur.
+2. Les joueurs scannent le QR code et choisissent un nom (le leur ou celui de leur équipe).
+3. Console : « Lancer la question 1 ». La réponse s'affiche à la fin du chrono, ou dès que
+   tout le monde a répondu. L'écran montre la bonne réponse, les meilleurs gains et le
+   classement ; chaque téléphone montre le gain détaillé, le rang et les chances de bloc.
+4. Console : « Question 2 / 21 », et ainsi de suite.
+5. Après la 21e : « Classement final », puis « Miner le bloc » (champ optionnel pour le
+   nom du lot). Recommencer pour chaque lot.
+
+En cas d'erreur sur une question : « Annuler la question » la ferme sans attribuer de
+points et sans casser les séries. « Nouvelle partie » repart de zéro (les joueurs se
+réinscrivent). « Exporter la partie » télécharge l'état et le journal complet.
 
 ## Variables d'environnement
 
 | Variable | Défaut | Rôle |
 |---|---|---|
-| `PORT` | `8787` | port HTTP + WebSocket du serveur |
+| `PORT` | `8787` | port HTTP + WebSocket |
 | `HOST` | `0.0.0.0` | interface d'écoute |
 | `CONSOLE_TOKEN` | généré dans `data/console-token.txt` | jeton de la console |
-| `PUBLIC_URL` | 1re IP LAN détectée | base des liens à scanner, ex. `http://192.168.1.20:8787` |
-| `DATA_DIR` | `./data` | instantanés et journaux des sessions |
+| `PUBLIC_URL` | 1re IP LAN détectée | base du lien à scanner, ex. `http://192.168.1.20:8787` |
+| `DATA_DIR` | `./data` | sauvegardes et journaux des parties |
 | `CONTENT_DIR` | `./content/questions` | packs de questions |
-| `BLOCK_SOURCE` | `real` | `real` connecte mempool.space au démarrage, `off` attend la console |
-| `MEMPOOL_URL` | `https://mempool.space` | instance mempool (une instance auto-hébergée fonctionne) |
 
-## Tests
+La console accepte aussi `/console?token=…` pour se connecter sans saisir le jeton.
 
-```bash
-npm test                        # moteur, intégration WebSocket multi-clients, flux réel
-QUIZ_SKIP_NETWORK=1 npm test    # sans le test de connexion à mempool.space
-```
+## Questions
 
-Les tests d'intégration utilisent des blocs **simulés**, étiquetés comme tels. Le test
-`blocks-real` vérifie seulement la connexion et l'historique du flux réel, pas la réception
-d'un nouveau bloc.
+`content/questions/bonly-21-fr.json` est le pack par défaut : 21 questions du cours btc101
+de Plan B Network (7 faciles, 7 moyennes, 7 difficiles, dans cet ordre), licence
+CC BY-SA 4.0. `demo-fr.json` (5 questions) sert aux répétitions. La console permet de
+changer de pack avant la 1re question ; la partie joue les N premières questions du pack
+(N = 21 par défaut).
 
-## Architecture
-
-```
-src/shared/     moteur pur (TypeScript, partagé serveur/client/tests)
-  hashrate.ts   nano-TH/s en BigInt, pourcentages exacts, arrondi demi-supérieur
-  config.ts     réglages de session et barème de rapidité
-  scoring.ts    classement de rapidité et gains
-  draw.ts       tirage pondéré (crypto), séries de lots avec exclusion
-  game.ts       machine à états faisant autorité (manches, questions, réponses, blocs, lots)
-  views.ts      vues filtrées par rôle (la bonne réponse n'est envoyée qu'après la clôture)
-src/server/     Node : HTTP + WebSocket, persistance, flux de blocs
-  app.ts        hub WebSocket, commandes console, timers de clôture
-  blocks.ts     MempoolBlockSource (WS + REST) et SimulatedBlockSource
-  store.ts      instantané JSON + journal JSONL par session
-  content.ts    chargement et validation des packs
-src/client/     React + Vite, routes /play /board /console
-content/questions/  packs JSON (Plan B btc101 provisoire, démo)
-scripts/import-planb.mjs  import depuis le dépôt Plan B Network
-tests/          vitest
-```
-
-Le serveur fait autorité : horloge, acceptation des réponses, calculs, tirages. Les
-téléphones n'envoient qu'un choix d'option. Chaque mutation est journalisée dans
-`data/sessions/<CODE>.events.jsonl` avec les détails des tirages (total, nombre tiré,
-cumuls), et l'état est sauvegardé dans `data/sessions/<CODE>.json` pour survivre à un
-redémarrage.
-
-## Règles implémentées et hypothèses provisoires
-
-Décidées (fiche) : gains 10/50/100 TH/s, bonus de rapidité 3/2/1 % puis division par 2 sans
-fin, bonus appliqué au gain de base seulement, mauvaise réponse = 0 sans pénalité, hashrate cumulé
-sur les 5 manches, bonus de bloc 2,1 % pour un seul gagnant tiré selon les parts de hashrate,
-lots tirés du plus gros au plus petit avec exclusion des gagnants dans une même série.
-
-Provisoires (modifiables dans la console) :
-
-- référence de rapidité = heure serveur de la **dernière** modification (`speedReference`) ;
-- ex æquo au même instant : même rang, rang suivant sauté ;
-- arrondi au nano-TH/s le plus proche ;
-- absence de réponse = 0, sans bonus ni pénalité ;
-- hashrate initial 10 TH/s attribué 1 fois à chaque concurrent (`initialHashrateThs`), tirage ignoré et journalisé si
-  le total vaut 0 ;
-- assiette du 2,1 % = hashrate courant du gagnant (`blockBonusBase: own`), alternative
-  `total` ;
-- bloc éligible = reçu pendant une manche en cours, hauteur supérieure à la pointe connue au
-  début de la manche, hash jamais traité ;
-- lots : poids du hashrate cumulé après la dernière manche terminée ou une manche choisie ;
-  les anciennes commandes `sumOfRounds` utilisent le dernier instantané sélectionné, sans addition ;
-  option d'exclusion entre séries ;
-- numéros Bitaxe dans l'ordre d'inscription ;
-- un seul format jouable, choix simple ; le champ `type` des questions est prévu pour
-  d'autres formats.
-
-## Remplacer les questions
-
-Un pack est un fichier JSON dans `content/questions/` :
+Format d'un pack :
 
 ```json
 {
   "name": "Nom du pack",
   "questions": [
     { "id": "q1", "type": "single-choice", "text": "…", "options": ["a", "b", "c", "d"],
-      "correctIndex": 2, "difficulty": "easy|intermediate|hard", "durationMs": 10000,
+      "correctIndex": 2, "difficulty": "easy|intermediate|hard", "durationMs": 20000,
       "explanation": "…", "source": { "provider": "…", "license": "…" } }
-  ],
-  "rounds": [ { "id": "r1", "title": "Manche 1", "questionIds": ["q1"] } ]
+  ]
 }
 ```
 
-Le nombre de manches et de questions est libre. La console permet de changer la difficulté
-et la durée de chaque question, et de charger un autre pack tant qu'aucune manche ne tourne.
+2 à 4 options par question. `durationMs` et `explanation` sont facultatifs.
+`npm run import:planb` régénère `planb-btc101-fr.json` (50 questions) depuis un clone du
+dépôt Plan B Network.
 
+## Tests
 
-## Continuité de la partie (2026-10-23)
+```bash
+npm test         # règles de score, tirage, partie complète, serveur WebSocket multi-clients
+npm run typecheck
+```
 
-La console expose 1 bouton « Prochaine étape » et l'action annoncée par le serveur.
-Le parcours passe par question, réponse, bilan de manche, manche suivante et bilan final.
-Une clé de transition empêche les doubles clics et les commandes envoyées depuis un écran périmé.
-Les commandes permettant de passer les questions restantes ou d'annuler restent dans « Commandes avancées ».
+## Architecture
 
-Le solde `SessionState.hashrates` fait autorité et persiste après rechargement/redémarrage.
-Les gains de questions et de blocs s'ajoutent au même solde. Le début d'une manche ne le remet jamais à zéro.
-Les instantanés sans `hashrateMode: continuous` sont migrés au chargement. Le moteur conserve
-les soldes d'origine dans `legacyRoundBalances`, déduit la première allocation des gains journalisés,
-puis additionne les gains réellement crédités de chaque manche. Il conserve les bonus historiques
-sans les recalculer et ne modifie aucun tirage de lots déjà effectué. Le marqueur rend cette migration idempotente.
-Sauvegarder le dossier `data` avant mise à jour, conserver cette sauvegarde avec l'ancienne version pour revenir en arrière.
+```
+src/shared/     moteur pur, partagé serveur/client/tests
+  config.ts     réglages et valeurs par défaut
+  scoring.ts    gain d'une réponse (base + rapidité + série)
+  draw.ts       tirage pondéré par le hashrate (Web Crypto, sans biais)
+  game.ts       machine à états : lobby → question → reveal → … → final (blocs)
+  views.ts      vues par rôle (la bonne réponse et le gagnant d'un bloc ne partent qu'au bon moment) + protocole
+src/server/     Node : HTTP + WebSocket, chronos, sauvegarde
+src/client/     React + Vite : /play, /board, /console
+content/questions/  packs JSON
+tests/          vitest
+```
+
+Le serveur fait autorité : horloge, réponses, calculs, tirages. Chaque événement est
+journalisé dans `data/sessions/<CODE>.events.jsonl` (y compris le nombre tiré et les poids
+de chaque bloc) et l'état est sauvegardé dans `data/sessions/<CODE>.json` : un redémarrage
+reprend la partie en cours, et les téléphones se reconnectent seuls.
+
+Les sauvegardes de l'ancienne version (manches, blocs réels, lots) ne sont pas reprises :
+le serveur démarre une nouvelle partie s'il en trouve une.
