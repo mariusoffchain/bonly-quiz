@@ -36,27 +36,27 @@ export interface Preset {
 
 /**
  * Scoring profiles, compared in docs/reglages.md (npm run simulate). Gains are
- * x3 from easy to hard and x5 for expert; the base (10 or 100) does not change
- * anyone's chances, only the numbers shown.
+ * x3 from easy to hard and x5 for expert, on a base of 10 TH/s; the base (10 or
+ * 100) does not change anyone's chances, only the numbers shown.
  */
 export const PRESETS: Preset[] = [
   {
     id: 'equilibre',
     name: 'Équilibré',
     description: 'Rapidité jusqu’à +50 %, série +10 % par réponse (max +50 %).',
-    scoring: { baseGainThs: { easy: 100, intermediate: 200, hard: 300, expert: 500 }, speedBonusMax: 0.5, streakBonusStep: 0.1, streakBonusMax: 0.5, startHashrateThs: 0 },
+    scoring: { baseGainThs: { easy: 10, intermediate: 20, hard: 30, expert: 50 }, speedBonusMax: 0.5, streakBonusStep: 0.1, streakBonusMax: 0.5, startHashrateThs: 0 },
   },
   {
     id: 'ouvert',
     name: 'Ouvert',
-    description: 'Tout le monde part avec 1 000 TH/s, bonus divisés par deux : plus de hasard.',
-    scoring: { baseGainThs: { easy: 100, intermediate: 200, hard: 300, expert: 500 }, speedBonusMax: 0.25, streakBonusStep: 0.05, streakBonusMax: 0.25, startHashrateThs: 1000 },
+    description: 'Tout le monde part avec 100 TH/s, bonus divisés par deux : plus de hasard.',
+    scoring: { baseGainThs: { easy: 10, intermediate: 20, hard: 30, expert: 50 }, speedBonusMax: 0.25, streakBonusStep: 0.05, streakBonusMax: 0.25, startHashrateThs: 100 },
   },
   {
     id: 'competitif',
     name: 'Compétitif',
     description: 'Rapidité jusqu’à +100 %, série +25 % par réponse (max +200 %) : les meilleurs prennent plus d’avance.',
-    scoring: { baseGainThs: { easy: 100, intermediate: 200, hard: 300, expert: 500 }, speedBonusMax: 1, streakBonusStep: 0.25, streakBonusMax: 2, startHashrateThs: 0 },
+    scoring: { baseGainThs: { easy: 10, intermediate: 20, hard: 30, expert: 50 }, speedBonusMax: 1, streakBonusStep: 0.25, streakBonusMax: 2, startHashrateThs: 0 },
   },
 ];
 

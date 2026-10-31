@@ -97,10 +97,10 @@ const preset = (id: string) => PRESETS.find((p) => p.id === id)!.scoring;
 const eq = preset('equilibre');
 const rows: Row[] = [
   ...PRESETS.map((p) => ({ name: `**${p.name}**`, scoring: p.scoring })),
-  { name: 'Équilibré, base 10 (10/20/30)', scoring: { ...eq, baseGainThs: { easy: 10, intermediate: 20, hard: 30, expert: 50 } } },
+  { name: 'Équilibré, base 100 (100/200/300)', scoring: { ...eq, baseGainThs: { easy: 100, intermediate: 200, hard: 300, expert: 500 } } },
   { name: 'Ancien réglage (100/150/200)', scoring: { ...eq, baseGainThs: { easy: 100, intermediate: 150, hard: 200, expert: 300 } } },
   { name: 'Sans aucun bonus', scoring: { ...eq, speedBonusMax: 0, streakBonusStep: 0, streakBonusMax: 0 } },
-  { name: 'Écart x10 (100/300/1000)', scoring: { ...eq, baseGainThs: { easy: 100, intermediate: 300, hard: 1000, expert: 1500 } } },
+  { name: 'Écart x10 (10/30/100)', scoring: { ...eq, baseGainThs: { easy: 10, intermediate: 30, hard: 100, expert: 150 } } },
   { name: 'Équilibré, 6/6/6 + 3 expert', scoring: eq, questions: mix(6, 6, 6, 3) },
   { name: 'Équilibré, public homogène', scoring: eq, spread: 0.5 },
   { name: 'Équilibré, public très hétérogène', scoring: eq, spread: 1.6 },

@@ -27,24 +27,24 @@ describe('scoreAnswer', () => {
 
   it('pays the base gain plus a speed bonus that falls linearly to 0', () => {
     const instant = scoreAnswer(q('a'), { option: 0, at: 0 }, timing, 0, DEFAULT_CONFIG);
-    expect(instant).toMatchObject({ correct: true, base: 100, speedBonus: 50, streakBonus: 0, gain: 150, streak: 1 });
+    expect(instant).toMatchObject({ correct: true, base: 10, speedBonus: 5, streakBonus: 0, gain: 15, streak: 1 });
     const half = scoreAnswer(q('a'), { option: 0, at: 10_000 }, timing, 0, DEFAULT_CONFIG);
-    expect(half.speedBonus).toBe(25);
+    expect(half.speedBonus).toBe(3); // 2,5 rounded
     const buzzer = scoreAnswer(q('a'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG);
     expect(buzzer.speedBonus).toBe(0);
   });
 
   it('scales with difficulty', () => {
-    expect(scoreAnswer(q('a', 'intermediate'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG).gain).toBe(200);
-    expect(scoreAnswer(q('a', 'hard'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG).gain).toBe(300);
-    expect(scoreAnswer(q('a', 'expert'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG).gain).toBe(500);
+    expect(scoreAnswer(q('a', 'intermediate'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG).gain).toBe(20);
+    expect(scoreAnswer(q('a', 'hard'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG).gain).toBe(30);
+    expect(scoreAnswer(q('a', 'expert'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG).gain).toBe(50);
   });
 
   it('adds 10 % per consecutive correct answer, capped at 50 %', () => {
     const at = { option: 0, at: 20_000 };
-    expect(scoreAnswer(q('a'), at, timing, 1, DEFAULT_CONFIG)).toMatchObject({ streak: 2, streakBonus: 10 });
-    expect(scoreAnswer(q('a'), at, timing, 3, DEFAULT_CONFIG)).toMatchObject({ streak: 4, streakBonus: 30 });
-    expect(scoreAnswer(q('a'), at, timing, 10, DEFAULT_CONFIG)).toMatchObject({ streak: 11, streakBonus: 50 });
+    expect(scoreAnswer(q('a'), at, timing, 1, DEFAULT_CONFIG)).toMatchObject({ streak: 2, streakBonus: 1 });
+    expect(scoreAnswer(q('a'), at, timing, 3, DEFAULT_CONFIG)).toMatchObject({ streak: 4, streakBonus: 3 });
+    expect(scoreAnswer(q('a'), at, timing, 10, DEFAULT_CONFIG)).toMatchObject({ streak: 11, streakBonus: 5 });
   });
 
   it('wrong or missing answer: nothing, streak reset', () => {
@@ -94,8 +94,8 @@ describe('Game', () => {
     expect(g.answer(alice.id, 0, 1, T0 + 10)).toEqual({ ok: false, reason: 'already-answered' });
     g.answer(bob.id, 0, 0, T0 + 10_000);
     g.closeQuestion(T0 + 12_000);
-    expect(alice.hashrate).toBe(150);
-    expect(bob.hashrate).toBe(125);
+    expect(alice.hashrate).toBe(15);
+    expect(bob.hashrate).toBe(13);
 
     // Q2: Alice right again (streak 2), Bob wrong.
     g.advance(g.nextStep(T0)!.key, T0 + 20_000);
@@ -103,8 +103,8 @@ describe('Game', () => {
     g.answer(bob.id, 1, 3, T0 + 21_000);
     expect(g.answer(bob.id, 1, 0, T0 + 40_001).ok).toBe(false);
     g.closeQuestion(T0 + 40_000);
-    expect(g.state.runs[1].results![alice.id]).toMatchObject({ streak: 2, streakBonus: 10, speedBonus: 0, gain: 110 });
-    expect(alice.hashrate).toBe(260);
+    expect(g.state.runs[1].results![alice.id]).toMatchObject({ streak: 2, streakBonus: 1, speedBonus: 0, gain: 11 });
+    expect(alice.hashrate).toBe(26);
     expect(bob.streak).toBe(0);
 
     // Q3 too late for everyone.
@@ -123,7 +123,7 @@ describe('Game', () => {
     expect(step).toMatchObject({ action: 'mine', label: 'Tirer la 1re place' });
     g.advance(step.key, now);
     const block = g.state.blocks[0];
-    expect(block).toMatchObject({ n: 1, winnerId: alice.id, total: 385, roll: 0 });
+    expect(block).toMatchObject({ n: 1, winnerId: alice.id, total: 39, roll: 0 });
     expect(block.hash).toMatch(/^0{10}[0-9a-f]{54}$/);
     // Nothing else while mining; winner hidden from views until revealAt.
     expect(g.nextStep(now + 1)).toBeNull();
@@ -184,7 +184,7 @@ describe('Game', () => {
     g.openQuestion(T0 + 2);
     g.answer(p.id, 1, 0, T0 + 3);
     g.cancelQuestion(T0 + 4);
-    expect(p).toMatchObject({ hashrate: 150, streak: 1 });
+    expect(p).toMatchObject({ hashrate: 15, streak: 1 });
     expect(g.phase).toBe('reveal');
   });
 

@@ -104,7 +104,7 @@ describe('server', () => {
     phones[1].send({ type: 'answer', questionIndex: 0, option: 0 });
     const v0 = await phones[0].waitView<PlayerView>((v) => v.phase === 'reveal');
     expect(v0.myResult).toMatchObject({ correct: true, streak: 1 });
-    expect(v0.me!.hashrate).toBeGreaterThan(100);
+    expect(v0.me!.hashrate).toBeGreaterThan(10); // base 10 + speed bonus
     const v1 = await phones[1].waitView<PlayerView>((v) => v.phase === 'reveal');
     expect(v1.myResult).toMatchObject({ correct: false, gain: 0 });
 
