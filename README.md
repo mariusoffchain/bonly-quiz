@@ -117,11 +117,16 @@ La console accepte aussi `/console?token=…` pour se connecter sans saisir le j
 
 ## Questions
 
-`content/questions/bonly-21-fr.json` est le pack par défaut : 21 questions du cours btc101
-de Plan B Network (7 faciles, 7 moyennes, 7 difficiles, dans cet ordre), licence
-CC BY-SA 4.0. `demo-fr.json` (5 questions) sert aux répétitions. La console permet de
-changer de pack avant la 1re question ; la partie joue les N premières questions du pack
-(N = 21 par défaut).
+`content/questions/bonly-21-fr.json` est le pack par défaut : 21 questions choisies dans
+9 cours de la Plan B Academy (minage, histoire, portefeuilles, confidentialité,
+cryptographie, Lightning, hyperinflation), 7 faciles, 7 moyennes, 7 difficiles, dans cet
+ordre, licence CC BY-SA 4.0. `demo-fr.json` (5 questions) sert aux répétitions. La console
+permet de changer de pack avant la 1re question ; la partie joue les N premières questions
+du pack (N = 21 par défaut).
+
+La sélection est dans `scripts/pick-planb.mjs` (liste des questions retenues, une ligne
+chacune). Pour en changer, modifier la liste puis, depuis un clone du dépôt Plan B Network :
+`node scripts/pick-planb.mjs --repo chemin/vers/bitcoin-educational-content`.
 
 Format d'un pack :
 
