@@ -8,11 +8,13 @@
  * Player model (an assumption, not data): each player has a level drawn from a
  * normal law; the chance of a right answer follows a logistic curve of
  * level - difficulty, with a 25 % floor (4 options, guessing). Better players
- * also answer a little faster. 3 % of answers are missed.
+ * also answer a little faster. 3 % of answers are missed. The speed bonus goes
+ * to the first correct answers, as in the game.
  */
 import { DEFAULT_CONFIG, PRESETS, type Difficulty, type ScoringSettings } from '../src/shared/config.js';
 import { drawWinner } from '../src/shared/draw.js';
-import { scoreAnswer } from '../src/shared/scoring.js';
+import { round1, scoreAnswer, speedRanks } from '../src/shared/scoring.js';
+import type { Answer } from '../src/shared/types.js';
 
 const PLAYERS = Number(process.argv[2] ?? 50);
 const GAMES = Number(process.argv[3] ?? 4000);
@@ -38,15 +40,18 @@ function playGame(s: ScoringSettings, questions: Difficulty[], spread: number): 
   const hashrate = new Array<number>(PLAYERS).fill(s.startHashrateThs);
   const streak = new Array<number>(PLAYERS).fill(0);
   for (const difficulty of questions) {
+    const answers: Record<string, Answer> = {};
     for (let i = 0; i < PLAYERS; i++) {
       const t = 0.3 * Math.exp(-0.25 * level[i]) * pace[i] * Math.exp(0.35 * randn());
-      if (Math.random() < 0.03 || t >= 1) {
-        streak[i] = 0;
-        continue;
-      }
+      if (Math.random() < 0.03 || t >= 1) continue;
       const right = Math.random() < 0.25 + 0.75 * sigmoid(1.7 * (level[i] - HARDNESS[difficulty]));
-      const r = scoreAnswer({ difficulty, correctIndex: 0 }, { option: right ? 0 : 1, at: t * DURATION }, { openedAt: 0, durationMs: DURATION }, streak[i], s);
-      hashrate[i] += r.gain;
+      answers[i] = { option: right ? 0 : 1, at: t * DURATION };
+    }
+    // Same steps as Game.closeQuestion: rank the correct answers, then score everyone.
+    const ranks = speedRanks(answers, 0);
+    for (let i = 0; i < PLAYERS; i++) {
+      const r = scoreAnswer({ difficulty, correctIndex: 0 }, answers[i], { openedAt: 0 }, streak[i], s, ranks.get(String(i)));
+      hashrate[i] = round1(hashrate[i] + r.gain);
       streak[i] = r.streak;
     }
   }
@@ -97,9 +102,11 @@ const preset = (id: string) => PRESETS.find((p) => p.id === id)!.scoring;
 const eq = preset('equilibre');
 const rows: Row[] = [
   ...PRESETS.map((p) => ({ name: `**${p.name}**`, scoring: p.scoring })),
+  { name: 'Équilibré, rapidité top 10 (+10 % à +1 %)', scoring: { ...eq, speedBonusRanks: preset('competitif').speedBonusRanks } },
+  { name: 'Équilibré, sans bonus de rapidité', scoring: { ...eq, speedBonusRanks: [] } },
+  { name: 'Ancien bonus : top 3 à +50 / +30 / +10 %', scoring: { ...eq, speedBonusRanks: [0.5, 0.3, 0.1] } },
+  { name: 'Sans aucun bonus', scoring: { ...eq, speedBonusRanks: [], streakBonusStep: 0, streakBonusMax: 0 } },
   { name: 'Équilibré, base 100 (100/200/300)', scoring: { ...eq, baseGainThs: { easy: 100, intermediate: 200, hard: 300, expert: 500 } } },
-  { name: 'Ancien réglage (100/150/200)', scoring: { ...eq, baseGainThs: { easy: 100, intermediate: 150, hard: 200, expert: 300 } } },
-  { name: 'Sans aucun bonus', scoring: { ...eq, speedBonusMax: 0, streakBonusStep: 0, streakBonusMax: 0 } },
   { name: 'Écart x10 (10/30/100)', scoring: { ...eq, baseGainThs: { easy: 10, intermediate: 30, hard: 100, expert: 150 } } },
   { name: 'Équilibré, 6/6/6 + 3 expert', scoring: eq, questions: mix(6, 6, 6, 3) },
   { name: 'Équilibré, public homogène', scoring: eq, spread: 0.5 },

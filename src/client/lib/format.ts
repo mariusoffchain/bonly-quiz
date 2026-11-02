@@ -1,5 +1,9 @@
-/** "1 250 TH" (terahashes) */
-export const ths = (n: number | undefined, unit = true) => `${Math.round(n ?? 0).toLocaleString('fr-FR').replace(/[  ]/g, ' ')}${unit ? ' TH' : ''}`;
+/** "1 250 TH", "10,5 TH": gains are kept to a tenth of TH. */
+export const ths = (n: number | undefined, unit = true) =>
+  `${(n ?? 0).toLocaleString('fr-FR', { maximumFractionDigits: 1 }).replace(/[\u202f\u00a0]/g, ' ')}${unit ? ' TH' : ''}`;
+
+/** "+10 %, +5 %, +2 %" */
+export const percents = (fractions: number[]) => fractions.map((f) => `+${pct(f, 0)}`).join(', ');
 
 /** "12,4 %" */
 export const pct = (share: number, digits = 1) => `${(share * 100).toFixed(digits).replace('.', ',')} %`;

@@ -69,7 +69,7 @@ function Lobby({ view }: { view: BoardView }) {
 
 function Question({ view, serverNow }: { view: BoardView; serverNow: () => number }) {
   const q = view.question!;
-  const n = view.players.filter((p) => p.connected).length;
+  const n = view.players.length;
   return (
     <main className="question">
       <div className="q-meta">

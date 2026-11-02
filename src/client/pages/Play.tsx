@@ -187,7 +187,8 @@ function QuestionPad({
       </div>
       {view.myAnswer ? (
         <p className="muted">
-          Réponse {LETTERS[view.myAnswer.option]} envoyée en {seconds(view.myAnswer.ms)}.
+          Réponse {LETTERS[view.myAnswer.option]} enregistrée en {seconds(view.myAnswer.ms)}. Le résultat s’affiche quand tout le monde a répondu ou à la
+          fin du chrono.
         </p>
       ) : timeUp && chosen === undefined ? (
         <p className="muted">Temps écoulé.</p>
@@ -212,16 +213,16 @@ function Reveal({ view }: { view: PlayerView }) {
             <tbody>
               <tr>
                 <td>Bonne réponse</td>
-                <td>{r.base}</td>
+                <td>{ths(r.base, false)}</td>
               </tr>
               <tr>
-                <td>Rapidité, {seconds(r.ms ?? 0)}</td>
-                <td>+{r.speedBonus}</td>
+                <td>{r.speedRank ? `Rapidité : ${placeLabel(r.speedRank)} bonne réponse` : `Rapidité : ${seconds(r.ms ?? 0)}, hors des ${view.config.speedBonusRanks.length} premiers`}</td>
+                <td>+{ths(r.speedBonus, false)}</td>
               </tr>
               {r.streakBonus > 0 ? (
                 <tr>
                   <td>Série de {r.streak}</td>
-                  <td>+{r.streakBonus}</td>
+                  <td>+{ths(r.streakBonus, false)}</td>
                 </tr>
               ) : null}
             </tbody>

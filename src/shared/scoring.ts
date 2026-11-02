@@ -1,33 +1,52 @@
 import type { SessionConfig } from './config.js';
 import type { Answer, Question, QuestionResult } from './types.js';
 
+/** Gains are kept to a tenth of TH: +10 % of a 10 TH question is 1 TH, +5 % is 0,5 TH. */
+export const round1 = (x: number) => Math.round(x * 10) / 10;
+
 /**
  * Gain of one player on one question.
  * - correct answer: base gain of the question's difficulty;
- * - speed: up to `speedBonusMax` × base for an instant answer, 0 at the buzzer;
+ * - speed: the 1st, 2nd, 3rd... correct answers received by the server get
+ *   `speedBonusRanks[0]`, `[1]`, `[2]`... × base; the others nothing;
  * - streak: `streakBonusStep` × base per consecutive correct answer after the first, capped.
  * A wrong or missing answer earns nothing and resets the streak. No penalty.
+ *
+ * `speedRank` is the 0-based rank of this answer among the question's correct answers.
  */
 export function scoreAnswer(
   q: Pick<Question, 'difficulty' | 'correctIndex'>,
   answer: Answer | undefined,
-  timing: { openedAt: number; durationMs: number },
+  timing: { openedAt: number },
   streakBefore: number,
-  config: Pick<SessionConfig, 'baseGainThs' | 'speedBonusMax' | 'streakBonusStep' | 'streakBonusMax'>,
+  config: Pick<SessionConfig, 'baseGainThs' | 'speedBonusRanks' | 'streakBonusStep' | 'streakBonusMax'>,
+  speedRank = Infinity,
 ): QuestionResult {
   const ms = answer ? Math.max(0, answer.at - timing.openedAt) : undefined;
   if (!answer || answer.option !== q.correctIndex) {
     return { option: answer?.option ?? null, correct: false, ms, base: 0, speedBonus: 0, streakBonus: 0, gain: 0, streak: 0 };
   }
   const base = config.baseGainThs[q.difficulty];
-  const remaining = Math.min(1, Math.max(0, 1 - (ms ?? 0) / timing.durationMs));
-  const speedBonus = Math.round(base * config.speedBonusMax * remaining);
+  const speedBonus = round1(base * (config.speedBonusRanks[speedRank] ?? 0));
   const streak = streakBefore + 1;
-  const streakBonus = Math.round(base * Math.min(config.streakBonusMax, config.streakBonusStep * (streak - 1)));
-  return { option: answer.option, correct: true, ms, base, speedBonus, streakBonus, gain: base + speedBonus + streakBonus, streak };
+  const streakBonus = round1(base * Math.min(config.streakBonusMax, config.streakBonusStep * (streak - 1)));
+  return {
+    option: answer.option,
+    correct: true,
+    ms,
+    base,
+    speedBonus,
+    speedRank: speedRank < config.speedBonusRanks.length ? speedRank + 1 : undefined,
+    streakBonus,
+    gain: round1(base + speedBonus + streakBonus),
+    streak,
+  };
 }
 
-/** Streak bonus percentage a player would get on their next correct answer. */
-export function nextStreakPercent(streak: number, config: Pick<SessionConfig, 'streakBonusStep' | 'streakBonusMax'>): number {
-  return Math.round(100 * Math.min(config.streakBonusMax, config.streakBonusStep * streak));
+/** 0-based rank of each correct answer by arrival time at the server. */
+export function speedRanks(answers: Record<string, Answer>, correctIndex: number): Map<string, number> {
+  const correct = Object.entries(answers)
+    .filter(([, a]) => a.option === correctIndex)
+    .sort(([, a], [, b]) => a.at - b.at);
+  return new Map(correct.map(([id], i) => [id, i]));
 }

@@ -58,7 +58,7 @@ export interface BlockPublic {
 
 export type PublicConfig = Pick<
   SessionConfig,
-  'baseGainThs' | 'speedBonusMax' | 'streakBonusStep' | 'streakBonusMax' | 'startHashrateThs' | 'podiumSize' | 'miningDurationMs'
+  'baseGainThs' | 'speedBonusRanks' | 'streakBonusStep' | 'streakBonusMax' | 'startHashrateThs' | 'podiumSize' | 'miningDurationMs'
 >;
 
 export interface BoardView {
@@ -166,7 +166,7 @@ function blocks(game: Game, now: number): BlockPublic[] {
       startedAt: b.startedAt,
       revealAt: b.revealAt,
       found,
-      candidates: b.weights.map((w) => ({ ...w, share: b.total > 0 ? w.hashrate / b.total : 0 })),
+      candidates: b.weights.map((w) => ({ ...w, share: b.total > 0 ? Math.round(w.hashrate * 10) / b.total : 0 })),
     };
     if (found) Object.assign(out, { winnerId: b.winnerId, hash: b.hash, total: b.total, roll: b.roll });
     return out;
@@ -190,7 +190,7 @@ export function boardView(game: Game, now: number, joinUrl: string): BoardView {
     blocks: blocks(game, now),
     config: {
       baseGainThs: c.baseGainThs,
-      speedBonusMax: c.speedBonusMax,
+      speedBonusRanks: c.speedBonusRanks,
       streakBonusStep: c.streakBonusStep,
       streakBonusMax: c.streakBonusMax,
       startHashrateThs: c.startHashrateThs,

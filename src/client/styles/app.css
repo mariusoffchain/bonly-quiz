@@ -55,7 +55,7 @@ h3 { font-size: 0.85rem; font-weight: 500; color: var(--muted); margin: 0 0 10px
 .link:hover { color: var(--ink); }
 .link.danger:hover { color: var(--crimson); }
 .link:disabled { opacity: 0.4; cursor: default; }
-.input, .settings input[type='number'], .settings select { width: 100%; background: #fff; border: 1px solid #b9b5b2; border-radius: 0; padding: 12px 14px; outline: none; color: var(--ink); }
+.input, .settings input[type='number'], .settings input[type='text'], .settings select { width: 100%; background: #fff; border: 1px solid #b9b5b2; border-radius: 0; padding: 12px 14px; outline: none; color: var(--ink); }
 .input:focus, .settings input:focus, .settings select:focus { border-color: var(--orange); }
 .conn { position: fixed; top: 0; left: 0; right: 0; z-index: 9; background: var(--crimson); color: #fff; text-align: center; font-size: 0.85rem; padding: 4px; }
 
@@ -119,8 +119,9 @@ h3 { font-size: 0.85rem; font-weight: 500; color: var(--muted); margin: 0 0 10px
 .answer { display: flex; gap: 14px; align-items: center; text-align: left; padding: 10px 14px 10px 10px; background: transparent; border: 1px solid var(--rule); border-radius: 0; color: var(--ink); cursor: pointer; line-height: 1.35; min-height: 60px; }
 .answer .letter, .letter { font-family: var(--pixel); color: var(--orange-ink); flex: none; }
 .answer .letter { display: grid; place-items: center; width: 40px; height: 40px; background: var(--tile); font-size: 1.1rem; }
-.answer.chosen { border-color: var(--orange); border-width: 2px; }
-.answer.chosen .letter { background: var(--orange); color: #fff; }
+/* the player's own choice, before the reveal: ink, never orange, which means "right answer" */
+.answer.chosen { border-color: var(--ink); border-width: 2px; }
+.answer.chosen .letter { background: var(--ink); color: #fff; }
 .answer.faded { opacity: 0.35; }
 .answer:disabled { cursor: default; }
 .result { display: flex; flex-direction: column; gap: 10px; }
@@ -209,7 +210,7 @@ h3 { font-size: 0.85rem; font-weight: 500; color: var(--muted); margin: 0 0 10px
 .settings[open] { display: flex; flex-direction: column; gap: 14px; }
 .settings label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--body); }
 .settings label.check { flex-direction: row; align-items: center; gap: 10px; color: var(--ink); }
-.settings input[type='number'], .settings select { padding: 8px 10px; }
+.settings input[type='number'], .settings input[type='text'], .settings select { padding: 8px 10px; }
 .settings input[type='checkbox'], .settings input[type='radio'] { accent-color: var(--orange); }
 .settings .presets { border: 1px solid var(--rule-soft); padding: 10px 14px 12px; margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .settings .presets legend { padding: 0 6px; font-size: 0.85rem; color: var(--body); }

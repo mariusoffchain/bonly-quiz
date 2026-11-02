@@ -129,7 +129,7 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
               <>
                 <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={sock.serverNow} />
                 <p className="muted">
-                  {q.answerCount} / {connected} réponses
+                  {q.answerCount} / {view.players.length} réponses{connected < view.players.length ? ` (${view.players.length - connected} hors ligne)` : ''}
                 </p>
               </>
             ) : null}
@@ -247,7 +247,7 @@ function Blocks({ view }: { view: ConsoleView }) {
                     </td>
                     <td className="num">{share !== undefined ? pct(share) : ''}</td>
                     <td className="num muted small">
-                      {b.roll?.toLocaleString('fr-FR')} / {b.total?.toLocaleString('fr-FR')}
+                      tirage {ths((b.roll ?? 0) / 10, false)} sur {ths((b.total ?? 0) / 10)}
                     </td>
                   </>
                 ) : (
@@ -350,8 +350,8 @@ function Settings({ view, send }: { view: ConsoleView; send: Send }) {
           <input type="number" min={0} value={draft.startHashrateThs} onChange={(e) => set({ startHashrateThs: num(e.target.value) })} />
         </label>
         <label>
-          Bonus rapidité max (%)
-          <input type="number" min={0} value={Math.round(draft.speedBonusMax * 100)} onChange={(e) => set({ speedBonusMax: num(e.target.value) / 100 })} />
+          Bonus rapidité par rang (%)
+          <RanksInput value={draft.speedBonusRanks} onChange={(speedBonusRanks) => set({ speedBonusRanks })} />
         </label>
         <label>
           Bonus série par réponse (%)
@@ -383,5 +383,26 @@ function Settings({ view, send }: { view: ConsoleView; send: Send }) {
         </button>
       </div>
     </details>
+  );
+}
+
+/** "10, 5, 2": bonus of the 1st, 2nd, 3rd correct answers, in % of the base gain. */
+function RanksInput({ value, onChange }: { value: number[]; onChange: (v: number[]) => void }) {
+  const show = (v: number[]) => v.map((f) => String(Math.round(f * 1000) / 10).replace('.', ',')).join(', ');
+  const [text, setText] = useState(show(value));
+  useEffect(() => setText(show(value)), [value.join()]);
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      placeholder="10, 5, 2"
+      value={text}
+      onChange={(e) => {
+        setText(e.target.value);
+        const parts = e.target.value.split(/[;\s]+|,\s+/).map((x) => x.trim().replace(',', '.')).filter(Boolean);
+        const nums = parts.map(Number);
+        if (nums.every((n) => Number.isFinite(n) && n >= 0)) onChange(nums.map((n) => n / 100));
+      }}
+    />
   );
 }

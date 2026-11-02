@@ -1,6 +1,6 @@
 import { DEFAULT_CONFIG, placeLabel, validateConfig, type SessionConfig } from './config.js';
 import { cryptoRng, drawWinner, fakeBlockHash, type Rng } from './draw.js';
-import { scoreAnswer } from './scoring.js';
+import { round1, scoreAnswer, speedRanks } from './scoring.js';
 import type { BlockDraw, ContentPack, GameEvent, Phase, Player, QuestionRun, SessionState } from './types.js';
 
 export class GameError extends Error {
@@ -45,6 +45,7 @@ export class Game {
 
   constructor(state: SessionState, deps: GameDeps = {}) {
     state.config = { ...DEFAULT_CONFIG, ...state.config, baseGainThs: { ...DEFAULT_CONFIG.baseGainThs, ...state.config.baseGainThs } };
+    delete (state.config as { speedBonusMax?: number }).speedBonusMax; // replaced by speedBonusRanks
     this.state = state;
     this.rng = deps.rng ?? cryptoRng;
     this.newId = deps.newId ?? (() => hex(4));
@@ -233,12 +234,15 @@ export class Game {
     return { ok: true };
   }
 
-  /** True when every connected player has answered the open question. */
+  /**
+   * True when every registered player has answered the open question. Disconnected
+   * players count too: a phone whose screen locks must not reveal the answer early.
+   */
   allAnswered(): boolean {
     const run = this.run;
     if (this.state.phase !== 'question' || !run) return false;
-    const connected = this.activePlayers().filter((p) => p.connected);
-    return connected.length > 0 && connected.every((p) => run.answers[p.id]);
+    const players = this.activePlayers();
+    return players.length > 0 && players.every((p) => run.answers[p.id]);
   }
 
   /** Close the open question and credit the hashrate. */
@@ -248,10 +252,11 @@ export class Game {
     const q = this.state.questions[run.index];
     run.closedAt = now;
     run.results = {};
+    const ranks = speedRanks(run.answers, q.correctIndex);
     for (const p of this.activePlayers()) {
-      const r = scoreAnswer(q, run.answers[p.id], run, p.streak, this.state.config);
+      const r = scoreAnswer(q, run.answers[p.id], run, p.streak, this.state.config, ranks.get(p.id));
       run.results[p.id] = r;
-      p.hashrate += r.gain;
+      p.hashrate = round1(p.hashrate + r.gain);
       p.streak = r.streak;
       if (r.correct) p.correctCount++;
       p.bestStreak = Math.max(p.bestStreak, p.streak);

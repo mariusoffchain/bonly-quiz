@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG } from '../src/shared/config';
 import { drawWinner } from '../src/shared/draw';
 import { Game } from '../src/shared/game';
-import { scoreAnswer } from '../src/shared/scoring';
+import { scoreAnswer, speedRanks } from '../src/shared/scoring';
 import type { ContentPack, Question } from '../src/shared/types';
 import { boardView, playerView } from '../src/shared/views';
 
@@ -25,13 +25,19 @@ const T0 = 1_000_000;
 describe('scoreAnswer', () => {
   const timing = { openedAt: 0, durationMs: 20_000 };
 
-  it('pays the base gain plus a speed bonus that falls linearly to 0', () => {
-    const instant = scoreAnswer(q('a'), { option: 0, at: 0 }, timing, 0, DEFAULT_CONFIG);
-    expect(instant).toMatchObject({ correct: true, base: 10, speedBonus: 5, streakBonus: 0, gain: 15, streak: 1 });
-    const half = scoreAnswer(q('a'), { option: 0, at: 10_000 }, timing, 0, DEFAULT_CONFIG);
-    expect(half.speedBonus).toBe(3); // 2,5 rounded
-    const buzzer = scoreAnswer(q('a'), { option: 0, at: 20_000 }, timing, 0, DEFAULT_CONFIG);
-    expect(buzzer.speedBonus).toBe(0);
+  it('pays the base gain plus a speed bonus for the first 3 correct answers: +10 / +5 / +2 %', () => {
+    const at = { option: 0, at: 4_000 };
+    expect(scoreAnswer(q('a'), at, timing, 0, DEFAULT_CONFIG, 0)).toMatchObject({ correct: true, base: 10, speedBonus: 1, speedRank: 1, streakBonus: 0, gain: 11, streak: 1 });
+    expect(scoreAnswer(q('a'), at, timing, 0, DEFAULT_CONFIG, 1)).toMatchObject({ speedBonus: 0.5, speedRank: 2, gain: 10.5 });
+    expect(scoreAnswer(q('a', 'hard'), at, timing, 0, DEFAULT_CONFIG, 2)).toMatchObject({ speedBonus: 0.6, speedRank: 3, gain: 30.6 });
+    const fourth = scoreAnswer(q('a'), at, timing, 0, DEFAULT_CONFIG, 3);
+    expect(fourth).toMatchObject({ speedBonus: 0, gain: 10 });
+    expect(fourth.speedRank).toBeUndefined();
+  });
+
+  it('ranks correct answers by arrival time, wrong answers excluded', () => {
+    const ranks = speedRanks({ a: { option: 1, at: 50 }, b: { option: 0, at: 300 }, c: { option: 0, at: 100 }, d: { option: 0, at: 200 } }, 0);
+    expect([...ranks]).toEqual([['c', 0], ['d', 1], ['b', 2]]);
   });
 
   it('scales with difficulty', () => {
@@ -60,10 +66,12 @@ describe('drawWinner', () => {
       { id: 'b', hashrate: 300 },
       { id: 'zero', hashrate: 0 },
     ];
+    // The draw counts tenths of TH: a = 1000 tickets, b = 3000.
     expect(drawWinner(c, () => 0).winnerId).toBe('a');
-    expect(drawWinner(c, () => 99).winnerId).toBe('a');
-    expect(drawWinner(c, () => 100).winnerId).toBe('b');
-    expect(drawWinner(c, () => 399)).toEqual({ winnerId: 'b', total: 400, roll: 399 });
+    expect(drawWinner(c, () => 999).winnerId).toBe('a');
+    expect(drawWinner(c, () => 1000).winnerId).toBe('b');
+    expect(drawWinner(c, () => 3999)).toEqual({ winnerId: 'b', total: 4000, roll: 3999 });
+    expect(drawWinner([{ id: 'x', hashrate: 0.5 }], () => 4)).toEqual({ winnerId: 'x', total: 5, roll: 4 });
     expect(drawWinner([{ id: 'x', hashrate: 0 }]).winnerId).toBeNull();
   });
 
@@ -89,22 +97,22 @@ describe('Game', () => {
     expect(g.phase).toBe('question');
     expect(() => g.advance(step.key, T0)).toThrow(/déjà changé/);
 
-    // Q1: Alice instant and right, Bob right at mid-time.
+    // Q1: Alice first right answer (+10 %), Bob second (+5 %).
     expect(g.answer(alice.id, 0, 0, T0)).toEqual({ ok: true });
     expect(g.answer(alice.id, 0, 1, T0 + 10)).toEqual({ ok: false, reason: 'already-answered' });
     g.answer(bob.id, 0, 0, T0 + 10_000);
     g.closeQuestion(T0 + 12_000);
-    expect(alice.hashrate).toBe(15);
-    expect(bob.hashrate).toBe(13);
+    expect(alice.hashrate).toBe(11);
+    expect(bob.hashrate).toBe(10.5);
 
-    // Q2: Alice right again (streak 2), Bob wrong.
+    // Q2: Alice right again (streak 2, and the only right answer), Bob wrong.
     g.advance(g.nextStep(T0)!.key, T0 + 20_000);
     g.answer(alice.id, 1, 0, T0 + 39_999);
     g.answer(bob.id, 1, 3, T0 + 21_000);
     expect(g.answer(bob.id, 1, 0, T0 + 40_001).ok).toBe(false);
     g.closeQuestion(T0 + 40_000);
-    expect(g.state.runs[1].results![alice.id]).toMatchObject({ streak: 2, streakBonus: 1, speedBonus: 0, gain: 11 });
-    expect(alice.hashrate).toBe(26);
+    expect(g.state.runs[1].results![alice.id]).toMatchObject({ streak: 2, streakBonus: 1, speedBonus: 1, gain: 12 });
+    expect(alice.hashrate).toBe(23);
     expect(bob.streak).toBe(0);
 
     // Q3 too late for everyone.
@@ -123,7 +131,7 @@ describe('Game', () => {
     expect(step).toMatchObject({ action: 'mine', label: 'Tirer la 1re place' });
     g.advance(step.key, now);
     const block = g.state.blocks[0];
-    expect(block).toMatchObject({ n: 1, winnerId: alice.id, total: 39, roll: 0 });
+    expect(block).toMatchObject({ n: 1, winnerId: alice.id, total: 335, roll: 0 });
     expect(block.hash).toMatch(/^0{10}[0-9a-f]{54}$/);
     // Nothing else while mining; winner hidden from views until revealAt.
     expect(g.nextStep(now + 1)).toBeNull();
@@ -184,7 +192,7 @@ describe('Game', () => {
     g.openQuestion(T0 + 2);
     g.answer(p.id, 1, 0, T0 + 3);
     g.cancelQuestion(T0 + 4);
-    expect(p).toMatchObject({ hashrate: 15, streak: 1 });
+    expect(p).toMatchObject({ hashrate: 11, streak: 1 });
     expect(g.phase).toBe('reveal');
   });
 
@@ -196,7 +204,10 @@ describe('Game', () => {
     g.openQuestion(T0);
     g.answer(a.id, 0, 0, T0);
     expect(g.allAnswered()).toBe(false);
+    // A locked phone (disconnected) still counts: no early reveal.
     g.setConnected(b.id, false);
+    expect(g.allAnswered()).toBe(false);
+    g.answer(b.id, 0, 1, T0 + 1);
     expect(g.allAnswered()).toBe(true);
   });
 

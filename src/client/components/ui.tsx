@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { BlockPublic, PlayerPublic, PublicConfig } from '../../shared/views';
-import { pct, placeLabel, playerColor, ths } from '../lib/format';
+import { pct, percents, placeLabel, playerColor, ths } from '../lib/format';
 import { remaining, useTicker } from '../lib/ws';
 
 import mountainsUrl from '../assets/mountains.webp';
@@ -109,7 +109,11 @@ export function Rules({ config }: { config: PublicConfig }) {
         {g.easy}, {g.intermediate} ou {g.hard} TH selon la difficulté, {g.expert} pour une question expert
       </dd>
       <dt>Rapidité</dt>
-      <dd>jusqu’à +{Math.round(config.speedBonusMax * 100)} %</dd>
+      <dd>
+        {config.speedBonusRanks.length > 0
+          ? `${percents(config.speedBonusRanks)} pour ${config.speedBonusRanks.length > 1 ? `les ${config.speedBonusRanks.length} premières bonnes réponses` : 'la 1re bonne réponse'}`
+          : 'pas de bonus'}
+      </dd>
       <dt>Série</dt>
       <dd>
         +{Math.round(config.streakBonusStep * 100)} % par bonne réponse d’affilée, max +{Math.round(config.streakBonusMax * 100)} %

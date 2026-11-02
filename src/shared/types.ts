@@ -67,6 +67,8 @@ export interface QuestionResult {
   ms?: number;
   base: number;
   speedBonus: number;
+  /** 1 = first correct answer received, when it earned a speed bonus. */
+  speedRank?: number;
   streakBonus: number;
   gain: number;
   /** Streak after this question. */

@@ -10,13 +10,16 @@ hashrate. Le plus gros mineur est favori, mais rien n'est garanti.
 | | Par défaut |
 |---|---|
 | Bonne réponse | 10 TH (facile), 20 (moyenne), 30 (difficile), 50 (expert) |
-| Rapidité | jusqu'à +50 % du gain de base pour une réponse instantanée, diminue linéairement jusqu'à 0 à la fin du chrono |
+| Rapidité | les 3 premières bonnes réponses reçues : +10 %, +5 %, +2 % du gain de base (facile : +1, +0,5, +0,2 TH) ; rien pour les suivantes |
 | Série | +10 % du gain de base par bonne réponse d'affilée après la 1re (2e d'affilée +10 %, 3e +20 %…), plafonné à +50 % |
 | Mauvaise réponse / pas de réponse | 0 TH, série remise à zéro, aucune pénalité |
 | Podium | 3 places tirées l'une après l'autre (Web Crypto), probabilité = hashrate du joueur / hashrate des joueurs pas encore placés |
 
 Une seule réponse par question, verrouillée dès l'envoi. Le chrono (20 s) est tenu par le
-serveur. La réponse s'affiche dès que tous les joueurs connectés ont répondu.
+serveur. La bonne réponse ne s'affiche (écran et téléphones) qu'à la fin du chrono, ou dès
+que tous les inscrits ont répondu, y compris ceux dont le téléphone s'est mis en veille.
+L'animateur peut aussi la révéler plus tôt depuis la console. Les gains sont comptés au
+dixième de TH.
 
 La console tire d'abord la 1re place, puis la 2e, puis la 3e. Un joueur déjà placé ne
 participe plus aux tirages suivants. Chaque gagnant est fixé par le serveur au clic, puis
