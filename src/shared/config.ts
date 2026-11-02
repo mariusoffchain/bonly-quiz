@@ -17,7 +17,7 @@ export interface SessionConfig {
   streakBonusMax: number;
   /** Hashrate given to every player when joining. */
   startHashrateThs: number;
-  /** Reveal the answer as soon as every connected player has answered. */
+  /** Reveal the answer as soon as every registered player has answered (connected or not). */
   closeWhenAllAnswered: boolean;
   /** Places drawn at the end (1st, 2nd, ...). A player can win only one place. */
   podiumSize: number;
