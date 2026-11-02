@@ -13,17 +13,21 @@ hashrate. Le plus gros mineur est favori, mais rien n'est garanti.
 | Rapidité | les 3 premières bonnes réponses reçues : +10 %, +5 %, +2 % du gain de base (facile : +1, +0,5, +0,2 TH) ; rien pour les suivantes |
 | Série | +10 % du gain de base par bonne réponse d'affilée après la 1re (2e d'affilée +10 %, 3e +20 %…), plafonné à +50 % |
 | Mauvaise réponse / pas de réponse | 0 TH, série remise à zéro, aucune pénalité |
-| Podium | 3 places tirées l'une après l'autre (Web Crypto), probabilité = hashrate du joueur / hashrate des joueurs pas encore placés |
+| Tirage | 1 gagnant tiré au sort (Web Crypto), probabilité = hashrate du joueur / hashrate total ; le classement final par TH sert aux autres lots |
 
-Une seule réponse par question, verrouillée dès l'envoi. Le chrono (20 s) est tenu par le
+Une seule réponse par question, verrouillée dès l'envoi. Le chrono (21 s) est tenu par le
 serveur. La bonne réponse ne s'affiche (écran et téléphones) qu'à la fin du chrono, ou dès
 que tous les inscrits ont répondu, y compris ceux dont le téléphone s'est mis en veille.
 L'animateur peut aussi la révéler plus tôt depuis la console. Les gains sont comptés au
 dixième de TH.
 
-La console tire d'abord la 1re place, puis la 2e, puis la 3e. Un joueur déjà placé ne
-participe plus aux tirages suivants. Chaque gagnant est fixé par le serveur au clic, puis
-révélé après 8 s d'animation. Les lots se distribuent ensuite selon les places.
+Le gagnant est fixé par le serveur au clic, puis révélé après 8 s d'animation. Le réglage
+« Gagnants tirés au sort » permet d'en tirer plusieurs (1re, 2e, 3e place…) : un joueur
+déjà tiré ne participe plus aux tirages suivants.
+
+Chaque joueur a un code de reprise, affiché sur son téléphone et dans la console. Il
+permet de retrouver sa place (et ses TH) sur un autre téléphone, ou si l'adresse du quiz a
+changé : « Déjà inscrit ? J'ai un code de reprise » sur la page d'inscription.
 
 Tous ces réglages se changent dans la console avant la 1re question, à la main ou avec
 l'un des trois profils (Équilibré, Ouvert, Compétitif). `docs/reglages.md` compare leurs
@@ -53,6 +57,12 @@ L'adresse `/play` ne change pas d'une partie à l'autre : un QR code imprimé re
 
 Développement avec rechargement : `npm run dev` (serveur 8787, client Vite 5173 ; les
 téléphones ouvrent le port 5173).
+
+## En cas de problème
+
+`docs/secours.md` donne la marche à suivre et les commandes exactes pour relancer le quiz,
+garder une sauvegarde pendant la partie et tout reprendre sur un autre ordinateur
+(`npm run restore` réimporte un export JSON de la console).
 
 ## Jouer en ligne (4G, sans Wi-Fi commun)
 
@@ -98,8 +108,7 @@ Le trafic est faible : environ 40 Ko par téléphone pour une partie complète (
    tout le monde a répondu. L'écran montre la bonne réponse, les meilleurs gains et le
    classement ; chaque téléphone montre le gain détaillé, le rang et les chances de bloc.
 4. Console : « Question 2 / 21 », et ainsi de suite.
-5. Après la 21e : « Classement final », puis « Tirer la 1re place », « Tirer la 2e
-   place », « Tirer la 3e place ».
+5. Après la 21e : « Classement final », puis « Tirer le gagnant ».
 
 En cas d'erreur sur une question : « Annuler la question » la ferme sans attribuer de
 points et sans casser les séries. « Nouvelle partie » repart de zéro (les joueurs se

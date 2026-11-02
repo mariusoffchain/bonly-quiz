@@ -13,6 +13,7 @@ export interface GameDeps {
   rng?: Rng;
   newId?: () => string;
   newToken?: () => string;
+  newCode?: () => string;
 }
 
 export type StepAction = 'open' | 'close' | 'finish' | 'mine';
@@ -31,6 +32,14 @@ const hex = (bytes: number) => {
 
 export const PLAYER_COLORS = 12;
 
+/** 5 characters without look-alikes (no 0/O, 1/I/L). */
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function randomCode(): string {
+  const b = new Uint8Array(5);
+  globalThis.crypto.getRandomValues(b);
+  return Array.from(b, (x) => CODE_ALPHABET[x % CODE_ALPHABET.length]).join('');
+}
+
 /**
  * Authoritative game engine. Time (`now`) and randomness (`rng`) are injected so
  * every rule is unit-testable. One game = N questions in a row, then a podium
@@ -41,6 +50,7 @@ export class Game {
   private rng: Rng;
   private newId: () => string;
   private newToken: () => string;
+  private newCode: () => string;
   private listeners: ((ev: GameEvent) => void)[] = [];
 
   constructor(state: SessionState, deps: GameDeps = {}) {
@@ -50,6 +60,15 @@ export class Game {
     this.rng = deps.rng ?? cryptoRng;
     this.newId = deps.newId ?? (() => hex(4));
     this.newToken = deps.newToken ?? (() => hex(16));
+    this.newCode = deps.newCode ?? randomCode;
+    for (const p of Object.values(state.players)) p.code ??= this.uniqueCode(); // saves from before recovery codes
+  }
+
+  private uniqueCode(): string {
+    const used = new Set(Object.values(this.state.players).map((p) => p.code));
+    let code = this.newCode();
+    while (used.has(code)) code = this.newCode();
+    return code;
   }
 
   static create(code: string, now: number, pack: ContentPack, config: Partial<SessionConfig> = {}, deps: GameDeps = {}): Game {
@@ -138,6 +157,7 @@ export class Game {
       name,
       color: this.state.nextColor++ % PLAYER_COLORS,
       token: this.newToken(),
+      code: this.uniqueCode(),
       joinedAt: now,
       connected: true,
       hashrate: this.state.config.startHashrateThs,
@@ -175,6 +195,12 @@ export class Game {
     return Object.values(this.state.players).find((p) => p.token === token && !p.removed);
   }
 
+  /** Recovery code typed by a player: case, spaces and dashes don't matter. */
+  findByCode(raw: string): Player | undefined {
+    const code = String(raw).toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return code ? Object.values(this.state.players).find((p) => p.code === code && !p.removed) : undefined;
+  }
+
   // ---------------------------------------------------------------- progress
   nextStep(now: number): NextStep | null {
     const s = this.state;
@@ -191,7 +217,7 @@ export class Game {
       case 'final':
         if (this.miningBlock(now)) return null;
         if (s.blocks.length >= s.config.podiumSize || this.drawCandidates().length === 0) return null;
-        return { key, action: 'mine', label: `Tirer la ${placeLabel(s.blocks.length + 1)} place` };
+        return { key, action: 'mine', label: s.config.podiumSize === 1 ? 'Tirer le gagnant' : `Tirer la ${placeLabel(s.blocks.length + 1)} place` };
     }
   }
 

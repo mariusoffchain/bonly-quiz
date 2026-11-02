@@ -15,7 +15,8 @@
     "import:planb": "node scripts/import-planb.mjs",
     "simulate": "tsx scripts/simulate.ts",
     "loadtest": "tsx scripts/loadtest.ts",
-    "online": "node scripts/online.mjs"
+    "online": "node scripts/online.mjs",
+    "restore": "node scripts/restore.mjs"
   },
   "dependencies": {
     "qrcode": "^1.5.4",

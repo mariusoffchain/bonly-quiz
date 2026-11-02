@@ -97,7 +97,9 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
     view.phase === 'lobby'
       ? `${view.players.length} inscrit${view.players.length > 1 ? 's' : ''}`
       : view.phase === 'final'
-        ? `Fin du quiz, podium ${view.blocks.filter((b) => b.found).length} / ${view.config.podiumSize}`
+        ? view.config.podiumSize === 1
+          ? `Fin du quiz${view.blocks.some((b) => b.found) ? ', gagnant tiré' : ''}`
+          : `Fin du quiz, podium ${view.blocks.filter((b) => b.found).length} / ${view.config.podiumSize}`
         : `Question ${(q?.index ?? 0) + 1} / ${view.questionTotal}${view.phase === 'reveal' ? ', réponse affichée' : ''}`;
 
   return (
@@ -139,7 +141,7 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
               </button>
             ) : view.phase === 'final' ? (
               <button className="btn big" disabled>
-                {view.blocks.some((b) => !b.found) ? 'Tirage en cours…' : 'Podium complet'}
+                {view.blocks.some((b) => !b.found) ? 'Tirage en cours…' : 'Tirage terminé'}
               </button>
             ) : null}
             {view.phase === 'question' ? (
@@ -224,14 +226,16 @@ function Blocks({ view }: { view: ConsoleView }) {
     return (
       <section>
         <p className="muted">
-          Chaque clic tire une place, de la 1re à la {placeLabel(view.config.podiumSize)}. Chances = part du hashrate parmi les joueurs pas encore placés.
+          {view.config.podiumSize === 1
+            ? 'Un clic tire le gagnant. Chances = part du hashrate.'
+            : `Chaque clic tire une place, de la 1re à la ${placeLabel(view.config.podiumSize)}. Chances = part du hashrate parmi les joueurs pas encore placés.`}
         </p>
       </section>
     );
   }
   return (
     <section>
-      <h3>Podium</h3>
+      <h3>{view.config.podiumSize === 1 ? 'Tirage' : 'Podium'}</h3>
       <table className="standings">
         <tbody>
           {view.blocks.map((b) => {
@@ -283,6 +287,9 @@ function Players({ view, send }: { view: ConsoleView; send: Send }) {
                 {view.phase === 'question' && answered.has(p.id) ? <span className="mark">a répondu</span> : null}
               </td>
               <td className="num muted">{p.streak >= 2 ? `série ${p.streak}` : ''}</td>
+              <td className="num muted small mono" title="Code de reprise">
+                {view.codes[p.id]}
+              </td>
               <td className="num">{ths(p.hashrate)}</td>
               <td>
                 <button className="link" title="Retirer" onClick={() => confirm(`Retirer ${p.name} ?`) && send({ type: 'remove-player', id: p.id })}>
@@ -362,7 +369,7 @@ function Settings({ view, send }: { view: ConsoleView; send: Send }) {
           <input type="number" min={0} value={Math.round(draft.streakBonusMax * 100)} onChange={(e) => set({ streakBonusMax: num(e.target.value) / 100 })} />
         </label>
         <label>
-          Places tirées au sort
+          Gagnants tirés au sort
           <input type="number" min={1} max={20} value={draft.podiumSize} onChange={(e) => set({ podiumSize: num(e.target.value) })} />
         </label>
         <label>

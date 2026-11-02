@@ -70,7 +70,17 @@ export function Play() {
     );
   }
 
-  if (!view.me) return <Join view={view} onJoin={(name) => send({ type: 'join', name })} conn={sock.conn} error={notice} />;
+  if (!view.me) {
+    return (
+      <Join
+        view={view}
+        onJoin={(name) => send({ type: 'join', name })}
+        onReclaim={(code) => send({ type: 'reclaim', code })}
+        conn={sock.conn}
+        error={notice}
+      />
+    );
+  }
 
   const me = view.me;
   return (
@@ -91,6 +101,7 @@ export function Play() {
         {view.phase === 'lobby' ? (
           <>
             <p className="big-line">Inscrit. La partie commence bientôt.</p>
+            <MyCode code={view.myCode} long />
             <Rules config={view.config} />
           </>
         ) : null}
@@ -113,15 +124,51 @@ export function Play() {
   );
 }
 
-function Join({ view, onJoin, conn, error }: { view: PlayerView; onJoin: (name: string) => void; conn: 'connecting' | 'open' | 'closed'; error: string | null }) {
+/** The recovery code: gets the seat back on another phone, or after the quiz address changed. */
+function MyCode({ code, long = false }: { code?: string; long?: boolean }) {
+  if (!code) return null;
+  return long ? (
+    <p className="my-code">
+      Votre code de reprise : <b className="mono">{code}</b>. Il sert à retrouver vos TH si vous changez de téléphone ou si l’adresse du quiz
+      change.
+    </p>
+  ) : (
+    <p className="muted small">
+      Code de reprise <b className="mono">{code}</b>
+    </p>
+  );
+}
+
+function Join({
+  view,
+  onJoin,
+  onReclaim,
+  conn,
+  error,
+}: {
+  view: PlayerView;
+  onJoin: (name: string) => void;
+  onReclaim: (code: string) => void;
+  conn: 'connecting' | 'open' | 'closed';
+  error: string | null;
+}) {
   const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [reclaim, setReclaim] = useState(false);
   const [sent, setSent] = useState(false);
   useEffect(() => {
     if (error) setSent(false);
   }, [error]);
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || sent) return;
+    if (sent) return;
+    if (reclaim) {
+      if (!code.trim()) return;
+      setSent(true);
+      onReclaim(code.trim());
+      return;
+    }
+    if (!name.trim()) return;
     setSent(true);
     onJoin(name.trim());
   };
@@ -133,14 +180,40 @@ function Join({ view, onJoin, conn, error }: { view: PlayerView; onJoin: (name: 
         <p>
           {view.questionTotal} questions sur Bitcoin. Les bonnes réponses rapportent du hashrate, et à la fin on mine un bloc.
         </p>
-        <form onSubmit={submit} className="join-form">
-          <label htmlFor="name">Nom (le vôtre ou celui de l’équipe)</label>
-          <input id="name" className="input" maxLength={24} value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" autoFocus />
-          <button className="btn primary" disabled={!name.trim() || sent || conn !== 'open'}>
-            Rejoindre
-          </button>
-          {error ? <p className="error">{error}</p> : null}
-        </form>
+        {reclaim ? (
+          <form onSubmit={submit} className="join-form">
+            <label htmlFor="code">Code de reprise</label>
+            <input
+              id="code"
+              className="input mono"
+              maxLength={12}
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              autoComplete="off"
+              autoCapitalize="characters"
+              autoFocus
+            />
+            <button className="btn primary" disabled={!code.trim() || sent || conn !== 'open'}>
+              Retrouver ma place
+            </button>
+            {error ? <p className="error">{error}</p> : null}
+            <button type="button" className="link" onClick={() => setReclaim(false)}>
+              Nouvelle inscription
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={submit} className="join-form">
+            <label htmlFor="name">Nom (le vôtre ou celui de l’équipe)</label>
+            <input id="name" className="input" maxLength={24} value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" autoFocus />
+            <button className="btn primary" disabled={!name.trim() || sent || conn !== 'open'}>
+              Rejoindre
+            </button>
+            {error ? <p className="error">{error}</p> : null}
+            <button type="button" className="link" onClick={() => setReclaim(true)}>
+              Déjà inscrit ? J’ai un code de reprise
+            </button>
+          </form>
+        )}
         {view.phase !== 'lobby' ? <p className="muted">La partie a commencé, vous partez de 0 TH.</p> : null}
         <Rules config={view.config} />
       </main>
@@ -263,6 +336,7 @@ function Standing({ view }: { view: PlayerView }) {
         </div>
       </div>
       <NetworkBar players={view.players} highlightId={me.id} />
+      <MyCode code={view.myCode} />
     </section>
   );
 }
@@ -271,16 +345,17 @@ function Final({ view, serverNow }: { view: PlayerView; serverNow: () => number 
   const me = view.me!;
   const last = view.blocks[view.blocks.length - 1];
   const won = view.blocks.find((b) => b.found && b.winnerId === me.id);
+  const single = view.config.podiumSize === 1;
   return (
     <>
       {last ? (
-        <Mining block={last} players={view.players} serverNow={serverNow} meId={me.id} myPlace={won?.n} compact />
+        <Mining block={last} players={view.players} serverNow={serverNow} meId={me.id} myPlace={won?.n} single={single} compact />
       ) : (
         <p className="big-line">
           Quiz terminé, {me.correctCount} bonne{me.correctCount > 1 ? 's' : ''} réponse{me.correctCount > 1 ? 's' : ''} sur {view.questionTotal}. Le tirage va commencer.
         </p>
       )}
-      {won && won !== last ? <p className="big-line">Vous avez la {placeLabel(won.n)} place.</p> : null}
+      {won && won !== last && !single ? <p className="big-line">Vous avez la {placeLabel(won.n)} place.</p> : null}
       <Standing view={view} />
     </>
   );

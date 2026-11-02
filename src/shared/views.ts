@@ -81,6 +81,8 @@ export interface PlayerView extends Omit<BoardView, 'kind'> {
   myAnswer?: { option: number; ms: number };
   /** My result on the current question, once closed. */
   myResult?: QuestionResult;
+  /** My recovery code, to get my seat back on another phone or address. */
+  myCode?: string;
 }
 
 export interface PackInfo {
@@ -98,6 +100,8 @@ export interface ConsoleView extends Omit<BoardView, 'kind'> {
   packs: PackInfo[];
   lanUrls: string[];
   answeredIds: string[];
+  /** Recovery code of each player, to read out to someone who lost theirs. */
+  codes: Record<string, string>;
 }
 
 export type AnyView = BoardView | PlayerView | ConsoleView;
@@ -211,6 +215,7 @@ export function playerView(game: Game, now: number, joinUrl: string, playerId?: 
     me,
     myAnswer: a && run ? { option: a.option, ms: a.at - run.openedAt } : undefined,
     myResult: me && run?.closedAt !== undefined ? run.results?.[me.id] : undefined,
+    myCode: me ? game.state.players[me.id]?.code : undefined,
   };
 }
 
@@ -226,6 +231,7 @@ export function consoleView(game: Game, now: number, joinUrl: string, extra: { p
     packs: extra.packs,
     lanUrls: extra.lanUrls,
     answeredIds: Object.keys(game.run?.answers ?? {}),
+    codes: Object.fromEntries(game.activePlayers().map((p) => [p.id, p.code ?? ''])),
   };
 }
 
@@ -237,6 +243,7 @@ export type ClientMessage =
   | { type: 'ping'; t: number }
   // player
   | { type: 'join'; name: string }
+  | { type: 'reclaim'; code: string }
   | { type: 'answer'; questionIndex: number; option: number }
   // console
   | { type: 'next'; key: string }

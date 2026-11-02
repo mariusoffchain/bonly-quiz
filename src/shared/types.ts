@@ -42,6 +42,11 @@ export interface Player {
   color: number;
   /** Secret kept by the phone to reconnect. Never sent to the board. */
   token: string;
+  /**
+   * Short code shown on the player's phone (and the console) to get the seat back on
+   * another phone or after the quiz address changed, which loses the stored token.
+   */
+  code?: string;
   joinedAt: number;
   connected: boolean;
   removed?: boolean;

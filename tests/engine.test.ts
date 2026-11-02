@@ -85,7 +85,7 @@ describe('drawWinner', () => {
 
 describe('Game', () => {
   it('plays a full game: questions, streaks, final ranking, podium draw', () => {
-    const g = Game.create('TEST', T0, pack(3), {}, deps(() => 0));
+    const g = Game.create('TEST', T0, pack(3), { podiumSize: 3 }, deps(() => 0));
     const alice = g.join('Alice', T0);
     const bob = g.join('  Bob  ', T0);
     expect(bob.name).toBe('Bob');
@@ -115,15 +115,15 @@ describe('Game', () => {
     expect(alice.hashrate).toBe(23);
     expect(bob.streak).toBe(0);
 
-    // Q3 too late for everyone.
+    // Q3 too late for everyone (21 s timer).
     g.advance(g.nextStep(T0)!.key, T0 + 50_000);
-    expect(g.answer(alice.id, 2, 0, T0 + 70_000)).toEqual({ ok: false, reason: 'too-late' });
-    g.closeQuestion(T0 + 70_000);
+    expect(g.answer(alice.id, 2, 0, T0 + 71_000)).toEqual({ ok: false, reason: 'too-late' });
+    g.closeQuestion(T0 + 71_000);
     expect(alice.streak).toBe(0);
 
-    step = g.nextStep(T0 + 70_000)!;
+    step = g.nextStep(T0 + 71_000)!;
     expect(step).toMatchObject({ action: 'finish' });
-    g.advance(step.key, T0 + 71_000);
+    g.advance(step.key, T0 + 72_000);
     expect(g.phase).toBe('final');
 
     const now = T0 + 80_000;
@@ -149,7 +149,7 @@ describe('Game', () => {
   });
 
   it('draws podiumSize places, each player at most once', () => {
-    const g = Game.create('TEST', T0, pack(1), { startHashrateThs: 100 }, deps());
+    const g = Game.create('TEST', T0, pack(1), { startHashrateThs: 100, podiumSize: 3 }, deps());
     const ids = ['A', 'B', 'C', 'D', 'E'].map((n) => g.join(n, T0).id);
     g.openQuestion(T0);
     g.closeQuestion(T0 + 1);
@@ -165,6 +165,33 @@ describe('Game', () => {
     expect(g.state.blocks[2].weights).toHaveLength(3);
     expect(g.nextStep(now)).toBeNull();
     expect(() => g.mineBlock(now)).toThrow(/complet/);
+  });
+
+  it('draws a single winner by default', () => {
+    const g = Game.create('TEST', T0, pack(1), { startHashrateThs: 100 }, deps());
+    g.join('A', T0);
+    g.join('B', T0);
+    g.openQuestion(T0);
+    g.closeQuestion(T0 + 1);
+    g.finish(T0 + 2);
+    const step = g.nextStep(T0 + 3)!;
+    expect(step.label).toBe('Tirer le gagnant');
+    g.advance(step.key, T0 + 3);
+    expect(g.nextStep(g.state.blocks[0].revealAt)).toBeNull();
+  });
+
+  it('gives every player a recovery code to get the seat back', () => {
+    const g = Game.create('TEST', T0, pack(1), {}, deps());
+    const a = g.join('A', T0);
+    const b = g.join('B', T0);
+    expect(a.code).toMatch(/^[A-HJKMNP-Z2-9]{5}$/);
+    expect(a.code).not.toBe(b.code);
+    expect(g.findByCode(` ${a.code!.toLowerCase().slice(0, 2)}-${a.code!.slice(2)} `)).toBe(a);
+    expect(g.findByCode('ZZZZZ0')).toBeUndefined();
+    expect(playerView(g, T0, 'u', a.id).myCode).toBe(a.code);
+    expect(JSON.stringify(boardView(g, T0, 'u'))).not.toContain(a.code);
+    g.removePlayer(a.id, T0);
+    expect(g.findByCode(a.code!)).toBeUndefined();
   });
 
   it('hides the answer from boards and phones until the question closes', () => {

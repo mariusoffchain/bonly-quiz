@@ -33,6 +33,8 @@ interface Conn {
   ws: WebSocket;
   role?: 'player' | 'board' | 'console';
   playerId?: string;
+  /** Recovery codes tried on this connection, to stop guessing. */
+  reclaimTries?: number;
 }
 
 export class App {
@@ -281,6 +283,19 @@ export class App {
         this.sendState(conn);
         // Coalesced: when a room scans the QR code at once, one broadcast covers many joins.
         return this.broadcastSoon();
+      }
+      if (msg.type === 'reclaim') {
+        if (conn.playerId) throw new GameError('already-joined', 'Déjà inscrit.');
+        conn.reclaimTries = (conn.reclaimTries ?? 0) + 1;
+        if (conn.reclaimTries > 10) throw new GameError('too-many', 'Trop d’essais. Demandez votre code à l’animateur.');
+        const p = g.findByCode(msg.code);
+        if (!p) throw new GameError('bad-code', 'Code inconnu.');
+        conn.playerId = p.id;
+        g.setConnected(p.id, true);
+        this.log(`player ${p.name} reclaimed with code`);
+        this.send(conn, { type: 'joined', playerId: p.id, token: p.token });
+        this.sendState(conn);
+        return this.broadcastSoon('screens');
       }
       if (msg.type === 'answer') {
         if (!conn.playerId) throw new GameError('not-joined', 'Inscrivez-vous d’abord.');

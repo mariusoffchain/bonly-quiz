@@ -169,7 +169,7 @@ function Final({ view, serverNow }: { view: BoardView; serverNow: () => number }
     <main className="split">
       <section>
         {last ? (
-          <Mining block={last} players={view.players} serverNow={serverNow} />
+          <Mining block={last} players={view.players} serverNow={serverNow} single={places === 1} />
         ) : (
           <div className="final-intro">
             <Label>Fin du quiz</Label>
@@ -194,7 +194,7 @@ function Final({ view, serverNow }: { view: BoardView; serverNow: () => number }
         )}
       </section>
       <aside>
-        {found.length > 0 ? (
+        {found.length > 0 && places > 1 ? (
           <>
             <Label>Podium</Label>
             <table className="standings podium">
@@ -217,7 +217,7 @@ function Final({ view, serverNow }: { view: BoardView; serverNow: () => number }
           </>
         ) : null}
         <Label>Classement final</Label>
-        <Standings players={view.players} limit={12} winners={found.map((b) => b.winnerId)} />
+        <Standings players={view.players} limit={12} winners={found.map((b) => b.winnerId)} single={places === 1} />
       </aside>
       <Mountains />
     </main>

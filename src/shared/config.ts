@@ -19,7 +19,7 @@ export interface SessionConfig {
   startHashrateThs: number;
   /** Reveal the answer as soon as every registered player has answered (connected or not). */
   closeWhenAllAnswered: boolean;
-  /** Places drawn at the end (1st, 2nd, ...). A player can win only one place. */
+  /** Winners drawn at the end (1 by default; more = 1st, 2nd... place). A player can win only once. */
   podiumSize: number;
   /** Length of the mining animation before the winner is revealed. */
   miningDurationMs: number;
@@ -68,10 +68,10 @@ export const PRESETS: Preset[] = [
 
 export const DEFAULT_CONFIG: SessionConfig = {
   questionCount: 21,
-  questionDurationMs: 20_000,
+  questionDurationMs: 21_000,
   ...PRESETS[0].scoring,
   closeWhenAllAnswered: true,
-  podiumSize: 3,
+  podiumSize: 1,
   miningDurationMs: 8_000,
 };
 

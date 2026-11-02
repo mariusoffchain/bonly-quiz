@@ -61,6 +61,7 @@ export function Standings({
   highlightId,
   showGain = false,
   winners = [],
+  single = false,
 }: {
   players: PlayerPublic[];
   limit?: number;
@@ -68,6 +69,8 @@ export function Standings({
   showGain?: boolean;
   /** Podium so far: winners[0] is 1st place. */
   winners?: (string | null | undefined)[];
+  /** One winner only: marked "gagnant" rather than "1re". */
+  single?: boolean;
 }) {
   const top = players.slice(0, limit);
   const me = highlightId ? players.find((p) => p.id === highlightId) : undefined;
@@ -82,7 +85,7 @@ export function Standings({
             <td className="who">
               <Swatch color={p.color} />
               <span className="nm">{p.name}</span>
-              {winners.includes(p.id) ? <span className="mark">{placeLabel(winners.indexOf(p.id) + 1)}</span> : null}
+              {winners.includes(p.id) ? <span className="mark">{single ? 'gagnant' : placeLabel(winners.indexOf(p.id) + 1)}</span> : null}
             </td>
             {showGain ? <td className={'gain' + (p.lastGain ? '' : ' none')}>{p.lastGain ? `+${ths(p.lastGain, false)}` : '–'}</td> : null}
             <td className="num">{ths(p.hashrate, false)}</td>
@@ -142,6 +145,7 @@ export function Mining({
   serverNow,
   meId,
   myPlace,
+  single = false,
   compact = false,
 }: {
   block: BlockPublic;
@@ -150,6 +154,8 @@ export function Mining({
   meId?: string;
   /** Place already won by this phone's player, if any. */
   myPlace?: number;
+  /** One winner only: no place numbers. */
+  single?: boolean;
   compact?: boolean;
 }) {
   useTicker(100);
@@ -172,7 +178,7 @@ export function Mining({
     return () => window.clearInterval(id);
   }, [mining, candidates, compact, rows]);
 
-  const title = `${placeLabel(block.n)} place · bloc ${block.n}`;
+  const title = single ? `Le gagnant · bloc ${block.n}` : `${placeLabel(block.n)} place · bloc ${block.n}`;
 
   if (mining) {
     const elapsed = Math.max(0, serverNow() - block.startedAt);

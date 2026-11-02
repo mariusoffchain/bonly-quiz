@@ -139,6 +139,22 @@ describe('server', () => {
     for (const c of [consoleC, board, phones[0], again]) c.close();
   });
 
+  it('gives a seat back with the recovery code, without a token', async () => {
+    const someone = Object.values(app.game.state.players)[0];
+    const phone = new Client();
+    await phone.open();
+    phone.send({ type: 'hello', role: 'player' });
+    await phone.wait((m) => m.type === 'hello-ok');
+    phone.send({ type: 'reclaim', code: 'XXXXX' });
+    expect(await phone.wait((m) => m.type === 'error')).toMatchObject({ code: 'bad-code' });
+    phone.send({ type: 'reclaim', code: someone.code!.toLowerCase() });
+    expect(await phone.wait((m) => m.type === 'joined')).toMatchObject({ playerId: someone.id, token: someone.token });
+    const v = await phone.waitView<PlayerView>((x) => !!x.me);
+    expect(v.me).toMatchObject({ id: someone.id, hashrate: someone.hashrate });
+    expect(v.myCode).toBe(someone.code);
+    phone.close();
+  });
+
   it('restores the session after a restart', async () => {
     const code = app.game.state.code;
     const players = Object.keys(app.game.state.players).length;
