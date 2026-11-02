@@ -45,7 +45,7 @@ export interface Player {
   joinedAt: number;
   connected: boolean;
   removed?: boolean;
-  /** Fictitious hashrate in TH/s, the weight of the final draw. */
+  /** Fictitious hashrate in TH, the weight of the final draw. */
   hashrate: number;
   /** Consecutive correct answers up to the last closed question. */
   streak: number;
@@ -95,7 +95,7 @@ export interface BlockDraw {
   winnerId: string | null;
   /** Decorative hash displayed for the found block. */
   hash: string;
-  /** Hashrate of every candidate at draw time (TH/s). */
+  /** Hashrate of every candidate at draw time (TH). */
   weights: { id: string; hashrate: number }[];
   total: number;
   /** Random integer in [0, total) that selected the winner. */

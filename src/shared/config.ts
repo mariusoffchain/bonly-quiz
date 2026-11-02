@@ -7,7 +7,7 @@ export interface SessionConfig {
   questionCount: number;
   /** Countdown per question, unless the question sets its own durationMs. */
   questionDurationMs: number;
-  /** TH/s earned for a correct answer, by difficulty. */
+  /** TH earned for a correct answer, by difficulty. */
   baseGainThs: Record<Difficulty, number>;
   /** Speed bonus for an instant answer, as a fraction of the base gain; decreases linearly to 0 at the buzzer. */
   speedBonusMax: number;
@@ -36,7 +36,7 @@ export interface Preset {
 
 /**
  * Scoring profiles, compared in docs/reglages.md (npm run simulate). Gains are
- * x3 from easy to hard and x5 for expert, on a base of 10 TH/s; the base (10 or
+ * x3 from easy to hard and x5 for expert, on a base of 10 TH; the base (10 or
  * 100) does not change anyone's chances, only the numbers shown.
  */
 export const PRESETS: Preset[] = [
@@ -49,7 +49,7 @@ export const PRESETS: Preset[] = [
   {
     id: 'ouvert',
     name: 'Ouvert',
-    description: 'Tout le monde part avec 100 TH/s, bonus divisés par deux : plus de hasard.',
+    description: 'Tout le monde part avec 100 TH, bonus divisés par deux : plus de hasard.',
     scoring: { baseGainThs: { easy: 10, intermediate: 20, hard: 30, expert: 50 }, speedBonusMax: 0.25, streakBonusStep: 0.05, streakBonusMax: 0.25, startHashrateThs: 100 },
   },
   {

@@ -185,7 +185,7 @@ function QuestionPanel({ view }: { view: ConsoleView }) {
   return (
     <section>
       <h3>
-        Question {q.index + 1} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH/s
+        Question {q.index + 1} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH
       </h3>
       <p className="q-console">{q.text}</p>
       <ol className="opts-console">
@@ -341,7 +341,7 @@ function Settings({ view, send }: { view: ConsoleView; send: Send }) {
         </label>
         {DIFFICULTIES.map((d) => (
           <label key={d}>
-            Gain {difficultyLabel[d]} (TH/s)
+            Gain {difficultyLabel[d]} (TH)
             <input type="number" min={0} value={draft.baseGainThs[d]} onChange={(e) => set({ baseGainThs: { ...draft.baseGainThs, [d]: num(e.target.value) } })} />
           </label>
         ))}

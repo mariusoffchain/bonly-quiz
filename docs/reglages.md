@@ -1,6 +1,6 @@
 # Réglages des points : ce que change chaque profil
 
-Question de départ : avec 10 TH/s par bonne réponse, +50 % de rapidité et +10 % par
+Question de départ : avec 10 TH par bonne réponse, +50 % de rapidité et +10 % par
 réponse d'affilée, les bons joueurs prennent-ils trop d'avance sur les autres au moment du
 tirage ?
 
@@ -38,15 +38,15 @@ sur les colonnes podium.
 
 - **Base 10 ou base 100 : aucune différence.** Le tirage ne regarde que les parts de
   chacun ; multiplier tous les gains par 10 ne change aucune part. Le jeu est en base 10 :
-  les bonus sont arrondis au TH/s près (un bonus de rapidité vaut au plus 5 TH/s sur une
+  les bonus sont arrondis au TH près (un bonus de rapidité vaut au plus 5 TH sur une
   question facile), ce qui ne change pas les chances (lignes Équilibré et base 100).
 - **Écart x3 entre facile et difficile (10/20/30)** : à peine plus sélectif que
   l'ancien x2. Même x10 ne fait passer le favori que de 4,2 % à 4,8 %.
-- **Questions expert à 50 TH/s (x5)** : 3 questions expert sur 21 font passer le favori
+- **Questions expert à 50 TH (x5)** : 3 questions expert sur 21 font passer le favori
   de 4,2 % à 4,6 %. Utile pour récompenser une vraie difficulté, sans effet de rupture.
 - **Les bonus** : sans aucun bonus le favori a 3,6 %, avec les bonus doublés
   (Compétitif) 5,2 %. C'est le réglage qui pèse le plus, et il reste modeste.
-- **Le hashrate de départ** (profil Ouvert, 100 TH/s pour tous) rapproche tout le
+- **Le hashrate de départ** (profil Ouvert, 100 TH pour tous) rapproche tout le
   monde : même un joueur qui ne trouve rien garde une petite chance (0,9 % contre 0,4 %).
 
 Si un jour on veut que le niveau compte beaucoup plus, ce n'est pas le barème qu'il faut
@@ -61,7 +61,7 @@ champ reste modifiable à la main ensuite.
 | Profil | Gains facile / moyenne / difficile / expert | Rapidité | Série | Départ |
 |---|---|---|---|---|
 | Équilibré | 10 / 20 / 30 / 50 | jusqu'à +50 % | +10 % par réponse, max +50 % | 0 |
-| Ouvert | 10 / 20 / 30 / 50 | jusqu'à +25 % | +5 % par réponse, max +25 % | 100 TH/s |
+| Ouvert | 10 / 20 / 30 / 50 | jusqu'à +25 % | +5 % par réponse, max +25 % | 100 TH |
 | Compétitif | 10 / 20 / 30 / 50 | jusqu'à +100 % | +25 % par réponse, max +200 % | 0 |
 
 ## Hypothèses de la simulation

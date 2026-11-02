@@ -106,7 +106,7 @@ export function Rules({ config }: { config: PublicConfig }) {
       ) : null}
       <dt>Bonne réponse</dt>
       <dd>
-        {g.easy}, {g.intermediate} ou {g.hard} TH/s selon la difficulté, {g.expert} pour une question expert
+        {g.easy}, {g.intermediate} ou {g.hard} TH selon la difficulté, {g.expert} pour une question expert
       </dd>
       <dt>Rapidité</dt>
       <dd>jusqu’à +{Math.round(config.speedBonusMax * 100)} %</dd>

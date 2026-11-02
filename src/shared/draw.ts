@@ -1,7 +1,7 @@
 /** Random integer in [0, max). */
 export type Rng = (max: number) => number;
 
-/** Web Crypto with rejection sampling, so every TH/s has exactly the same chance. */
+/** Web Crypto with rejection sampling, so every TH has exactly the same chance. */
 export const cryptoRng: Rng = (max) => {
   if (!Number.isSafeInteger(max) || max <= 0) throw new Error('max must be a positive safe integer');
   const limit = 2 ** 48;
@@ -23,7 +23,7 @@ export interface Candidate {
 /**
  * Proof-of-work lottery: each candidate wins with probability hashrate / total,
  * exactly like a miner's chance of finding the next block. Hashrates are rounded
- * to whole TH/s, which is the unit of the draw.
+ * to whole TH, which is the unit of the draw.
  */
 export function drawWinner(candidates: Candidate[], rng: Rng = cryptoRng): { winnerId: string | null; total: number; roll: number } {
   const positive = candidates.map((c) => ({ id: c.id, w: Math.max(0, Math.round(c.hashrate)) })).filter((c) => c.w > 0);

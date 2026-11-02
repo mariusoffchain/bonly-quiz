@@ -74,7 +74,7 @@ function Question({ view, serverNow }: { view: BoardView; serverNow: () => numbe
     <main className="question">
       <div className="q-meta">
         <Label>
-          Question {q.index + 1} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH/s
+          Question {q.index + 1} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH
         </Label>
         <span className="muted">
           {q.answerCount} / {n} réponses

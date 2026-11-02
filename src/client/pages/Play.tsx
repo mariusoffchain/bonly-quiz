@@ -141,7 +141,7 @@ function Join({ view, onJoin, conn, error }: { view: PlayerView; onJoin: (name: 
           </button>
           {error ? <p className="error">{error}</p> : null}
         </form>
-        {view.phase !== 'lobby' ? <p className="muted">La partie a commencé, vous partez de 0 TH/s.</p> : null}
+        {view.phase !== 'lobby' ? <p className="muted">La partie a commencé, vous partez de 0 TH.</p> : null}
         <Rules config={view.config} />
       </main>
     </div>
@@ -168,7 +168,7 @@ function QuestionPad({
   return (
     <>
       <Label>
-        Question {q.index + 1}/{q.total} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH/s
+        Question {q.index + 1}/{q.total} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH
       </Label>
       <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={serverNow} />
       <h2 className="q-text">{q.text}</h2>
@@ -229,7 +229,7 @@ function Reveal({ view }: { view: PlayerView }) {
         </section>
       ) : (
         <section className="result">
-          <p className="gain-big">0 TH/s</p>
+          <p className="gain-big">0 TH</p>
           <p>
             {r?.option === null || !r ? 'Pas de réponse.' : 'Faux.'} La réponse était <b>{answer}</b>
           </p>
