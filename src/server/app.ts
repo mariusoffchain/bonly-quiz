@@ -33,7 +33,7 @@ interface Conn {
   ws: WebSocket;
   role?: 'player' | 'board' | 'console';
   playerId?: string;
-  /** Recovery codes tried on this connection, to stop guessing. */
+  /** Seat reclaims tried on this connection, to stop guessing. */
   reclaimTries?: number;
 }
 
@@ -49,6 +49,9 @@ export class App {
   private revealTimer?: NodeJS.Timeout;
   private broadcastTimer?: NodeJS.Timeout;
   private broadcastScope?: 'screens' | 'all';
+  private heartbeat: NodeJS.Timeout;
+  /** Sockets that answered the last ping. */
+  private alive = new WeakSet<WebSocket>();
   private clientDist: string;
 
   constructor(public readonly opts: AppOptions) {
@@ -60,6 +63,19 @@ export class App {
     // Compression: a state message is mostly repeated JSON keys, it shrinks ~5x. Matters for phones on 4G.
     this.wss = new WebSocketServer({ server: this.server, path: '/ws', perMessageDeflate: { threshold: 512 } });
     this.wss.on('connection', (ws) => this.handleWs(ws));
+    // A phone that left the network keeps its socket open for minutes: ping every 15 s and
+    // drop the silent ones, so the seat shows offline (and can be reclaimed) quickly.
+    this.heartbeat = setInterval(() => {
+      for (const ws of this.wss.clients) {
+        if (!this.alive.has(ws)) {
+          ws.terminate();
+          continue;
+        }
+        this.alive.delete(ws);
+        ws.ping();
+      }
+    }, 15_000);
+    this.heartbeat.unref();
     if (!this.restore()) this.newSession();
   }
 
@@ -74,6 +90,7 @@ export class App {
   }
 
   async close(): Promise<void> {
+    clearInterval(this.heartbeat);
     clearTimeout(this.closeTimer);
     clearTimeout(this.revealTimer);
     clearTimeout(this.broadcastTimer);
@@ -227,6 +244,8 @@ export class App {
   private handleWs(ws: WebSocket): void {
     const conn: Conn = { ws };
     this.conns.add(conn);
+    this.alive.add(ws);
+    ws.on('pong', () => this.alive.add(ws));
     ws.on('message', (data) => {
       let msg: ClientMessage;
       try {
@@ -287,12 +306,11 @@ export class App {
       if (msg.type === 'reclaim') {
         if (conn.playerId) throw new GameError('already-joined', 'Déjà inscrit.');
         conn.reclaimTries = (conn.reclaimTries ?? 0) + 1;
-        if (conn.reclaimTries > 10) throw new GameError('too-many', 'Trop d’essais. Demandez votre code à l’animateur.');
-        const p = g.findByCode(msg.code);
-        if (!p) throw new GameError('bad-code', 'Code inconnu.');
+        if (conn.reclaimTries > 10) throw new GameError('too-many', 'Trop d’essais. Demandez à l’animateur.');
+        const p = g.reclaim(String(msg.name ?? ''), now);
         conn.playerId = p.id;
         g.setConnected(p.id, true);
-        this.log(`player ${p.name} reclaimed with code`);
+        this.log(`player ${p.name} reclaimed the seat`);
         this.send(conn, { type: 'joined', playerId: p.id, token: p.token });
         this.sendState(conn);
         return this.broadcastSoon('screens');

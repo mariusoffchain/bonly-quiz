@@ -180,18 +180,18 @@ describe('Game', () => {
     expect(g.nextStep(g.state.blocks[0].revealAt)).toBeNull();
   });
 
-  it('gives every player a recovery code to get the seat back', () => {
+  it('gives a seat back by its exact name, only while offline, to one phone at a time', () => {
     const g = Game.create('TEST', T0, pack(1), {}, deps());
-    const a = g.join('A', T0);
-    const b = g.join('B', T0);
-    expect(a.code).toMatch(/^[A-HJKMNP-Z2-9]{5}$/);
-    expect(a.code).not.toBe(b.code);
-    expect(g.findByCode(` ${a.code!.toLowerCase().slice(0, 2)}-${a.code!.slice(2)} `)).toBe(a);
-    expect(g.findByCode('ZZZZZ0')).toBeUndefined();
-    expect(playerView(g, T0, 'u', a.id).myCode).toBe(a.code);
-    expect(JSON.stringify(boardView(g, T0, 'u'))).not.toContain(a.code);
+    const a = g.join('Alice B', T0);
+    const oldToken = a.token;
+    expect(() => g.reclaim('Alice B', T0)).toThrow(/connecté/); // still on its phone
+    g.setConnected(a.id, false);
+    expect(() => g.reclaim('Alicia', T0)).toThrow(/Aucun joueur/);
+    expect(g.reclaim('  alice   b ', T0)).toBe(a);
+    expect(a.token).not.toBe(oldToken);
+    expect(g.findByToken(oldToken)).toBeUndefined(); // the old phone cannot come back
     g.removePlayer(a.id, T0);
-    expect(g.findByCode(a.code!)).toBeUndefined();
+    expect(() => g.reclaim('Alice B', T0)).toThrow(/Aucun joueur/);
   });
 
   it('hides the answer from boards and phones until the question closes', () => {

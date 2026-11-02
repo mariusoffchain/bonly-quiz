@@ -75,7 +75,7 @@ export function Play() {
       <Join
         view={view}
         onJoin={(name) => send({ type: 'join', name })}
-        onReclaim={(code) => send({ type: 'reclaim', code })}
+        onReclaim={(name) => send({ type: 'reclaim', name })}
         conn={sock.conn}
         error={notice}
       />
@@ -101,7 +101,9 @@ export function Play() {
         {view.phase === 'lobby' ? (
           <>
             <p className="big-line">Inscrit. La partie commence bientôt.</p>
-            <MyCode code={view.myCode} long />
+            <p className="muted small">
+              Changement de téléphone ? Sur la page d’inscription, touchez « Déjà inscrit ? » et tapez votre pseudo exact : {me.name}.
+            </p>
             <Rules config={view.config} />
           </>
         ) : null}
@@ -124,21 +126,6 @@ export function Play() {
   );
 }
 
-/** The recovery code: gets the seat back on another phone, or after the quiz address changed. */
-function MyCode({ code, long = false }: { code?: string; long?: boolean }) {
-  if (!code) return null;
-  return long ? (
-    <p className="my-code">
-      Votre code de reprise : <b className="mono">{code}</b>. Il sert à retrouver vos TH si vous changez de téléphone ou si l’adresse du quiz
-      change.
-    </p>
-  ) : (
-    <p className="muted small">
-      Code de reprise <b className="mono">{code}</b>
-    </p>
-  );
-}
-
 function Join({
   view,
   onJoin,
@@ -148,12 +135,12 @@ function Join({
 }: {
   view: PlayerView;
   onJoin: (name: string) => void;
-  onReclaim: (code: string) => void;
+  onReclaim: (name: string) => void;
   conn: 'connecting' | 'open' | 'closed';
   error: string | null;
 }) {
   const [name, setName] = useState('');
-  const [code, setCode] = useState('');
+  const [oldName, setOldName] = useState('');
   const [reclaim, setReclaim] = useState(false);
   const [sent, setSent] = useState(false);
   useEffect(() => {
@@ -163,9 +150,9 @@ function Join({
     e.preventDefault();
     if (sent) return;
     if (reclaim) {
-      if (!code.trim()) return;
+      if (!oldName.trim()) return;
       setSent(true);
-      onReclaim(code.trim());
+      onReclaim(oldName.trim());
       return;
     }
     if (!name.trim()) return;
@@ -182,19 +169,18 @@ function Join({
         </p>
         {reclaim ? (
           <form onSubmit={submit} className="join-form">
-            <label htmlFor="code">Code de reprise</label>
+            <label htmlFor="old-name">Votre pseudo exact</label>
             <input
-              id="code"
-              className="input mono"
-              maxLength={12}
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              id="old-name"
+              className="input"
+              maxLength={30}
+              value={oldName}
+              onChange={(e) => setOldName(e.target.value)}
               autoComplete="off"
-              autoCapitalize="characters"
               autoFocus
             />
-            <button className="btn primary" disabled={!code.trim() || sent || conn !== 'open'}>
-              Retrouver ma place
+            <button className="btn primary" disabled={!oldName.trim() || sent || conn !== 'open'}>
+              Reprendre ma place
             </button>
             {error ? <p className="error">{error}</p> : null}
             <button type="button" className="link" onClick={() => setReclaim(false)}>
@@ -210,7 +196,7 @@ function Join({
             </button>
             {error ? <p className="error">{error}</p> : null}
             <button type="button" className="link" onClick={() => setReclaim(true)}>
-              Déjà inscrit ? J’ai un code de reprise
+              Déjà inscrit ? Reprendre ma place
             </button>
           </form>
         )}
@@ -336,7 +322,6 @@ function Standing({ view }: { view: PlayerView }) {
         </div>
       </div>
       <NetworkBar players={view.players} highlightId={me.id} />
-      <MyCode code={view.myCode} />
     </section>
   );
 }

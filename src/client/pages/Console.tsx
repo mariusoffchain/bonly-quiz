@@ -287,9 +287,6 @@ function Players({ view, send }: { view: ConsoleView; send: Send }) {
                 {view.phase === 'question' && answered.has(p.id) ? <span className="mark">a répondu</span> : null}
               </td>
               <td className="num muted">{p.streak >= 2 ? `série ${p.streak}` : ''}</td>
-              <td className="num muted small mono" title="Code de reprise">
-                {view.codes[p.id]}
-              </td>
               <td className="num">{ths(p.hashrate)}</td>
               <td>
                 <button className="link" title="Retirer" onClick={() => confirm(`Retirer ${p.name} ?`) && send({ type: 'remove-player', id: p.id })}>

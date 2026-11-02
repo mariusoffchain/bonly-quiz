@@ -114,8 +114,6 @@ h3 { font-size: 0.85rem; font-weight: 500; color: var(--muted); margin: 0 0 10px
 .join-form { display: flex; flex-direction: column; gap: 10px; }
 .join-form label { color: var(--body); font-size: 0.85rem; }
 .big-line { font-size: 1.15rem; color: var(--ink); }
-.my-code { border: 1px solid var(--rule-soft); background: var(--tile); padding: 12px 14px; color: var(--ink); }
-.my-code b { color: var(--orange-ink); letter-spacing: 0.08em; }
 .q-text { font-size: 1.15rem; line-height: 1.4; }
 .answers { display: flex; flex-direction: column; gap: 10px; }
 .answer { display: flex; gap: 14px; align-items: center; text-align: left; padding: 10px 14px 10px 10px; background: transparent; border: 1px solid var(--rule); border-radius: 0; color: var(--ink); cursor: pointer; line-height: 1.35; min-height: 60px; }

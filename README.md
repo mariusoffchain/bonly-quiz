@@ -25,9 +25,11 @@ Le gagnant est fixé par le serveur au clic, puis révélé après 8 s d'animati
 « Gagnants tirés au sort » permet d'en tirer plusieurs (1re, 2e, 3e place…) : un joueur
 déjà tiré ne participe plus aux tirages suivants.
 
-Chaque joueur a un code de reprise, affiché sur son téléphone et dans la console. Il
-permet de retrouver sa place (et ses TH) sur un autre téléphone, ou si l'adresse du quiz a
-changé : « Déjà inscrit ? J'ai un code de reprise » sur la page d'inscription.
+Un joueur qui change de téléphone, ou dont le téléphone ne le reconnaît plus parce que
+l'adresse du quiz a changé, retrouve sa place et ses TH avec « Déjà inscrit ? Reprendre ma
+place » et son pseudo exact. C'est possible seulement si sa place est hors ligne (personne
+ne peut prendre celle d'un joueur connecté), et l'ancien téléphone perd alors l'accès : une
+place n'est jamais sur deux téléphones.
 
 Tous ces réglages se changent dans la console avant la 1re question, à la main ou avec
 l'un des trois profils (Équilibré, Ouvert, Compétitif). `docs/reglages.md` compare leurs

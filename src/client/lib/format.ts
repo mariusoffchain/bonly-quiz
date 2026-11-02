@@ -1,6 +1,13 @@
-/** "1 250 TH", "10,5 TH": gains are kept to a tenth of TH. */
-export const ths = (n: number | undefined, unit = true) =>
-  `${(n ?? 0).toLocaleString('fr-FR', { maximumFractionDigits: 1 }).replace(/[\u202f\u00a0]/g, ' ')}${unit ? ' TH' : ''}`;
+const num = (n: number, digits: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: digits }).replace(/[\u202f\u00a0]/g, ' ');
+
+/**
+ * "10,5 TH" (gains are kept to a tenth of TH), then "1,25 PH" from 1 000 TH on.
+ * PH always carries its unit, even where TH values are shown bare.
+ */
+export const ths = (n: number | undefined, unit = true) => {
+  const v = n ?? 0;
+  return Math.abs(v) >= 1000 ? `${num(v / 1000, 2)} PH` : `${num(v, 1)}${unit ? ' TH' : ''}`;
+};
 
 /** "+10 %, +5 %, +2 %" */
 export const percents = (fractions: number[]) => fractions.map((f) => `+${pct(f, 0)}`).join(', ');

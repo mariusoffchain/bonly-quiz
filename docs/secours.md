@@ -7,9 +7,10 @@ Tant qu'on a ce dossier, ou un export de la partie, on peut reprendre exactement
 
 Les téléphones gardent leur place tant que l'adresse du quiz ne change pas. Si elle change
 (nouveau lancement avec une adresse `trycloudflare.com`, autre ordinateur), chaque joueur
-rescanne le QR code, touche « Déjà inscrit ? J'ai un code de reprise » et tape le code
-affiché sur son téléphone. La console affiche aussi le code de chaque joueur, à côté de son
-nom, pour ceux qui l'auraient perdu.
+rescanne le QR code, touche « Déjà inscrit ? Reprendre ma place » et tape son pseudo
+exact (la console affiche la liste des pseudos). La reprise ne marche que si la place est
+hors ligne, et l'ancien téléphone perd alors l'accès : une place n'est jamais sur deux
+téléphones.
 
 ## 1. La veille : préparer l'ordinateur de secours
 
@@ -133,8 +134,8 @@ npm run online
 ```
 
 La partie reprend où elle en était. Avec une adresse `trycloudflare.com`, l'adresse change :
-le QR code de l'écran se met à jour tout seul, les joueurs le rescannent et tapent leur code
-de reprise si leur téléphone ne les reconnaît pas.
+le QR code de l'écran se met à jour tout seul, les joueurs le rescannent et, si leur téléphone
+ne les reconnaît pas, reprennent leur place avec leur pseudo exact.
 
 Si la connexion internet de l'ordinateur est en cause : passer sur le partage de connexion
 d'un téléphone, puis relancer de la même façon.
@@ -152,7 +153,7 @@ d'un téléphone, puis relancer de la même façon.
 
 4. Ouvrir `http://localhost:8787/board` (écran) et `http://localhost:8787/console`
    (console, même jeton qu'avant).
-5. Les joueurs rescannent le QR code et tapent leur code de reprise.
+5. Les joueurs rescannent le QR code et reprennent leur place avec leur pseudo exact.
 
 ### L'ancien ordinateur est hors service
 
@@ -188,5 +189,5 @@ Réglages pour finir à l'heure.
 - [ ] Sauvegarde automatique lancée dans un second terminal.
 - [ ] Jeton de la console noté sur papier.
 - [ ] Ordinateur de secours préparé et testé la veille (section 1).
-- [ ] Au lancement, demander aux joueurs de garder leur code de reprise (il reste visible
-      sur leur téléphone pendant toute la partie).
+- [ ] Au lancement, rappeler aux joueurs qu'en cas de souci ils retrouvent leur place
+      avec « Déjà inscrit ? » et leur pseudo exact.
