@@ -52,13 +52,13 @@ export const PRESETS: Preset[] = [
   {
     id: 'equilibre',
     name: 'Équilibré',
-    description: 'Rapidité +10 / +5 / +2 % pour les 3 premières bonnes réponses, série +10 % par réponse (max +50 %), réinvestissement +15 %.',
+    description: 'Rapidité +10 / +5 / +2 % pour les 3 premières bonnes réponses, série +10 % par réponse (max +50 %), réinvestissement +21 %.',
     scoring: {
       baseGainThs: { easy: 10, intermediate: 20, hard: 30, expert: 50 },
       speedBonusRanks: [0.1, 0.05, 0.02],
       streakBonusStep: 0.1,
       streakBonusMax: 0.5,
-      reinvestRate: 0.15,
+      reinvestRate: 0.21,
       startHashrateThs: 0,
     },
   },

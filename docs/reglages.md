@@ -11,32 +11,45 @@ gagnant exactement comme le serveur (même calcul des points, même tirage).
 
 Objectif retenu : au moins x10 à x20 de hashrate entre le meilleur et le dernier, sans
 qu'une seule erreur ruine une partie. Le **réinvestissement** y parvient : à chaque bonne
-réponse, le joueur gagne aussi 15 % des TH qu'il a déjà, comme un mineur qui rachète des
+réponse, le joueur gagne aussi 21 % des TH qu'il a déjà, comme un mineur qui rachète des
 machines avec ses gains. L'écart se creuse au fil des bonnes réponses, et une mauvaise
 réponse ne fait rien perdre.
 
-Avec le profil Équilibré, le 1er du classement finit en moyenne avec 4 fois le hashrate du
-joueur médian et 29 fois celui du dernier. Il a environ 6 % de chances de gagner, le joueur
-médian 1,6 %, le dernier 0,2 %. Le gagnant vient de la moitié basse du classement environ
-une fois sur 5.
+Avec le profil Équilibré, le 1er du classement finit en moyenne avec 5 fois le hashrate du
+joueur médian et environ 50 fois celui du dernier. Il a environ 7 % de chances de gagner, le
+joueur médian 1,4 %, le dernier 0,2 %. Le gagnant vient de la moitié basse du classement
+un peu moins d'une fois sur 5.
 
 | Réglage | Chances de gagner : 1er du classement | 10e | joueur médian | dernier | Gagnant dans la moitié basse | Hashrate 1er ÷ médian | 1er ÷ dernier |
 |---|---|---|---|---|---|---|---|
-| **Équilibré** (par défaut) | 6,2 % | 3,2 % | 1,6 % | 0,2 % | 22,1 % | x4,0 | x29 |
-| **Ouvert** | 3,4 % | 2,6 % | 1,9 % | 0,9 % | 37,7 % | x1,8 | x3,7 |
+| **Équilibré** (par défaut) | 7,4 % | 3,3 % | 1,4 % | 0,2 % | 18,3 % | x5,3 | x49 |
+| **Ouvert** | 3,4 % | 2,6 % | 1,9 % | 0,9 % | 37,9 % | x1,8 | x3,7 |
 | **Compétitif** | 9,3 % | 3,4 % | 1,2 % | 0,1 % | 13,9 % | x8,0 | x107 |
-| Équilibré sans réinvestissement | 4,3 % | 2,8 % | 1,8 % | 0,5 % | 31,6 % | x2,3 | x9,2 |
-| Équilibré, réinvestissement +20 % | 7,1 % | 3,3 % | 1,4 % | 0,2 % | 19,8 % | x5,0 | x45 |
-| Équilibré, réinvestissement +25 % | 8,2 % | 3,4 % | 1,3 % | 0,1 % | 16,0 % | x6,4 | x72 |
-| Sans aucun bonus | 3,6 % | 2,7 % | 1,9 % | 0,5 % | 34,8 % | x1,8 | x6,7 |
-| Équilibré, base 100 (100/200/300) | 6,2 % | 3,2 % | 1,6 % | 0,2 % | 22,8 % | x4,0 | x29 |
-| Équilibré, 6/6/6 + 3 expert | 6,8 % | 3,1 % | 1,5 % | 0,2 % | 22,9 % | x4,4 | x28 |
-| Équilibré, public homogène | 5,3 % | 2,8 % | 1,8 % | 0,5 % | 30,3 % | x3,0 | x12 |
-| Équilibré, public très hétérogène | 6,1 % | 3,7 % | 1,4 % | 0,1 % | 17,0 % | x4,4 | x55 |
+| Équilibré sans réinvestissement | 4,3 % | 2,8 % | 1,8 % | 0,5 % | 31,9 % | x2,3 | x9,1 |
+| Équilibré, réinvestissement +20 % | 7,1 % | 3,3 % | 1,4 % | 0,2 % | 19,5 % | x5,1 | x45 |
+| Équilibré, réinvestissement +25 % | 8,2 % | 3,4 % | 1,3 % | 0,1 % | 16,3 % | x6,6 | x72 |
+| Sans aucun bonus | 3,6 % | 2,7 % | 1,9 % | 0,5 % | 34,6 % | x1,8 | x6,5 |
+| Équilibré, base 100 (100/200/300) | 7,4 % | 3,3 % | 1,4 % | 0,2 % | 18,8 % | x5,4 | x50 |
+| Équilibré, 6/6/6 + 3 expert | 8,1 % | 3,2 % | 1,4 % | 0,2 % | 19,2 % | x5,9 | x47 |
+| Équilibré, public homogène | 6,2 % | 2,9 % | 1,7 % | 0,4 % | 26,4 % | x3,7 | x18 |
+| Équilibré, public très hétérogène | 7,0 % | 3,8 % | 1,2 % | 0,1 % | 13,3 % | x5,9 | x103 |
 
 Chances égales pour tous : 2 % chacun. Les écarts sont des médianes sur les parties
 simulées ; le « dernier » est le dernier joueur qui a au moins une bonne réponse (un joueur
 à 0 TH n'a aucune chance).
+
+## Par type de joueur
+
+TH en fin de partie et chances de gagner, selon le réinvestissement (profil Équilibré par
+ailleurs, 50 joueurs).
+
+| Réinvestissement | Sans-faute (21/21) | Très bon (18/21) | Bon (15/21) | Moyen (10/21) | Débutant (5/21) | Sans-faute ÷ débutant | 1er ÷ dernier de la salle |
+|---|---|---|---|---|---|---|---|
+| Aucun | 623 TH · 4,4 % | 443 TH · 3,2 % | 321 TH · 2,3 % | 180 TH · 1,3 % | 87 TH · 0,6 % | x7 | x9 |
+| +10 % | 1,45 PH · 5,7 % | 916 TH · 3,7 % | 578 TH · 2,3 % | 259 TH · 1,1 % | 102 TH · 0,4 % | x14 | x19 |
+| +15 % | 2,38 PH · 6,5 % | 1,39 PH · 3,9 % | 804 TH · 2,3 % | 314 TH · 0,9 % | 109 TH · 0,3 % | x22 | x29 |
+| +20 % | 4,05 PH · 7,6 % | 2,15 PH · 4,2 % | 1,14 PH · 2,3 % | 383 TH · 0,8 % | 118 TH · 0,2 % | x34 | x45 |
+| **+21 %** (par défaut) | 4,52 PH · 7,8 % | 2,36 PH · 4,2 % | 1,22 PH · 2,2 % | 400 TH · 0,7 % | 120 TH · 0,2 % | x38 | x49 |
 
 ## Ce qu'on en retient
 
@@ -63,7 +76,7 @@ champ reste modifiable à la main ensuite.
 
 | Profil | Gains facile / moyenne / difficile / expert | Rapidité (1re, 2e, 3e… bonne réponse) | Série | Réinvestissement | Départ |
 |---|---|---|---|---|---|
-| Équilibré | 10 / 20 / 30 / 50 | +10 / +5 / +2 % | +10 % par réponse, max +50 % | +15 % | 0 |
+| Équilibré | 10 / 20 / 30 / 50 | +10 / +5 / +2 % | +10 % par réponse, max +50 % | +21 % | 0 |
 | Ouvert | 10 / 20 / 30 / 50 | +5 / +3 / +1 % | +5 % par réponse, max +25 % | aucun | 100 TH |
 | Compétitif | 10 / 20 / 30 / 50 | +10, +9, +8… +1 % (10 premiers) | +25 % par réponse, max +200 % | +25 % | 0 |
 

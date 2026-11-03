@@ -53,9 +53,9 @@ describe('scoreAnswer', () => {
     expect(scoreAnswer(q('a'), at, timing, 10, DEFAULT_CONFIG)).toMatchObject({ streak: 11, streakBonus: 5 });
   });
 
-  it('reinvests 15 % of the hashrate already held on each correct answer, nothing on a wrong one', () => {
+  it('reinvests 21 % of the hashrate already held on each correct answer, nothing on a wrong one', () => {
     const at = { option: 0, at: 20_000 };
-    expect(scoreAnswer(q('a'), at, timing, 0, DEFAULT_CONFIG, Infinity, 200)).toMatchObject({ base: 10, reinvest: 30, gain: 40 });
+    expect(scoreAnswer(q('a'), at, timing, 0, DEFAULT_CONFIG, Infinity, 200)).toMatchObject({ base: 10, reinvest: 42, gain: 52 });
     expect(scoreAnswer(q('a'), { option: 1, at: 0 }, timing, 0, DEFAULT_CONFIG, Infinity, 200)).toMatchObject({ reinvest: 0, gain: 0 });
   });
 
@@ -117,8 +117,8 @@ describe('Game', () => {
     g.answer(bob.id, 1, 3, T0 + 21_000);
     expect(g.answer(bob.id, 1, 0, T0 + 40_001).ok).toBe(false);
     g.closeQuestion(T0 + 40_000);
-    expect(g.state.runs[1].results![alice.id]).toMatchObject({ streak: 2, streakBonus: 1, speedBonus: 1, reinvest: 1.7, gain: 13.7 }); // reinvest: 15 % of 11
-    expect(alice.hashrate).toBe(24.7);
+    expect(g.state.runs[1].results![alice.id]).toMatchObject({ streak: 2, streakBonus: 1, speedBonus: 1, reinvest: 2.3, gain: 14.3 }); // reinvest: 21 % of 11
+    expect(alice.hashrate).toBe(25.3);
     expect(bob.streak).toBe(0);
 
     // Q3 too late for everyone (21 s timer).
@@ -137,7 +137,7 @@ describe('Game', () => {
     expect(step).toMatchObject({ action: 'mine', label: 'Tirer la 1re place' });
     g.advance(step.key, now);
     const block = g.state.blocks[0];
-    expect(block).toMatchObject({ n: 1, winnerId: alice.id, total: 352, roll: 0 });
+    expect(block).toMatchObject({ n: 1, winnerId: alice.id, total: 358, roll: 0 });
     expect(block.hash).toMatch(/^0{10}[0-9a-f]{54}$/);
     // Nothing else while mining; winner hidden from views until revealAt.
     expect(g.nextStep(now + 1)).toBeNull();
