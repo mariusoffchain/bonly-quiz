@@ -15,6 +15,12 @@ export interface SessionConfig {
   streakBonusStep: number;
   /** Cap of the streak bonus, as a fraction of the base gain. */
   streakBonusMax: number;
+  /**
+   * Reinvestment: each correct answer also adds this fraction of the hashrate the player
+   * already has, like a miner buying machines with past rewards. Compounds, so it widens
+   * the gap between strong and weak players; a wrong answer loses nothing.
+   */
+  reinvestRate: number;
   /** Hashrate given to every player when joining. */
   startHashrateThs: number;
   /** Reveal the answer as soon as every registered player has answered (connected or not). */
@@ -25,7 +31,10 @@ export interface SessionConfig {
   miningDurationMs: number;
 }
 
-export type ScoringSettings = Pick<SessionConfig, 'baseGainThs' | 'speedBonusRanks' | 'streakBonusStep' | 'streakBonusMax' | 'startHashrateThs'>;
+export type ScoringSettings = Pick<
+  SessionConfig,
+  'baseGainThs' | 'speedBonusRanks' | 'streakBonusStep' | 'streakBonusMax' | 'reinvestRate' | 'startHashrateThs'
+>;
 
 export interface Preset {
   id: string;
@@ -43,24 +52,39 @@ export const PRESETS: Preset[] = [
   {
     id: 'equilibre',
     name: 'Équilibré',
-    description: 'Rapidité +10 / +5 / +2 % pour les 3 premières bonnes réponses, série +10 % par réponse (max +50 %).',
-    scoring: { baseGainThs: { easy: 10, intermediate: 20, hard: 30, expert: 50 }, speedBonusRanks: [0.1, 0.05, 0.02], streakBonusStep: 0.1, streakBonusMax: 0.5, startHashrateThs: 0 },
+    description: 'Rapidité +10 / +5 / +2 % pour les 3 premières bonnes réponses, série +10 % par réponse (max +50 %), réinvestissement +15 %.',
+    scoring: {
+      baseGainThs: { easy: 10, intermediate: 20, hard: 30, expert: 50 },
+      speedBonusRanks: [0.1, 0.05, 0.02],
+      streakBonusStep: 0.1,
+      streakBonusMax: 0.5,
+      reinvestRate: 0.15,
+      startHashrateThs: 0,
+    },
   },
   {
     id: 'ouvert',
     name: 'Ouvert',
-    description: 'Tout le monde part avec 100 TH, bonus divisés par deux : plus de hasard.',
-    scoring: { baseGainThs: { easy: 10, intermediate: 20, hard: 30, expert: 50 }, speedBonusRanks: [0.05, 0.03, 0.01], streakBonusStep: 0.05, streakBonusMax: 0.25, startHashrateThs: 100 },
+    description: 'Tout le monde part avec 100 TH, bonus divisés par deux, pas de réinvestissement : plus de hasard.',
+    scoring: {
+      baseGainThs: { easy: 10, intermediate: 20, hard: 30, expert: 50 },
+      speedBonusRanks: [0.05, 0.03, 0.01],
+      streakBonusStep: 0.05,
+      streakBonusMax: 0.25,
+      reinvestRate: 0,
+      startHashrateThs: 100,
+    },
   },
   {
     id: 'competitif',
     name: 'Compétitif',
-    description: 'Rapidité de +10 % à +1 % pour les 10 premières bonnes réponses, série +25 % par réponse (max +200 %) : les meilleurs prennent plus d’avance.',
+    description: 'Rapidité de +10 % à +1 % pour les 10 premières bonnes réponses, série +25 % par réponse (max +200 %), réinvestissement +25 % : les meilleurs prennent beaucoup d’avance.',
     scoring: {
       baseGainThs: { easy: 10, intermediate: 20, hard: 30, expert: 50 },
       speedBonusRanks: [0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.04, 0.03, 0.02, 0.01],
       streakBonusStep: 0.25,
       streakBonusMax: 2,
+      reinvestRate: 0.25,
       startHashrateThs: 0,
     },
   },
@@ -87,6 +111,7 @@ export function validateConfig(c: SessionConfig): string | null {
   for (const k of ['streakBonusStep', 'streakBonusMax', 'startHashrateThs'] as const) {
     if (!nonNeg(c[k])) return `${k} invalide`;
   }
+  if (!nonNeg(c.reinvestRate) || c.reinvestRate > 1) return 'le réinvestissement doit être entre 0 et 100 %';
   if (!Number.isInteger(c.podiumSize) || c.podiumSize < 1 || c.podiumSize > 20) return 'le podium doit compter de 1 à 20 places';
   if (!nonNeg(c.miningDurationMs) || c.miningDurationMs > 60_000) return 'durée de minage invalide';
   return null;

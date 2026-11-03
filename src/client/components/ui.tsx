@@ -121,6 +121,12 @@ export function Rules({ config }: { config: PublicConfig }) {
       <dd>
         +{Math.round(config.streakBonusStep * 100)} % par bonne réponse d’affilée, max +{Math.round(config.streakBonusMax * 100)} %
       </dd>
+      {config.reinvestRate > 0 ? (
+        <>
+          <dt>Réinvestissement</dt>
+          <dd>chaque bonne réponse ajoute aussi {Math.round(config.reinvestRate * 100)} % des TH que vous avez déjà</dd>
+        </>
+      ) : null}
       <dt>Fin</dt>
       <dd>
         tirage {config.podiumSize > 1 ? `des ${config.podiumSize} places du podium` : 'du gagnant'}, vos chances = votre part du hashrate

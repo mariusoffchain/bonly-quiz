@@ -284,6 +284,12 @@ function Reveal({ view }: { view: PlayerView }) {
                   <td>+{ths(r.streakBonus, false)}</td>
                 </tr>
               ) : null}
+              {r.reinvest > 0 ? (
+                <tr>
+                  <td>Réinvestissement, {Math.round(view.config.reinvestRate * 100)} % de vos TH</td>
+                  <td>+{ths(r.reinvest, false)}</td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </section>

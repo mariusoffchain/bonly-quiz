@@ -271,7 +271,7 @@ export class Game {
     run.results = {};
     const ranks = speedRanks(run.answers, q.correctIndex);
     for (const p of this.activePlayers()) {
-      const r = scoreAnswer(q, run.answers[p.id], run, p.streak, this.state.config, ranks.get(p.id));
+      const r = scoreAnswer(q, run.answers[p.id], run, p.streak, this.state.config, ranks.get(p.id), p.hashrate);
       run.results[p.id] = r;
       p.hashrate = round1(p.hashrate + r.gain);
       p.streak = r.streak;

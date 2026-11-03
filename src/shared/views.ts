@@ -58,7 +58,7 @@ export interface BlockPublic {
 
 export type PublicConfig = Pick<
   SessionConfig,
-  'baseGainThs' | 'speedBonusRanks' | 'streakBonusStep' | 'streakBonusMax' | 'startHashrateThs' | 'podiumSize' | 'miningDurationMs'
+  'baseGainThs' | 'speedBonusRanks' | 'streakBonusStep' | 'streakBonusMax' | 'reinvestRate' | 'startHashrateThs' | 'podiumSize' | 'miningDurationMs'
 >;
 
 export interface BoardView {
@@ -193,6 +193,7 @@ export function boardView(game: Game, now: number, joinUrl: string): BoardView {
       speedBonusRanks: c.speedBonusRanks,
       streakBonusStep: c.streakBonusStep,
       streakBonusMax: c.streakBonusMax,
+      reinvestRate: c.reinvestRate,
       startHashrateThs: c.startHashrateThs,
       podiumSize: c.podiumSize,
       miningDurationMs: c.miningDurationMs,

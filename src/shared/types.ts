@@ -70,6 +70,8 @@ export interface QuestionResult {
   /** 1 = first correct answer received, when it earned a speed bonus. */
   speedRank?: number;
   streakBonus: number;
+  /** Share of the hashrate already held, added by reinvestment. */
+  reinvest: number;
   gain: number;
   /** Streak after this question. */
   streak: number;

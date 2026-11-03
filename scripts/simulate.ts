@@ -11,7 +11,7 @@
  * also answer a little faster. 3 % of answers are missed. The speed bonus goes
  * to the first correct answers, as in the game.
  */
-import { DEFAULT_CONFIG, PRESETS, type Difficulty, type ScoringSettings } from '../src/shared/config.js';
+import { PRESETS, type Difficulty, type ScoringSettings } from '../src/shared/config.js';
 import { drawWinner } from '../src/shared/draw.js';
 import { round1, scoreAnswer, speedRanks } from '../src/shared/scoring.js';
 import type { Answer } from '../src/shared/types.js';
@@ -50,7 +50,7 @@ function playGame(s: ScoringSettings, questions: Difficulty[], spread: number): 
     // Same steps as Game.closeQuestion: rank the correct answers, then score everyone.
     const ranks = speedRanks(answers, 0);
     for (let i = 0; i < PLAYERS; i++) {
-      const r = scoreAnswer({ difficulty, correctIndex: 0 }, answers[i], { openedAt: 0 }, streak[i], s, ranks.get(String(i)));
+      const r = scoreAnswer({ difficulty, correctIndex: 0 }, answers[i], { openedAt: 0 }, streak[i], s, ranks.get(String(i)), hashrate[i]);
       hashrate[i] = round1(hashrate[i] + r.gain);
       streak[i] = r.streak;
     }
@@ -77,44 +77,49 @@ interface Row {
   spread?: number;
 }
 
+const median = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
+
 function evaluate({ scoring, questions = mix(7, 7, 7), spread = 1 }: Row) {
   const mid = Math.floor(PLAYERS / 2);
-  const acc = { first: 0, tenth: 0, median: 0, last: 0, leaderOnPodium: 0, lowerHalfOnPodium: 0, ratio: 0 };
+  const acc = { first: 0, tenth: 0, median: 0, last: 0, lowerHalfWins: 0 };
+  const toMedian: number[] = [];
+  const toLast: number[] = [];
   for (let g = 0; g < GAMES; g++) {
     const hr = playGame(scoring, questions, spread);
     const total = hr.reduce((a, b) => a + b, 0);
     const order = hr.map((h, i) => ({ h, i })).sort((a, b) => b.h - a.h);
     const rank = new Map(order.map((o, r) => [o.i, r]));
+    const lastPositive = [...order].reverse().find((o) => o.h > 0)!;
     acc.first += order[0].h / total;
     acc.tenth += order[Math.min(9, PLAYERS - 1)].h / total;
     acc.median += order[mid].h / total;
-    acc.last += order[PLAYERS - 1].h / total;
-    acc.ratio += order[0].h / Math.max(1, order[mid].h);
-    const podium = drawPodium(hr, DEFAULT_CONFIG.podiumSize);
-    if (podium.includes(order[0].i)) acc.leaderOnPodium++;
-    if (podium.some((i) => rank.get(i)! >= mid)) acc.lowerHalfOnPodium++;
+    acc.last += lastPositive.h / total;
+    toMedian.push(order[0].h / Math.max(0.1, order[mid].h));
+    toLast.push(order[0].h / lastPositive.h);
+    const [winner] = drawPodium(hr, 1);
+    if (rank.get(winner)! >= mid) acc.lowerHalfWins++;
   }
   const pct = (x: number) => `${((100 * x) / GAMES).toFixed(1).replace('.', ',')} %`;
-  return [pct(acc.first), pct(acc.tenth), pct(acc.median), pct(acc.last), pct(acc.leaderOnPodium), pct(acc.lowerHalfOnPodium), `x${(acc.ratio / GAMES).toFixed(1).replace('.', ',')}`];
+  const times = (x: number) => `x${x >= 10 ? x.toFixed(0) : x.toFixed(1).replace('.', ',')}`;
+  return [pct(acc.first), pct(acc.tenth), pct(acc.median), pct(acc.last), pct(acc.lowerHalfWins), times(median(toMedian)), times(median(toLast))];
 }
 
 const preset = (id: string) => PRESETS.find((p) => p.id === id)!.scoring;
 const eq = preset('equilibre');
 const rows: Row[] = [
   ...PRESETS.map((p) => ({ name: `**${p.name}**`, scoring: p.scoring })),
-  { name: 'Équilibré, rapidité top 10 (+10 % à +1 %)', scoring: { ...eq, speedBonusRanks: preset('competitif').speedBonusRanks } },
-  { name: 'Équilibré, sans bonus de rapidité', scoring: { ...eq, speedBonusRanks: [] } },
-  { name: 'Ancien bonus : top 3 à +50 / +30 / +10 %', scoring: { ...eq, speedBonusRanks: [0.5, 0.3, 0.1] } },
-  { name: 'Sans aucun bonus', scoring: { ...eq, speedBonusRanks: [], streakBonusStep: 0, streakBonusMax: 0 } },
+  { name: 'Équilibré sans réinvestissement', scoring: { ...eq, reinvestRate: 0 } },
+  { name: 'Équilibré, réinvestissement +20 %', scoring: { ...eq, reinvestRate: 0.2 } },
+  { name: 'Équilibré, réinvestissement +25 %', scoring: { ...eq, reinvestRate: 0.25 } },
+  { name: 'Sans aucun bonus', scoring: { ...eq, speedBonusRanks: [], streakBonusStep: 0, streakBonusMax: 0, reinvestRate: 0 } },
   { name: 'Équilibré, base 100 (100/200/300)', scoring: { ...eq, baseGainThs: { easy: 100, intermediate: 200, hard: 300, expert: 500 } } },
-  { name: 'Écart x10 (10/30/100)', scoring: { ...eq, baseGainThs: { easy: 10, intermediate: 30, hard: 100, expert: 150 } } },
   { name: 'Équilibré, 6/6/6 + 3 expert', scoring: eq, questions: mix(6, 6, 6, 3) },
   { name: 'Équilibré, public homogène', scoring: eq, spread: 0.5 },
   { name: 'Équilibré, public très hétérogène', scoring: eq, spread: 1.6 },
 ];
 
 console.log(`${PLAYERS} joueurs, ${GAMES} parties simulées par ligne, 21 questions (7 faciles, 7 moyennes, 7 difficiles sauf mention).`);
-console.log(`Chances égales pour tous : ${(100 / PLAYERS).toFixed(1).replace('.', ',')} % chacun pour la 1re place.\n`);
-console.log('| Réglage | 1re place : chances du 1er | du 10e | du joueur médian | du dernier | 1er du classement sur le podium | au moins un joueur de la moitié basse sur le podium | hashrate 1er / médian |');
+console.log(`Chances égales pour tous : ${(100 / PLAYERS).toFixed(1).replace('.', ',')} % chacun.\n`);
+console.log('| Réglage | Chances de gagner : 1er du classement | 10e | joueur médian | dernier | Gagnant dans la moitié basse | Hashrate 1er ÷ médian | 1er ÷ dernier |');
 console.log('|---|---|---|---|---|---|---|---|');
 for (const r of rows) console.log(`| ${r.name} | ${evaluate(r).join(' | ')} |`);

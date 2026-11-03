@@ -12,6 +12,7 @@ hashrate. Le plus gros mineur est favori, mais rien n'est garanti.
 | Bonne réponse | 10 TH (facile), 20 (moyenne), 30 (difficile), 50 (expert) |
 | Rapidité | les 3 premières bonnes réponses reçues : +10 %, +5 %, +2 % du gain de base (facile : +1, +0,5, +0,2 TH) ; rien pour les suivantes |
 | Série | +10 % du gain de base par bonne réponse d'affilée après la 1re (2e d'affilée +10 %, 3e +20 %…), plafonné à +50 % |
+| Réinvestissement | chaque bonne réponse ajoute aussi 15 % des TH déjà gagnés : l'écart se creuse entre les bons joueurs et les autres (le 1er finit avec environ 29 fois le hashrate du dernier) |
 | Mauvaise réponse / pas de réponse | 0 TH, série remise à zéro, aucune pénalité |
 | Tirage | 1 gagnant tiré au sort (Web Crypto), probabilité = hashrate du joueur / hashrate total ; le classement final par TH sert aux autres lots |
 
@@ -34,8 +35,8 @@ place n'est jamais sur deux téléphones.
 Tous ces réglages se changent dans la console avant la 1re question, à la main ou avec
 l'un des trois profils (Équilibré, Ouvert, Compétitif). `docs/reglages.md` compare leurs
 effets sur les chances de chacun, simulation à l'appui : avec 50 joueurs, le 1er du
-classement a environ 4 % de chances de gagner la 1re place, contre 2 % pour un joueur
-moyen.
+classement a environ 6 % de chances de gagner le tirage, le joueur médian 1,6 %, le dernier
+0,2 %.
 
 ## Démarrage
 

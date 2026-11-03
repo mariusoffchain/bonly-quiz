@@ -366,6 +366,10 @@ function Settings({ view, send }: { view: ConsoleView; send: Send }) {
           <input type="number" min={0} value={Math.round(draft.streakBonusMax * 100)} onChange={(e) => set({ streakBonusMax: num(e.target.value) / 100 })} />
         </label>
         <label>
+          Réinvestissement par bonne réponse (%)
+          <input type="number" min={0} max={100} value={Math.round(draft.reinvestRate * 100)} onChange={(e) => set({ reinvestRate: num(e.target.value) / 100 })} />
+        </label>
+        <label>
           Gagnants tirés au sort
           <input type="number" min={1} max={20} value={draft.podiumSize} onChange={(e) => set({ podiumSize: num(e.target.value) })} />
         </label>
