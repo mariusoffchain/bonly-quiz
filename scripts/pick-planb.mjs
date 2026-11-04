@@ -51,17 +51,17 @@ const PARTS = [
     title: 'Pour les experts',
     subtitle: 'Les questions qui piquent',
     picks: [
-      { q: 'btc101/063' }, // 3,125 BTC
-      { q: 'btc101/060' }, // 2016 blocs
       { q: 'his201/033' }, // James Howells
       {
-        q: 'min101/019', // Adam Back
+        q: 'btc102/033', // inventeurs de Lightning
         explanation:
-          'Hashcash a été inventé par Adam Back en 1997 pour freiner le spam : chaque e-mail demandait un petit calcul. Satoshi Nakamoto le cite dans le livre blanc, et la preuve de travail de Bitcoin en reprend le principe.',
+          'Joseph Poon et Thaddeus Dryja ont publié le livre blanc du Lightning Network en 2015, puis sa version de référence en janvier 2016, pour faire passer Bitcoin à l’échelle.',
       },
-      { q: 'btc101/064' }, // 7e halving
-      { q: 'btc102/033' }, // inventeurs de Lightning
-      { q: 'cyp201/027' }, // malléabilité corrigée par SegWit
+      { q: 'his201/014' }, // Dwork et Naor, piège avec Adam Back
+      { q: 'min101/010' }, // nonce de 32 bits
+      { q: 'cyp201/047', as: 'hard' }, // 11 bits par mot de la phrase de récupération
+      { q: 'btc202/076' }, // mempool de 300 Mo par défaut
+      { q: 'his201/030' }, // date de naissance de Satoshi : 5 avril 1975
     ],
   },
 ];
@@ -81,7 +81,7 @@ try {
 } catch {}
 
 /** Chosen so that the right answer lands on A, B, C and D 5 or 6 times each, never 3 times in a row. */
-const SALT = Number(process.env.SALT ?? 195);
+const SALT = Number(process.env.SALT ?? 76);
 
 const hash = (s) => {
   let h = 2166136261;

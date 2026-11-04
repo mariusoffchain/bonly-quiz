@@ -18,8 +18,8 @@ auteur, son identifiant et son lien dans le champ `source`. Les questions et les
 sont reprises telles quelles ; seuls l'ordre des réponses et les liens markdown des
 explications (réduits à leur texte) changent. Deux explications ont été réécrites, signalées
 par « explication réécrite » dans `source.note` : El Salvador (le pays est revenu en 2025
-sur une partie de sa loi bitcoin) et Hashcash (la preuve de travail est antérieure à
-Hashcash). Toute redistribution de ces packs doit conserver l'attribution et la même
+sur une partie de sa loi bitcoin) et les inventeurs de Lightning (livre blanc publié en
+2015, pas en 2016). Toute redistribution de ces packs doit conserver l'attribution et la même
 licence.
 
 ## B-Only
