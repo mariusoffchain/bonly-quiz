@@ -155,10 +155,11 @@ h3 { font-size: 0.85rem; font-weight: 500; color: var(--muted); margin: 0 0 10px
 .lobby::before { content: ''; position: fixed; inset: 0; z-index: -1; background-image: radial-gradient(circle, #f6751b2e 1.4px, transparent 1.7px); background-size: 18px 18px; -webkit-mask-image: radial-gradient(ellipse at 60% 40%, #000 0%, transparent 75%); mask-image: radial-gradient(ellipse at 60% 40%, #000 0%, transparent 75%); }
 .lobby .mountains { position: fixed; width: 32vw; }
 .qr-block { display: flex; flex-direction: column; gap: 2vh; align-items: center; z-index: 1; }
-.qr-block img { height: 56vh; aspect-ratio: 1; background: #fff; padding: 1.4vh; border: 1px solid var(--rule); }
+.qr-block img { height: min(56vh, 34vw); aspect-ratio: 1; background: #fff; padding: 1.4vh; border: 1px solid var(--rule); }
 .qr-block figcaption { font-size: 1.3em; color: var(--ink); }
-.lobby-text { display: flex; flex-direction: column; gap: 3.5vh; align-self: stretch; justify-content: center; min-height: 0; z-index: 1; padding-bottom: 22vh; }
-.lobby-text h1 { font-family: var(--pixel); font-size: 3.6em; line-height: 1.05; letter-spacing: 0.01em; }
+/* safe center: in a small window the text overflows downward, never over the header; the bottom padding keeps it above the mountains (13.7vw tall). */
+.lobby-text { display: flex; flex-direction: column; gap: 3vh; align-self: stretch; justify-content: safe center; min-height: 0; z-index: 1; padding-bottom: min(22vh, 15vw); }
+.lobby-text h1 { font-family: var(--pixel); font-size: min(3.6em, 8vh, 5.5vw); line-height: 1.05; letter-spacing: 0.01em; }
 .lobby-text .rules { font-size: 1.1em; max-width: 34em; }
 .names { display: flex; flex-wrap: wrap; gap: 0.5em 1.6em; overflow: hidden; max-height: 22vh; font-size: 1.05em; color: var(--ink); }
 .names span { display: inline-flex; align-items: center; gap: 0.5em; }
@@ -192,9 +193,9 @@ h3 { font-size: 0.85rem; font-weight: 500; color: var(--muted); margin: 0 0 10px
 .odds .value { font-weight: 700; font-size: 2.2em; color: var(--orange-num); }
 .odds span:last-child { display: flex; align-items: center; gap: 0.5em; color: var(--ink); }
 .split .mountains { position: fixed; left: 0; right: auto; width: 34vw; transform: scaleX(-1); }
-.part-intro { display: flex; flex-direction: column; gap: 2.4vh; justify-content: center; padding-bottom: 18vh; }
+.part-intro { display: flex; flex-direction: column; gap: 2.4vh; justify-content: safe center; padding-bottom: min(18vh, 15vw); }
 .part-intro .part-n { font-family: var(--pixel); color: var(--orange-num); font-size: 1.6em; }
-.part-intro h1 { font-family: var(--pixel); font-size: 5em; line-height: 1; font-variant-ligatures: none; font-feature-settings: 'liga' 0, 'clig' 0; }
+.part-intro h1 { font-family: var(--pixel); font-size: min(5em, 10vh, 6.5vw); line-height: 1; font-variant-ligatures: none; font-feature-settings: 'liga' 0, 'clig' 0; }
 .part-intro .part-sub { font-size: 1.5em; color: var(--body); }
 .part-intro .part-gain { font-size: 1.3em; color: var(--ink); font-weight: 700; }
 .part-list { display: flex; flex-direction: column; gap: 1vh; }
