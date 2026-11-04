@@ -11,33 +11,61 @@ import os from 'node:os';
 import path from 'node:path';
 import YAML from 'yaml';
 
-/** course/quiz folder, in play order; `as` overrides Plan B's difficulty. */
-const PICKS = [
-  // easy
-  { q: 'min304/023' }, // 21 millions
-  { q: 'btc101/156' }, // 10 minutes
-  { q: 'btc202/008' }, // rôle d'un portefeuille
-  { q: 'min101/044' }, // CPU au début
-  { q: 'his201/012' }, // généraux byzantins
-  { q: 'his201/023' }, // livre blanc sur la Cryptography mailing list
-  { q: 'his201/052' }, // 1 Mo
-  // intermediate
-  { q: 'btc101/059' }, // 2140
-  { q: 'btc204/035' }, // réutilisation d'adresse
-  { q: 'eco204/054', as: 'intermediate' }, // seuil d'hyperinflation (facile chez Plan B)
-  { q: 'his201/028' }, // prédiction de Hal Finney
-  { q: 'his201/040' }, // bitcoins minés par Satoshi
-  { q: 'cyp201/016' }, // Schnorr avec Taproot
-  { q: 'btc101/215' }, // HTLC
-  // hard
-  { q: 'btc101/064' }, // 7e halving
-  { q: 'min101/010' }, // nonce de 32 bits
-  { q: 'btc101/116' }, // bloc 170
-  { q: 'his201/014' }, // inventeurs de la preuve de travail
-  { q: 'his201/033' }, // James Howells
-  { q: 'btc102/033' }, // inventeurs de Lightning
-  { q: 'cyp201/027' }, // malléabilité corrigée par SegWit
+/**
+ * The 3 parts of the game, in play order: course/quiz folder, `as` overrides Plan B's
+ * difficulty, `explanation` replaces Plan B's (outdated or inaccurate text).
+ * Part 1 is meant for beginners: someone new to Bitcoin should know at least 4 of 7.
+ */
+const PARTS = [
+  {
+    title: 'Les bases',
+    subtitle: 'Ce que tout le monde devrait savoir',
+    picks: [
+      { q: 'min304/023' }, // 21 millions
+      { q: 'btc101/054' }, // le halving
+      { q: 'min101/054' }, // la blockchain
+      { q: 'btc101/156' }, // 10 minutes
+      {
+        q: 'btc101/203', // El Salvador
+        explanation:
+          "El Salvador a fait du bitcoin une monnaie légale en septembre 2021, une première mondiale. Début 2025, le pays est revenu en partie sur cette loi : les commerçants ne sont plus obligés de l'accepter.",
+      },
+      { q: 'btc202/008' }, // rôle d'un portefeuille
+      { q: 'min101/044' }, // CPU au début
+    ],
+  },
+  {
+    title: 'Pour aller plus loin',
+    subtitle: 'Histoire, minage et Lightning',
+    picks: [
+      { q: 'btc101/059' }, // 2140
+      { q: 'btc102/029' }, // Bitmain
+      { q: 'his201/023', as: 'intermediate' }, // livre blanc sur la Cryptography mailing list
+      { q: 'his201/012', as: 'intermediate' }, // généraux byzantins
+      { q: 'his201/040' }, // bitcoins minés par Satoshi
+      { q: 'btc101/214' }, // ouverture de canal Lightning onchain
+      { q: 'cyp201/016' }, // Schnorr avec Taproot
+    ],
+  },
+  {
+    title: 'Pour les experts',
+    subtitle: 'Les questions qui piquent',
+    picks: [
+      { q: 'btc101/063' }, // 3,125 BTC
+      { q: 'btc101/060' }, // 2016 blocs
+      { q: 'his201/033' }, // James Howells
+      {
+        q: 'min101/019', // Adam Back
+        explanation:
+          'Hashcash a été inventé par Adam Back en 1997 pour freiner le spam : chaque e-mail demandait un petit calcul. Satoshi Nakamoto le cite dans le livre blanc, et la preuve de travail de Bitcoin en reprend le principe.',
+      },
+      { q: 'btc101/064' }, // 7e halving
+      { q: 'btc102/033' }, // inventeurs de Lightning
+      { q: 'cyp201/027' }, // malléabilité corrigée par SegWit
+    ],
+  },
 ];
+const PICKS = PARTS.flatMap((p) => p.picks);
 
 const args = Object.fromEntries(
   process.argv.slice(2).reduce((acc, a, i, arr) => (a.startsWith('--') ? [...acc, [a.slice(2), arr[i + 1]]] : acc), []),
@@ -53,7 +81,7 @@ try {
 } catch {}
 
 /** Chosen so that the right answer lands on A, B, C and D 5 or 6 times each, never 3 times in a row. */
-const SALT = Number(process.env.SALT ?? 43);
+const SALT = Number(process.env.SALT ?? 195);
 
 const hash = (s) => {
   let h = 2166136261;
@@ -65,7 +93,7 @@ const shuffle = (arr, seed) => {
   let x = seed || 1;
   for (let i = a.length - 1; i > 0; i--) {
     x = (Math.imul(x, 1103515245) + 12345) >>> 0;
-    const j = x % (i + 1);
+    const j = (x >>> 16) % (i + 1); // high bits: the low bits of this generator repeat
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
@@ -89,7 +117,7 @@ function chapterTitle(course, chapterId) {
 }
 
 const today = new Date().toISOString().slice(0, 10);
-const questions = PICKS.map(({ q, as }) => {
+const questions = PICKS.map(({ q, as, explanation }) => {
   const [course, dir] = q.split('/');
   const base = path.join(repo, 'courses', course, 'quizz', dir);
   const meta = YAML.parse(fs.readFileSync(path.join(base, 'question.yml'), 'utf8'));
@@ -103,7 +131,7 @@ const questions = PICKS.map(({ q, as }) => {
     options,
     correctIndex: options.indexOf(answer),
     difficulty: as ?? meta.difficulty,
-    explanation: plain(t.explanation) || undefined,
+    explanation: explanation ?? (plain(t.explanation) || undefined),
     source: {
       provider: 'Plan B Network (planb.academy)',
       license: 'CC BY-SA 4.0',
@@ -113,14 +141,15 @@ const questions = PICKS.map(({ q, as }) => {
       courseId: course,
       chapter: chapterTitle(course, meta.chapterId),
       retrievedAt: today,
-      note: `repo commit ${commit.slice(0, 12)}, lesson quiz, ${lang}${as ? `, difficulté Plan B : ${meta.difficulty}` : ''}`,
+      note: `repo commit ${commit.slice(0, 12)}, lesson quiz, ${lang}${as ? `, difficulté Plan B : ${meta.difficulty}` : ''}${explanation ? ', explication réécrite' : ''}`,
     },
   };
 });
 
 const pack = {
   name: 'B-only 2026 · 21 questions',
-  description: `21 questions choisies dans ${new Set(PICKS.map((p) => p.q.split('/')[0])).size} cours de Plan B Network, de la plus facile à la plus difficile (7 + 7 + 7). Source : Plan B Network, CC BY-SA 4.0.`,
+  description: `21 questions choisies dans ${new Set(PICKS.map((p) => p.q.split('/')[0])).size} cours de Plan B Network, en 3 parties de difficulté croissante (7 + 7 + 7). Source : Plan B Network, CC BY-SA 4.0.`,
+  parts: PARTS.map((p) => ({ title: p.title, subtitle: p.subtitle, questions: p.picks.length })),
   questions,
 };
 fs.writeFileSync(out, JSON.stringify(pack, null, 2) + '\n');

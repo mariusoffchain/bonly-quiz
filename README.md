@@ -1,8 +1,8 @@
 # bonly-quiz
 
-Quiz interactif pour B-only 2026. 21 questions sur Bitcoin. Chaque bonne réponse rapporte
-du hashrate fictif (en TH). À la fin, on tire au sort le podium (1re, 2e, 3e place) comme
-on mine un bloc : à chaque tirage, les chances d'un joueur sont égales à sa part du
+Quiz interactif pour B-only 2026. 21 questions sur Bitcoin, en 3 parties de plus en plus
+difficiles. Chaque bonne réponse rapporte du hashrate fictif (en TH). À la fin, on tire au
+sort le gagnant comme on mine un bloc : à chaque tirage, les chances d'un joueur sont égales à sa part du
 hashrate. Le plus gros mineur est favori, mais rien n'est garanti.
 
 ## Règles
@@ -107,11 +107,16 @@ Le trafic est faible : environ 40 Ko par téléphone pour une partie complète (
 
 1. Projeter `/board`, ouvrir `/console` sur l'ordinateur ou un téléphone de l'animateur.
 2. Les joueurs scannent le QR code et choisissent un nom (le leur ou celui de leur équipe).
-3. Console : « Lancer la question 1 ». La réponse s'affiche à la fin du chrono, ou dès que
+3. Console : « Annoncer la partie 1 ». L'écran présente la partie (titre, nombre de
+   questions, gain) et le rappel des règles : c'est le moment de les expliquer.
+4. Console : « Lancer la partie 1 ». La réponse s'affiche à la fin du chrono, ou dès que
    tout le monde a répondu. L'écran montre la bonne réponse, les meilleurs gains et le
    classement ; chaque téléphone montre le gain détaillé, le rang et les chances de bloc.
-4. Console : « Question 2 / 21 », et ainsi de suite.
-5. Après la 21e : « Classement final », puis « Tirer le gagnant ».
+5. Console : « Question 2 / 21 », et ainsi de suite.
+6. Après la 7e : « Fin de la partie 1 : classement ». L'écran affiche le classement
+   provisoire et annonce la partie 2 ; chaque téléphone montre son bilan. L'animateur
+   commente, puis « Lancer la partie 2 ». Pareil après la 14e.
+7. Après la 21e : « Classement final », puis « Tirer le gagnant ».
 
 En cas d'erreur sur une question : « Annuler la question » la ferme sans attribuer de
 points et sans casser les séries. « Nouvelle partie » repart de zéro (les joueurs se
@@ -133,21 +138,28 @@ La console accepte aussi `/console?token=…` pour se connecter sans saisir le j
 ## Questions
 
 `content/questions/bonly-21-fr.json` est le pack par défaut : 21 questions choisies dans
-9 cours de la Plan B Academy (minage, histoire, portefeuilles, confidentialité,
-cryptographie, Lightning, hyperinflation), 7 faciles, 7 moyennes, 7 difficiles, dans cet
-ordre, licence CC BY-SA 4.0. `demo-fr.json` (5 questions) sert aux répétitions. La console
-permet de changer de pack avant la 1re question ; la partie joue les N premières questions
-du pack (N = 21 par défaut).
+les cours de la Plan B Academy, licence CC BY-SA 4.0, en 3 parties de 7 :
 
-La sélection est dans `scripts/pick-planb.mjs` (liste des questions retenues, une ligne
-chacune). Pour en changer, modifier la liste puis, depuis un clone du dépôt Plan B Network :
-`node scripts/pick-planb.mjs --repo chemin/vers/bitcoin-educational-content`.
+| Partie | Niveau Plan B | Gain | Contenu |
+|---|---|---|---|
+| 1. Les bases | facile | 10 TH | 21 millions, halving, blockchain, 10 minutes, El Salvador, clés privées, CPU. Un débutant doit en connaître au moins 4 sur 7. |
+| 2. Pour aller plus loin | moyen | 20 TH | 2140, Bitmain, livre blanc, généraux byzantins, bitcoins de Satoshi, Lightning, Schnorr |
+| 3. Pour les experts | difficile | 30 TH | 3,125 BTC, ajustement de difficulté, James Howells, Hashcash, 7e halving, inventeurs de Lightning, malléabilité |
+
+`demo-fr.json` (5 questions) sert aux répétitions. La console permet de changer de pack
+avant la 1re question ; la partie joue les N premières questions du pack (N = 21 par
+défaut), et les parties sont coupées d'autant.
+
+La sélection est dans `scripts/pick-planb.mjs` (les 3 parties et leurs questions, une
+ligne chacune). Pour en changer, modifier la liste puis, depuis un clone du dépôt Plan B
+Network : `node scripts/pick-planb.mjs --repo chemin/vers/bitcoin-educational-content`.
 
 Format d'un pack :
 
 ```json
 {
   "name": "Nom du pack",
+  "parts": [{ "title": "Les bases", "subtitle": "…", "questions": 7 }, …],
   "questions": [
     { "id": "q1", "type": "single-choice", "text": "…", "options": ["a", "b", "c", "d"],
       "correctIndex": 2, "difficulty": "easy|intermediate|hard|expert", "durationMs": 20000,
@@ -156,7 +168,8 @@ Format d'un pack :
 }
 ```
 
-2 à 4 options par question. `durationMs` et `explanation` sont facultatifs.
+2 à 4 options par question. `parts`, `durationMs` et `explanation` sont facultatifs ; les
+parties se suivent dans l'ordre et leurs `questions` additionnées font le total du pack.
 `npm run import:planb` régénère `planb-btc101-fr.json` (50 questions) depuis un clone du
 dépôt Plan B Network.
 

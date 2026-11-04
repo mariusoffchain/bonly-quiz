@@ -25,7 +25,14 @@ export function validatePack(pack: unknown, file = 'inline'): ContentPack {
     if (!DIFFS.has(q.difficulty)) throw new Error(`${file}: question ${q.id} has an invalid difficulty`);
     if (q.durationMs !== undefined && !(q.durationMs >= 3000)) throw new Error(`${file}: question ${q.id} duration < 3000 ms`);
   }
-  return { name: p.name, description: p.description, questions: p.questions as Question[] };
+  if (p.parts !== undefined) {
+    const ok =
+      Array.isArray(p.parts) &&
+      p.parts.every((x) => x && typeof x.title === 'string' && x.title.trim() && Number.isInteger(x.questions) && x.questions > 0) &&
+      p.parts.reduce((s, x) => s + x.questions, 0) === p.questions.length;
+    if (!ok) throw new Error(`${file}: parts need a title and a question count, adding up to ${p.questions.length}`);
+  }
+  return { name: p.name, description: p.description, parts: p.parts, questions: p.questions as Question[] };
 }
 
 export class ContentLibrary {

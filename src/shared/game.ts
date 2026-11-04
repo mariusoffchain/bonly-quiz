@@ -3,6 +3,15 @@ import { cryptoRng, drawWinner, fakeBlockHash, type Rng } from './draw.js';
 import { round1, scoreAnswer, speedRanks } from './scoring.js';
 import type { BlockDraw, ContentPack, GameEvent, Phase, Player, QuestionRun, SessionState } from './types.js';
 
+/** A part of the game as played: questions `from` to `to` (excluded), 0-based. */
+export interface PartRange {
+  n: number;
+  title: string;
+  subtitle?: string;
+  from: number;
+  to: number;
+}
+
 export class GameError extends Error {
   constructor(public code: string, message: string) {
     super(message);
@@ -15,7 +24,7 @@ export interface GameDeps {
   newToken?: () => string;
 }
 
-export type StepAction = 'open' | 'close' | 'finish' | 'mine';
+export type StepAction = 'announce' | 'open' | 'close' | 'finish' | 'mine';
 export interface NextStep {
   /** Changes with every transition, so a double click or a stale screen cannot skip a step. */
   key: string;
@@ -34,8 +43,9 @@ export const PLAYER_COLORS = 12;
 
 /**
  * Authoritative game engine. Time (`now`) and randomness (`rng`) are injected so
- * every rule is unit-testable. One game = N questions in a row, then a podium
- * drawn place by place, weighted by the hashrate earned.
+ * every rule is unit-testable. One game = N questions in a row, optionally split
+ * into parts announced on the big screen, then a podium drawn place by place,
+ * weighted by the hashrate earned.
  */
 export class Game {
   state: SessionState;
@@ -62,6 +72,7 @@ export class Game {
         config: { ...DEFAULT_CONFIG, ...config },
         packName: pack.name,
         questions: pack.questions,
+        parts: pack.parts,
         phase: 'lobby',
         current: -1,
         runs: [],
@@ -95,6 +106,29 @@ export class Game {
     return Math.min(this.state.config.questionCount, this.state.questions.length);
   }
 
+  /** The parts actually played (cut at `total` when fewer questions are played). */
+  parts(): PartRange[] {
+    const out: PartRange[] = [];
+    let from = 0;
+    for (const p of this.state.parts ?? []) {
+      if (from >= this.total) break;
+      const to = Math.min(this.total, from + p.questions);
+      out.push({ n: out.length + 1, title: p.title, subtitle: p.subtitle, from, to });
+      from = to;
+    }
+    return out;
+  }
+
+  /** The part containing question `index`. */
+  partOf(index: number): PartRange | undefined {
+    return this.parts().find((p) => index >= p.from && index < p.to);
+  }
+
+  /** The part that starts at question `index`, if one does. */
+  private partStartingAt(index: number): PartRange | undefined {
+    return this.parts().find((p) => p.from === index);
+  }
+
   get run(): QuestionRun | undefined {
     return this.state.runs[this.state.current];
   }
@@ -124,6 +158,7 @@ export class Game {
     if (this.state.phase !== 'lobby') throw new GameError('locked', 'Le pack se change avant la 1re question.');
     this.state.packName = pack.name;
     this.state.questions = pack.questions;
+    this.state.parts = pack.parts;
     this.emit(now, 'pack.updated', { name: pack.name, questions: pack.questions.length });
   }
 
@@ -198,13 +233,19 @@ export class Game {
     const key = `${s.code}:${s.phase}:${s.current}:${s.blocks.length}`;
     switch (s.phase) {
       case 'lobby':
-        return this.total > 0 ? { key, action: 'open', label: 'Lancer la question 1' } : null;
+        if (this.total === 0) return null;
+        return this.partStartingAt(0)
+          ? { key, action: 'announce', label: 'Annoncer la partie 1' }
+          : { key, action: 'open', label: 'Lancer la question 1' };
+      case 'intermission':
+        return { key, action: 'open', label: `Lancer la partie ${this.partOf(s.current + 1)?.n ?? ''}` };
       case 'question':
         return { key, action: 'close', label: 'Révéler la réponse maintenant' };
       case 'reveal':
-        return s.current + 1 < this.total
-          ? { key, action: 'open', label: `Question ${s.current + 2} / ${this.total}` }
-          : { key, action: 'finish', label: 'Classement final' };
+        if (s.current + 1 >= this.total) return { key, action: 'finish', label: 'Classement final' };
+        return this.partStartingAt(s.current + 1)
+          ? { key, action: 'announce', label: `Fin de la partie ${this.partOf(s.current)?.n ?? ''} : classement` }
+          : { key, action: 'open', label: `Question ${s.current + 2} / ${this.total}` };
       case 'final':
         if (this.miningBlock(now)) return null;
         if (s.blocks.length >= s.config.podiumSize || this.drawCandidates().length === 0) return null;
@@ -215,15 +256,27 @@ export class Game {
   advance(expectedKey: string, now: number): void {
     const step = this.nextStep(now);
     if (!step || step.key !== expectedKey) throw new GameError('stale-step', 'Cette étape a déjà changé.');
-    if (step.action === 'open') this.openQuestion(now);
+    if (step.action === 'announce') this.announcePart(now);
+    else if (step.action === 'open') this.openQuestion(now);
     else if (step.action === 'close') this.closeQuestion(now);
     else if (step.action === 'finish') this.finish(now);
     else this.mineBlock(now);
   }
 
+  /** Show the next part on the big screen (and the standings so far), before its first question. */
+  announcePart(now: number): PartRange {
+    const s = this.state;
+    if (s.phase !== 'lobby' && s.phase !== 'reveal') throw new GameError('bad-phase', 'Impossible d’annoncer une partie maintenant.');
+    const part = this.partStartingAt(s.current + 1);
+    if (!part) throw new GameError('no-part', 'Aucune partie ne commence ici.');
+    s.phase = 'intermission';
+    this.emit(now, 'part.announced', { n: part.n, title: part.title });
+    return part;
+  }
+
   openQuestion(now: number): QuestionRun {
     const s = this.state;
-    if (s.phase !== 'lobby' && s.phase !== 'reveal') throw new GameError('bad-phase', 'Impossible d’ouvrir une question maintenant.');
+    if (s.phase !== 'lobby' && s.phase !== 'reveal' && s.phase !== 'intermission') throw new GameError('bad-phase', 'Impossible d’ouvrir une question maintenant.');
     const index = s.current + 1;
     if (index >= this.total) throw new GameError('no-more', 'Plus de question.');
     const q = s.questions[index];

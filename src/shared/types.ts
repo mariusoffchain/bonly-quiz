@@ -29,9 +29,18 @@ export interface Question {
   demo?: boolean;
 }
 
+/** A part of the game: the next `questions` questions of the pack, announced on the big screen. */
+export interface PartDef {
+  title: string;
+  subtitle?: string;
+  questions: number;
+}
+
 export interface ContentPack {
   name: string;
   description?: string;
+  /** Optional split of the questions into parts, in order; the counts add up to the number of questions. */
+  parts?: PartDef[];
   questions: Question[];
 }
 
@@ -106,7 +115,8 @@ export interface BlockDraw {
   roll: number;
 }
 
-export type Phase = 'lobby' | 'question' | 'reveal' | 'final';
+/** `intermission`: a part is announced on the big screen (with the standings after part 1) before its first question. */
+export type Phase = 'lobby' | 'intermission' | 'question' | 'reveal' | 'final';
 
 export interface GameEvent {
   seq: number;
@@ -123,6 +133,8 @@ export interface SessionState {
   packName: string;
   /** The questions of the pack, in pack order. */
   questions: Question[];
+  /** Parts of the pack, if it has some. */
+  parts?: PartDef[];
   phase: Phase;
   /** Index of the current question run, -1 before the first. */
   current: number;

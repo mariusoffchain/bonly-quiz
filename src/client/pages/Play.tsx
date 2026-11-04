@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { PlayerView } from '../../shared/views';
 import { ConnBadge, Countdown, Label, Mining, NetworkBar, Rules, Wordmark } from '../components/ui';
-import { LETTERS, difficultyLabel, pct, placeLabel, seconds, ths } from '../lib/format';
+import { LETTERS, difficultyLabel, gainsLabel, partPrefix, pct, placeLabel, seconds, ths } from '../lib/format';
 import { useQuizSocket, useTicker } from '../lib/ws';
 
 const TOKEN_KEY = 'bq_token';
@@ -107,6 +107,7 @@ export function Play() {
             <Rules config={view.config} />
           </>
         ) : null}
+        {view.phase === 'intermission' ? <Intermission view={view} /> : null}
         {view.phase === 'question' && view.question ? (
           <QuestionPad
             view={view}
@@ -227,7 +228,7 @@ function QuestionPad({
   return (
     <>
       <Label>
-        Question {q.index + 1}/{q.total} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH
+        {partPrefix(view)}Question {q.index + 1}/{q.total} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH
       </Label>
       <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={serverNow} />
       <h2 className="q-text">{q.text}</h2>
@@ -303,6 +304,36 @@ function Reveal({ view }: { view: PlayerView }) {
       )}
       <Standing view={view} />
       {q.explanation ? <p className="explain">{q.explanation}</p> : null}
+    </>
+  );
+}
+
+function Intermission({ view }: { view: PlayerView }) {
+  const part = view.parts[view.part ?? 0];
+  if (!part) return null;
+  const me = view.me!;
+  return (
+    <>
+      {part.n > 1 ? (
+        <>
+          <Label>Fin de la partie {part.n - 1}</Label>
+          <p className="big-line">
+            {me.correctCount} bonne{me.correctCount > 1 ? 's' : ''} réponse{me.correctCount > 1 ? 's' : ''} sur {part.from}, vous êtes {me.rank}
+            {me.rank === 1 ? 'er' : 'e'} sur {view.players.length}.
+          </p>
+          <Standing view={view} />
+        </>
+      ) : null}
+      <section className="part-next">
+        <Label>
+          Partie {part.n} / {view.parts.length}
+        </Label>
+        <p className="part-title">{part.title}</p>
+        {part.subtitle ? <p className="muted">{part.subtitle}</p> : null}
+        <p>
+          {part.count} question{part.count > 1 ? 's' : ''} {gainsLabel(part.gains)}. Regardez l’écran, ça commence.
+        </p>
+      </section>
     </>
   );
 }

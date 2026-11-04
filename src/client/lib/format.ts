@@ -17,6 +17,14 @@ export const pct = (share: number, digits = 1) => `${(share * 100).toFixed(digit
 
 export const seconds = (ms: number) => `${(ms / 1000).toFixed(1).replace('.', ',')} s`;
 
+/** "à 20 TH", or "de 20 à 50 TH" when a part mixes difficulties. */
+export const gainsLabel = (gains: number[]) =>
+  gains.length === 0 ? '' : gains.length === 1 ? `à ${ths(gains[0])}` : `de ${ths(gains[0], false)} à ${ths(gains[gains.length - 1])}`;
+
+/** "Partie 2 / 3 · " before a question number, when the game has parts. */
+export const partPrefix = (view: { parts: { n: number }[]; part?: number }) =>
+  view.part !== undefined && view.parts.length > 1 ? `Partie ${view.part + 1} / ${view.parts.length} · ` : '';
+
 export const LETTERS = ['A', 'B', 'C', 'D'];
 
 export const difficultyLabel = { easy: 'facile', intermediate: 'moyenne', hard: 'difficile', expert: 'expert' } as const;

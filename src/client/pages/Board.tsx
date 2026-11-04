@@ -1,6 +1,6 @@
 import type { BoardView } from '../../shared/views';
 import { ConnBadge, Countdown, Label, Mining, Mountains, NetworkBar, Rules, Standings, Swatch, Wordmark } from '../components/ui';
-import { LETTERS, difficultyLabel, pct, placeLabel, seconds, ths } from '../lib/format';
+import { LETTERS, difficultyLabel, gainsLabel, partPrefix, pct, placeLabel, seconds, ths } from '../lib/format';
 import { useQuizSocket } from '../lib/ws';
 
 export function Board() {
@@ -12,6 +12,7 @@ export function Board() {
       <ConnBadge conn={sock.conn} />
       <Head view={view} />
       {view.phase === 'lobby' ? <Lobby view={view} /> : null}
+      {view.phase === 'intermission' ? <Intermission view={view} /> : null}
       {view.phase === 'question' ? <Question view={view} serverNow={sock.serverNow} /> : null}
       {view.phase === 'reveal' ? <Reveal view={view} /> : null}
       {view.phase === 'final' ? <Final view={view} serverNow={sock.serverNow} /> : null}
@@ -21,12 +22,20 @@ export function Board() {
 
 function Head({ view }: { view: BoardView }) {
   const q = view.question;
-  const done = view.phase === 'final' ? view.questionTotal : q ? q.index + (view.phase === 'question' ? 0 : 1) : 0;
+  const part = view.part !== undefined ? view.parts[view.part] : undefined;
+  const done =
+    view.phase === 'final' ? view.questionTotal : view.phase === 'intermission' ? (part?.from ?? 0) : q ? q.index + (view.phase === 'question' ? 0 : 1) : 0;
   return (
     <header className="board-head">
       <Wordmark />
       <span className="muted">
-        {view.phase === 'lobby' ? `${view.questionTotal} questions` : view.phase === 'final' ? 'Fin du quiz' : `Question ${q!.index + 1} / ${view.questionTotal}`}
+        {view.phase === 'lobby'
+          ? `${view.questionTotal} questions${view.parts.length > 1 ? ` en ${view.parts.length} parties` : ''}`
+          : view.phase === 'final'
+            ? 'Fin du quiz'
+            : view.phase === 'intermission'
+              ? `Partie ${(view.part ?? 0) + 1} / ${view.parts.length}`
+              : `${partPrefix(view)}Question ${q!.index + 1} / ${view.questionTotal}`}
       </span>
       <span className="head-right">
         <span className="mono">{ths(view.totalHashrate)}</span>
@@ -50,7 +59,10 @@ function Lobby({ view }: { view: BoardView }) {
         <figcaption className="mono">{view.joinUrl.replace(/^https?:\/\//, '')}</figcaption>
       </figure>
       <section className="lobby-text">
-        <Label>{view.questionTotal} questions sur Bitcoin</Label>
+        <Label>
+          {view.questionTotal} questions sur Bitcoin
+          {view.parts.length > 1 ? `, en ${view.parts.length} parties de plus en plus difficiles` : ''}
+        </Label>
         <h1>Scannez pour jouer.</h1>
         <Rules config={view.config} />
         <div className="names">
@@ -67,6 +79,52 @@ function Lobby({ view }: { view: BoardView }) {
   );
 }
 
+/** A part is announced: what comes next and, after the first part, the standings so far. */
+function Intermission({ view }: { view: BoardView }) {
+  const part = view.parts[view.part ?? 0];
+  if (!part) return null;
+  const ended = part.n > 1 ? view.parts[part.n - 2] : undefined;
+  return (
+    <main className="split">
+      <section className="part-intro">
+        {ended ? <Label>Fin de la partie {ended.n} · {ended.title}</Label> : <Label>C’est parti</Label>}
+        <p className="part-n">
+          Partie {part.n} / {view.parts.length}
+        </p>
+        <h1>{part.title}</h1>
+        {part.subtitle ? <p className="part-sub">{part.subtitle}</p> : null}
+        <p className="part-gain">
+          {part.count} question{part.count > 1 ? 's' : ''} {gainsLabel(part.gains)}
+        </p>
+      </section>
+      <aside>
+        {ended ? (
+          <>
+            <Label>Classement provisoire</Label>
+            <NetworkBar players={view.players} />
+            <Standings players={view.players} limit={10} />
+          </>
+        ) : (
+          <>
+            <Label>Les parties</Label>
+            <ol className="part-list">
+              {view.parts.map((p) => (
+                <li key={p.n} className={p.n === part.n ? 'on' : ''}>
+                  <span className="pn">{p.n}</span>
+                  <span className="grow">{p.title}</span>
+                  <span className="mono">{gainsLabel(p.gains)}</span>
+                </li>
+              ))}
+            </ol>
+            <Rules config={view.config} />
+          </>
+        )}
+      </aside>
+      <Mountains />
+    </main>
+  );
+}
+
 function Question({ view, serverNow }: { view: BoardView; serverNow: () => number }) {
   const q = view.question!;
   const n = view.players.length;
@@ -74,7 +132,7 @@ function Question({ view, serverNow }: { view: BoardView; serverNow: () => numbe
     <main className="question">
       <div className="q-meta">
         <Label>
-          Question {q.index + 1} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH
+          {partPrefix(view)}Question {q.index + 1} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH
         </Label>
         <span className="muted">
           {q.answerCount} / {n} réponses

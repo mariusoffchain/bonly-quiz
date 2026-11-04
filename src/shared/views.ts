@@ -56,6 +56,18 @@ export interface BlockPublic {
   roll?: number;
 }
 
+export interface PartPublic {
+  /** 1-based. */
+  n: number;
+  title: string;
+  subtitle?: string;
+  /** First question, 0-based. */
+  from: number;
+  count: number;
+  /** Base gains of its questions, distinct, ascending (TH). */
+  gains: number[];
+}
+
 export type PublicConfig = Pick<
   SessionConfig,
   'baseGainThs' | 'speedBonusRanks' | 'streakBonusStep' | 'streakBonusMax' | 'reinvestRate' | 'startHashrateThs' | 'podiumSize' | 'miningDurationMs'
@@ -68,6 +80,13 @@ export interface BoardView {
   phase: Phase;
   packName: string;
   questionTotal: number;
+  /** Parts of the game; empty when the pack has none. */
+  parts: PartPublic[];
+  /**
+   * 0-based index in `parts` of the part being played, or announced during an
+   * intermission. Undefined in the lobby, at the end, or without parts.
+   */
+  part?: number;
   question?: QuestionPublic;
   players: PlayerPublic[];
   totalHashrate: number;
@@ -173,10 +192,26 @@ function blocks(game: Game, now: number): BlockPublic[] {
   });
 }
 
+function parts(game: Game): { list: PartPublic[]; current?: number } {
+  const s = game.state;
+  const list = game.parts().map((p) => ({
+    n: p.n,
+    title: p.title,
+    subtitle: p.subtitle,
+    from: p.from,
+    count: p.to - p.from,
+    gains: [...new Set(s.questions.slice(p.from, p.to).map((q) => s.config.baseGainThs[q.difficulty]))].sort((a, b) => a - b),
+  }));
+  const index = s.phase === 'intermission' ? s.current + 1 : s.phase === 'question' || s.phase === 'reveal' ? s.current : -1;
+  const n = index >= 0 ? game.partOf(index)?.n : undefined;
+  return { list, current: n === undefined ? undefined : n - 1 };
+}
+
 export function boardView(game: Game, now: number, joinUrl: string): BoardView {
   const s = game.state;
   const { list, total } = players(game);
   const c = s.config;
+  const p = parts(game);
   return {
     kind: 'board',
     code: s.code,
@@ -184,7 +219,9 @@ export function boardView(game: Game, now: number, joinUrl: string): BoardView {
     phase: s.phase,
     packName: s.packName,
     questionTotal: game.total,
-    question: question(game, false),
+    parts: p.list,
+    part: p.current,
+    question: s.phase === 'intermission' ? undefined : question(game, false),
     players: list,
     totalHashrate: total,
     blocks: blocks(game, now),
@@ -220,7 +257,7 @@ export function consoleView(game: Game, now: number, joinUrl: string, extra: { p
   return {
     ...b,
     kind: 'console',
-    question: question(game, true),
+    question: game.state.phase === 'intermission' ? undefined : question(game, true),
     next: game.nextStep(now),
     fullConfig: game.state.config,
     questions: game.state.questions.slice(0, game.total),

@@ -253,4 +253,44 @@ describe('Game', () => {
     g.openQuestion(T0);
     expect(() => g.setConfig({ questionCount: 5 }, T0)).toThrow(/avant la 1re question/);
   });
+  it('announces each part before its first question, with labels on the console button', () => {
+    const parts = { name: 'parts', parts: [{ title: 'Les bases', questions: 2 }, { title: 'Experts', subtitle: 'ça pique', questions: 1 }], questions: [q('a'), q('b'), q('c', 'hard')] };
+    const g = Game.create('TEST', T0, parts, {}, deps());
+    const p = g.join('P', T0);
+    const step = () => g.nextStep(T0)!;
+    const go = () => g.advance(step().key, T0);
+    expect(step()).toMatchObject({ action: 'announce', label: 'Annoncer la partie 1' });
+    go();
+    expect(g.phase).toBe('intermission');
+    let view = playerView(g, T0, 'http://x', p.id);
+    expect(view.part).toBe(0);
+    expect(view.question).toBeUndefined();
+    expect(view.parts).toEqual([
+      { n: 1, title: 'Les bases', subtitle: undefined, from: 0, count: 2, gains: [10] },
+      { n: 2, title: 'Experts', subtitle: 'ça pique', from: 2, count: 1, gains: [30] },
+    ]);
+    expect(step()).toMatchObject({ action: 'open', label: 'Lancer la partie 1' });
+    go();
+    expect(boardView(g, T0, 'http://x').part).toBe(0);
+    go(); // close q1
+    expect(step()).toMatchObject({ action: 'open', label: 'Question 2 / 3' });
+    go();
+    go(); // close q2
+    expect(step()).toMatchObject({ action: 'announce', label: 'Fin de la partie 1 : classement' });
+    go();
+    view = playerView(g, T0, 'http://x', p.id);
+    expect(view).toMatchObject({ phase: 'intermission', part: 1 });
+    expect(step()).toMatchObject({ action: 'open', label: 'Lancer la partie 2' });
+    go();
+    expect(g.run?.index).toBe(2);
+    go(); // close q3
+    expect(step()).toMatchObject({ action: 'finish' });
+  });
+
+  it('cuts the parts when fewer questions are played, and has no announce step without parts', () => {
+    const parts = { name: 'parts', parts: [{ title: 'A', questions: 2 }, { title: 'B', questions: 2 }], questions: [q('a'), q('b'), q('c'), q('d')] };
+    const g = Game.create('TEST', T0, parts, { questionCount: 2 }, deps());
+    expect(g.parts().map((x) => [x.from, x.to])).toEqual([[0, 2]]);
+    expect(Game.create('TEST', T0, pack(2), {}, deps()).nextStep(T0)).toMatchObject({ action: 'open', label: 'Lancer la question 1' });
+  });
 });

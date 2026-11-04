@@ -11,12 +11,15 @@ partie sont des tirages au sort pondérés par ce hashrate. Les hashs affichés 
 Les questions des packs `content/questions/bonly-21-fr.json` et
 `content/questions/planb-btc101-fr.json` proviennent du dépôt
 [PlanB-Network/bitcoin-educational-content](https://github.com/PlanB-Network/bitcoin-educational-content)
-(quiz de fin de leçon des cours de la Plan B Academy : btc101, btc102, btc202, btc204,
-his201, min101, min304, cyp201, eco204), licence
+(quiz de fin de leçon des cours de la Plan B Academy : btc101, btc102, btc202, his201,
+min101, min304, cyp201), licence
 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Chaque question garde son
-auteur, son identifiant et son lien dans le champ `source`. Les textes sont repris tels
-quels ; seuls l'ordre des réponses et les liens markdown des explications (réduits à leur
-texte) changent. Toute redistribution de ces packs doit conserver l'attribution et la même
+auteur, son identifiant et son lien dans le champ `source`. Les questions et les réponses
+sont reprises telles quelles ; seuls l'ordre des réponses et les liens markdown des
+explications (réduits à leur texte) changent. Deux explications ont été réécrites, signalées
+par « explication réécrite » dans `source.note` : El Salvador (le pays est revenu en 2025
+sur une partie de sa loi bitcoin) et Hashcash (la preuve de travail est antérieure à
+Hashcash). Toute redistribution de ces packs doit conserver l'attribution et la même
 licence.
 
 ## B-Only

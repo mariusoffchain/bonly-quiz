@@ -1,18 +1,35 @@
 {
   "name": "B-only 2026 · 21 questions",
-  "description": "21 questions choisies dans 9 cours de Plan B Network, de la plus facile à la plus difficile (7 + 7 + 7). Source : Plan B Network, CC BY-SA 4.0.",
+  "description": "21 questions choisies dans 7 cours de Plan B Network, en 3 parties de difficulté croissante (7 + 7 + 7). Source : Plan B Network, CC BY-SA 4.0.",
+  "parts": [
+    {
+      "title": "Les bases",
+      "subtitle": "Ce que tout le monde devrait savoir",
+      "questions": 7
+    },
+    {
+      "title": "Pour aller plus loin",
+      "subtitle": "Histoire, minage et Lightning",
+      "questions": 7
+    },
+    {
+      "title": "Pour les experts",
+      "subtitle": "Les questions qui piquent",
+      "questions": 7
+    }
+  ],
   "questions": [
     {
       "id": "planb-min304-023",
       "type": "single-choice",
       "text": "Quel est le nombre maximum de bitcoins qui peuvent être créés ?",
       "options": [
-        "environ 21 millions d'unités",
         "environ 25 millions d'unités",
+        "environ 30 millions d'unités",
         "plus ou moins 18 millions d'unités",
-        "environ 30 millions d'unités"
+        "environ 21 millions d'unités"
       ],
-      "correctIndex": 0,
+      "correctIndex": 3,
       "difficulty": "easy",
       "explanation": "La création de Bitcoin est caractérisée par un plafond fixe de 21 millions d'unités.",
       "source": {
@@ -23,7 +40,57 @@
         "sourceId": "3078256e-9f10-4cd1-84d4-bf466740f6e2",
         "courseId": "min304",
         "chapter": "Les nuances de l'industrie du minage",
-        "retrievedAt": "2026-10-31",
+        "retrievedAt": "2026-11-04",
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-054",
+      "type": "single-choice",
+      "text": "Quel est le nom de l'événement lors duquel la récompense de minage est divisée par deux ?",
+      "options": [
+        "Tripling",
+        "Halving",
+        "Doubling",
+        "Quartering"
+      ],
+      "correctIndex": 1,
+      "difficulty": "easy",
+      "explanation": "L'événement lors duquel la récompense de minage est divisée par deux est appelé halving. Cet événement donne à la courbe d'émission monétaire une forme d'escalier.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/054",
+        "author": "DecouvreBitcoin",
+        "sourceId": "1296bb6f-47f5-4cbe-9743-423e8baf3404",
+        "courseId": "btc101",
+        "chapter": "21 millions de bitcoins",
+        "retrievedAt": "2026-11-04",
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-min101-054",
+      "type": "single-choice",
+      "text": "Comment s’appelle le registre public partagé où l’on écrit l’historique des paiements en bitcoins ?",
+      "options": [
+        "Le wallet",
+        "Le hashrate",
+        "La blockchain",
+        "La mempool"
+      ],
+      "correctIndex": 2,
+      "difficulty": "easy",
+      "explanation": "Le registre public partagé qui contient toutes les transactions s'appelle la blockchain.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/min101/quizz/054",
+        "author": "6516474c-c190-41f2-b2ab-3d452ce7bdf0",
+        "sourceId": "d3af25de-1388-49af-a62e-a0ada2450913",
+        "courseId": "min101",
+        "chapter": "Le minage de Bitcoin expliqué simplement",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr"
       }
     },
@@ -33,9 +100,9 @@
       "text": "Quel est le temps moyen entre la création de deux blocs dans le protocole Bitcoin ?",
       "options": [
         "10 minutes",
-        "15 minutes",
         "20 minutes",
-        "5 minutes"
+        "5 minutes",
+        "15 minutes"
       ],
       "correctIndex": 0,
       "difficulty": "easy",
@@ -48,8 +115,33 @@
         "sourceId": "c1b095fc-a016-4357-81ed-c297b7ff8291",
         "courseId": "btc101",
         "chapter": "Bitcoin et écologie",
-        "retrievedAt": "2026-10-31",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-203",
+      "type": "single-choice",
+      "text": "Quel pays a déclaré le Bitcoin comme monnaie légale ?",
+      "options": [
+        "Chine",
+        "États-Unis",
+        "El Salvador",
+        "Inde"
+      ],
+      "correctIndex": 2,
+      "difficulty": "easy",
+      "explanation": "El Salvador a fait du bitcoin une monnaie légale en septembre 2021, une première mondiale. Début 2025, le pays est revenu en partie sur cette loi : les commerçants ne sont plus obligés de l'accepter.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/203",
+        "author": "DecouvreBitcoin",
+        "sourceId": "e58399a5-0e00-4283-b4fb-1b29d53e31d4",
+        "courseId": "btc101",
+        "chapter": "Hyper-bitcoinisation",
+        "retrievedAt": "2026-11-04",
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr, explication réécrite"
       }
     },
     {
@@ -57,12 +149,12 @@
       "type": "single-choice",
       "text": "Quelle est la fonction principale d’un portefeuille Bitcoin ?",
       "options": [
-        "Stocker et gérer la blockchain complète",
-        "Relayer les transactions du réseau",
         "Vérifier la validité des blocs",
-        "Stocker et gérer les clés privées"
+        "Stocker et gérer les clés privées",
+        "Relayer les transactions du réseau",
+        "Stocker et gérer la blockchain complète"
       ],
-      "correctIndex": 3,
+      "correctIndex": 1,
       "difficulty": "easy",
       "explanation": "Un portefeuille Bitcoin gère les clés privées qui permettent de dépenser les bitcoins, mais il n’exécute pas les fonctions d’un nœud.",
       "source": {
@@ -73,7 +165,7 @@
         "sourceId": "bc105954-44de-438c-be5d-68a4e4e1354e",
         "courseId": "btc202",
         "chapter": "Quelle est la différence entre un nœud et un portefeuille ?",
-        "retrievedAt": "2026-10-31",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr"
       }
     },
@@ -82,8 +174,8 @@
       "type": "single-choice",
       "text": "Avec quel type de matériel le minage s’effectuait-il surtout au tout début de Bitcoin ?",
       "options": [
-        "GPU",
         "FPGA",
+        "GPU",
         "CPU",
         "ASIC"
       ],
@@ -98,82 +190,7 @@
         "sourceId": "0e3271e4-7ee4-4b70-bf5a-38f85e17e710",
         "courseId": "min101",
         "chapter": "L'évolution des machines de minage",
-        "retrievedAt": "2026-10-31",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
-      }
-    },
-    {
-      "id": "planb-his201-012",
-      "type": "single-choice",
-      "text": "Par quel nom désigne-t-on le problème du consensus au sein d'un réseau distribué ?",
-      "options": [
-        "Le problème des généraux byzantins",
-        "Le problème des colonels albanais",
-        "Le problème des taishos japonais",
-        "Le problème des centurions romains"
-      ],
-      "correctIndex": 0,
-      "difficulty": "easy",
-      "explanation": "Le nom de ce problème (formalisé par Lamport, Shostak et Pease en 1982) a été choisi pour ne pas offenser le lecteur, personne ne s'étant jamais identifié comme byzantin.",
-      "source": {
-        "provider": "Plan B Network (planb.academy)",
-        "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/his201/quizz/012",
-        "author": "satoshi-brother",
-        "sourceId": "b5a0154a-8540-4582-b0da-60f4a87e4a79",
-        "courseId": "his201",
-        "chapter": "Les modèles décentralisés avant Nakamoto",
-        "retrievedAt": "2026-10-31",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
-      }
-    },
-    {
-      "id": "planb-his201-023",
-      "type": "single-choice",
-      "text": "À quel endroit Satoshi Nakamoto a-t-il publié le livre blanc de Bitcoin le 31 octobre 2008 ?",
-      "options": [
-        "Reddit",
-        "Hackernews",
-        "La Cryptography mailing list",
-        "Twitter"
-      ],
-      "correctIndex": 2,
-      "difficulty": "easy",
-      "explanation": "Héritière de la liste des cypherpunks, cette liste de diffusion de courrier électronique était gérée par le développeur Perry Metzger depuis 1996.",
-      "source": {
-        "provider": "Plan B Network (planb.academy)",
-        "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/his201/quizz/023",
-        "author": "satoshi-brother",
-        "sourceId": "5e79473c-8857-4abb-bc05-00f4ef7b3dbb",
-        "courseId": "his201",
-        "chapter": "La naissance de Bitcoin",
-        "retrievedAt": "2026-10-31",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
-      }
-    },
-    {
-      "id": "planb-his201-052",
-      "type": "single-choice",
-      "text": "Quelle était la taille maximale des blocs ajoutée par Satoshi au protocole Bitcoin en septembre 2010 ?",
-      "options": [
-        "1 Mo",
-        "4 Mo",
-        "2 Mo",
-        "8 Mo"
-      ],
-      "correctIndex": 0,
-      "difficulty": "easy",
-      "explanation": "Le paramètre MAX_BLOCK_SIZE a été ajouté en juillet, puis la limite a été imposée à tous les nœuds du réseau à partir du 12 septembre.",
-      "source": {
-        "provider": "Plan B Network (planb.academy)",
-        "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/his201/quizz/052",
-        "author": "satoshi-brother",
-        "sourceId": "bfcec984-34f2-41af-973a-64a490198056",
-        "courseId": "his201",
-        "chapter": "Les premiers ennuis techniques",
-        "retrievedAt": "2026-10-31",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr"
       }
     },
@@ -198,83 +215,83 @@
         "sourceId": "b158211c-c712-44d1-ba04-88e5ad42ae33",
         "courseId": "btc101",
         "chapter": "21 millions de bitcoins",
-        "retrievedAt": "2026-10-31",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr"
       }
     },
     {
-      "id": "planb-btc204-035",
+      "id": "planb-btc102-029",
       "type": "single-choice",
-      "text": "Qui a découvert l'heuristique de la réutilisation d'adresse de réception ?",
+      "text": "Quel acteur majeur conçoit des ASICs pour le minage de Bitcoin ?",
       "options": [
-        "Vitalik Buterin",
-        "Satoshi Nakamoto",
-        "Gavin Andresen",
-        "Hal Finney"
+        "Bitmain",
+        "Trezor",
+        "Ledger",
+        "Foundry USA"
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "difficulty": "intermediate",
-      "explanation": "La première personne qui a évoqué ce concept est Satoshi Nakamoto dans la partie 10 du White Paper de Bitcoin.",
+      "explanation": "Bitmain est l'un des principaux constructeurs de matériel spécialisé dans le minage de Bitcoin.",
       "source": {
         "provider": "Plan B Network (planb.academy)",
         "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc204/quizz/035",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc102/quizz/029",
         "author": "pretty-private",
-        "sourceId": "e9e43636-dea6-4b94-b5b9-c746e368c699",
-        "courseId": "btc204",
-        "chapter": "Les heuristiques externes",
-        "retrievedAt": "2026-10-31",
+        "sourceId": "fcc6e84b-6f5a-4062-9897-b35591424563",
+        "courseId": "btc102",
+        "chapter": "Comprendre l'industrie de Bitcoin",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr"
       }
     },
     {
-      "id": "planb-eco204-054",
+      "id": "planb-his201-023",
       "type": "single-choice",
-      "text": "Quel est le seuil officiel pour qu'un pays soit considéré en hyperinflation ?",
+      "text": "À quel endroit Satoshi Nakamoto a-t-il publié le livre blanc de Bitcoin le 31 octobre 2008 ?",
       "options": [
-        "75% par mois",
-        "50% par mois",
-        "10% par mois",
-        "25% par mois"
+        "Reddit",
+        "Hackernews",
+        "Twitter",
+        "La Cryptography mailing list"
       ],
-      "correctIndex": 1,
+      "correctIndex": 3,
       "difficulty": "intermediate",
-      "explanation": "En 2007, le taux d'inflation du Zimbabwe a atteint le seuil de 50% par mois, marquant officiellement le pays comme étant en hyperinflation.",
+      "explanation": "Héritière de la liste des cypherpunks, cette liste de diffusion de courrier électronique était gérée par le développeur Perry Metzger depuis 1996.",
       "source": {
         "provider": "Plan B Network (planb.academy)",
         "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/eco204/quizz/054",
-        "author": "DecouvreBitcoin",
-        "sourceId": "bdbd6400-c310-47b2-beca-a356985c3fc4",
-        "courseId": "eco204",
-        "chapter": "Comment sortir de l’hyperinflation",
-        "retrievedAt": "2026-10-31",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/his201/quizz/023",
+        "author": "satoshi-brother",
+        "sourceId": "5e79473c-8857-4abb-bc05-00f4ef7b3dbb",
+        "courseId": "his201",
+        "chapter": "La naissance de Bitcoin",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, difficulté Plan B : easy"
       }
     },
     {
-      "id": "planb-his201-028",
+      "id": "planb-his201-012",
       "type": "single-choice",
-      "text": "À quel prix en dollars s'élevait la prédiction de Hal Finney en janvier 2009 ?",
+      "text": "Par quel nom désigne-t-on le problème du consensus au sein d'un réseau distribué ?",
       "options": [
-        "100 000",
-        "1 000 000",
-        "10 000 000",
-        "10 000"
+        "Le problème des colonels albanais",
+        "Le problème des centurions romains",
+        "Le problème des taishos japonais",
+        "Le problème des généraux byzantins"
       ],
-      "correctIndex": 2,
+      "correctIndex": 3,
       "difficulty": "intermediate",
-      "explanation": "Il écrivait alors que « la possibilité de générer des unités aujourd'hui avec quelques centimes de temps de calcul » pouvait constituer « un très bon pari ».",
+      "explanation": "Le nom de ce problème (formalisé par Lamport, Shostak et Pease en 1982) a été choisi pour ne pas offenser le lecteur, personne ne s'étant jamais identifié comme byzantin.",
       "source": {
         "provider": "Plan B Network (planb.academy)",
         "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/his201/quizz/028",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/his201/quizz/012",
         "author": "satoshi-brother",
-        "sourceId": "f75e0957-aac9-4648-b225-b8927e8bef41",
+        "sourceId": "b5a0154a-8540-4582-b0da-60f4a87e4a79",
         "courseId": "his201",
-        "chapter": "La présentation au monde",
-        "retrievedAt": "2026-10-31",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
+        "chapter": "Les modèles décentralisés avant Nakamoto",
+        "retrievedAt": "2026-11-04",
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr, difficulté Plan B : easy"
       }
     },
     {
@@ -282,12 +299,12 @@
       "type": "single-choice",
       "text": "Combien de bitcoins (environ) Satoshi Nakamoto a-t-il miné au total ?",
       "options": [
-        "11 000 000",
+        "1 100 000",
         "110 000",
         "11 000",
-        "1 100 000"
+        "11 000 000"
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "difficulty": "intermediate",
       "explanation": "1 122 693 bitcoins selon une étude de Whale Alert publiée en 2020. Satoshi a cessé son activité de minage en mai 2010.",
       "source": {
@@ -298,7 +315,32 @@
         "sourceId": "54f8781e-6bac-4101-bff5-2c2c234b5679",
         "courseId": "his201",
         "chapter": "Cartes graphiques, pizzas et bitcoins gratuits",
-        "retrievedAt": "2026-10-31",
+        "retrievedAt": "2026-11-04",
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-214",
+      "type": "single-choice",
+      "text": "Laquelle de ces opérations sur Lightning est enregistrée onchain ?",
+      "options": [
+        "Paiement intermédiaire",
+        "Ouverture de canal",
+        "Routage multi-sauts",
+        "Mise à jour d’état"
+      ],
+      "correctIndex": 1,
+      "difficulty": "intermediate",
+      "explanation": "Seules l’ouverture et la fermeture d’un canal Lightning correspondent à des transactions Bitcoin publiées sur la blockchain.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/214",
+        "author": "6516474c-c190-41f2-b2ab-3d452ce7bdf0",
+        "sourceId": "778f77f0-10e2-4775-8631-a85b5ce40136",
+        "courseId": "btc101",
+        "chapter": "Le réseau Lightning : payer en bitcoins rapidement, avec de faibles frais",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr"
       }
     },
@@ -307,12 +349,12 @@
       "type": "single-choice",
       "text": "Quel algorithme de signature a été introduit dans Bitcoin avec Taproot ?",
       "options": [
-        "Schéma de signature de Schnorr",
         "PBKDF2",
+        "ECDSA",
         "SHA256",
-        "ECDSA"
+        "Schéma de signature de Schnorr"
       ],
-      "correctIndex": 0,
+      "correctIndex": 3,
       "difficulty": "intermediate",
       "explanation": "Le schéma de signature de Schnorr a été introduit en novembre 2021 avec la mise à jour Taproot.",
       "source": {
@@ -323,33 +365,108 @@
         "sourceId": "eeab2070-7cd3-4157-ba5b-478ae4642953",
         "courseId": "cyp201",
         "chapter": "Signatures numériques et courbes elliptiques",
-        "retrievedAt": "2026-10-31",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr"
       }
     },
     {
-      "id": "planb-btc101-215",
+      "id": "planb-btc101-063",
       "type": "single-choice",
-      "text": "Quel mécanisme rend les paiements Lightning atomiques ?",
+      "text": "Quelle est la récompense en BTC après le quatrième halving ?",
       "options": [
-        "Multisignature",
-        "HTLC",
-        "SegWit",
-        "Proof of Work"
+        "12.5 BTC.",
+        "3.125 BTC.",
+        "6.25 BTC.",
+        "1.5625 BTC."
       ],
       "correctIndex": 1,
-      "difficulty": "intermediate",
-      "explanation": "Les HTLC conditionnent le paiement à la révélation d’un secret, garantissant succès total ou échec sans perte.",
+      "difficulty": "hard",
+      "explanation": "Après le quatrième halving, qui se produit à la hauteur de bloc 840 000, la récompense de minage est de 3.125 BTC.",
       "source": {
         "provider": "Plan B Network (planb.academy)",
         "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/215",
-        "author": "6516474c-c190-41f2-b2ab-3d452ce7bdf0",
-        "sourceId": "e05f5093-7199-460a-820d-c6e201ae2c45",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/063",
+        "author": "DecouvreBitcoin",
+        "sourceId": "f12c0c72-6ee3-4f0c-9731-c5cd66060732",
         "courseId": "btc101",
-        "chapter": "Le réseau Lightning : payer en bitcoins rapidement, avec de faibles frais",
-        "retrievedAt": "2026-10-31",
+        "chapter": "21 millions de bitcoins",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-btc101-060",
+      "type": "single-choice",
+      "text": "Quelle est la fréquence de l'ajustement de la difficulté ?",
+      "options": [
+        "Tous les 4032 blocs.",
+        "Tous les 2016 blocs.",
+        "Tous les 512 blocs.",
+        "Tous les 1048 blocs."
+      ],
+      "correctIndex": 1,
+      "difficulty": "hard",
+      "explanation": "L'ajustement de la difficulté est un mécanisme qui a lieu tous les 2016 blocs, soit environ toutes les deux semaines, pour garantir qu'un nouveau bloc soit ajouté à la blockchain toutes les dix minutes en moyenne, indépendamment du hashrate global.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/060",
+        "author": "DecouvreBitcoin",
+        "sourceId": "0f70a61c-27c2-4be5-8fde-9aa634177083",
+        "courseId": "btc101",
+        "chapter": "21 millions de bitcoins",
+        "retrievedAt": "2026-11-04",
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-his201-033",
+      "type": "single-choice",
+      "text": "Quel mineur de 2009 a perdu l'intégralité de ses bitcoins en jetant son ordinateur à la décharge en 2013 ?",
+      "options": [
+        "Martti Malmi",
+        "NewLibertyStandard",
+        "James Howells",
+        "Dustin Trammell"
+      ],
+      "correctIndex": 2,
+      "difficulty": "hard",
+      "explanation": "Cet ingénieur britannique avait généré 8 000 bitcoins avec son ordinateur entre février et avril 2009. Son cas a été médiatisé par le Guardian.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/his201/quizz/033",
+        "author": "satoshi-brother",
+        "sourceId": "93faca86-69a6-4e69-bbd1-36a94e55cc56",
+        "courseId": "his201",
+        "chapter": "L'amorçage de la cryptomonnaie",
+        "retrievedAt": "2026-11-04",
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
+      }
+    },
+    {
+      "id": "planb-min101-019",
+      "type": "single-choice",
+      "text": "Qui a inventé Hashcash ?",
+      "options": [
+        "Adam Back",
+        "David Chaum",
+        "Nick Szabo",
+        "Hal Finney"
+      ],
+      "correctIndex": 0,
+      "difficulty": "hard",
+      "explanation": "Hashcash a été inventé par Adam Back en 1997 pour freiner le spam : chaque e-mail demandait un petit calcul. Satoshi Nakamoto le cite dans le livre blanc, et la preuve de travail de Bitcoin en reprend le principe.",
+      "source": {
+        "provider": "Plan B Network (planb.academy)",
+        "license": "CC BY-SA 4.0",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/min101/quizz/019",
+        "author": "6516474c-c190-41f2-b2ab-3d452ce7bdf0",
+        "sourceId": "804bcff3-2589-4cee-bc7a-a66233522050",
+        "courseId": "min101",
+        "chapter": "L'histoire de la preuve de travail",
+        "retrievedAt": "2026-11-04",
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr, explication réécrite"
       }
     },
     {
@@ -358,8 +475,8 @@
       "text": "En quelle année aura lieu le 7ème halving ?",
       "options": [
         "2028",
-        "2048",
         "2032",
+        "2048",
         "2036"
       ],
       "correctIndex": 3,
@@ -373,107 +490,7 @@
         "sourceId": "bd8aed18-9bc1-4509-a9bf-d2ef2014f9cc",
         "courseId": "btc101",
         "chapter": "21 millions de bitcoins",
-        "retrievedAt": "2026-10-31",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
-      }
-    },
-    {
-      "id": "planb-min101-010",
-      "type": "single-choice",
-      "text": "Quelle est la taille du nonce dans l'entête d'un bloc ?",
-      "options": [
-        "64 bits",
-        "256 bits",
-        "32 bits",
-        "128 bits"
-      ],
-      "correctIndex": 2,
-      "difficulty": "hard",
-      "explanation": "Le nonce est un champ de 32 bits dans l’entête.",
-      "source": {
-        "provider": "Plan B Network (planb.academy)",
-        "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/min101/quizz/010",
-        "author": "6516474c-c190-41f2-b2ab-3d452ce7bdf0",
-        "sourceId": "eaefe5af-e486-4229-85a1-b697447cf836",
-        "courseId": "min101",
-        "chapter": "Le hachage, la cible et le nonce",
-        "retrievedAt": "2026-10-31",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
-      }
-    },
-    {
-      "id": "planb-btc101-116",
-      "type": "single-choice",
-      "text": "Quel est le numéro du bloc de la première transaction Bitcoin ?",
-      "options": [
-        "Bloc 1",
-        "Bloc 1700",
-        "Bloc 17",
-        "Bloc 170"
-      ],
-      "correctIndex": 3,
-      "difficulty": "hard",
-      "explanation": "La première transaction Bitcoin, qui était une transaction de 10 BTC entre Satoshi Nakamoto et Hal Finney, est enregistrée dans le bloc 170.",
-      "source": {
-        "provider": "Plan B Network (planb.academy)",
-        "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/116",
-        "author": "DecouvreBitcoin",
-        "sourceId": "d464305d-7492-4785-be8a-b82deb2e4f67",
-        "courseId": "btc101",
-        "chapter": "Lancement de Bitcoin",
-        "retrievedAt": "2026-10-31",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
-      }
-    },
-    {
-      "id": "planb-his201-014",
-      "type": "single-choice",
-      "text": "Qui a inventé le concept de preuve de travail ?",
-      "options": [
-        "Adam Back",
-        "Satoshi Nakamoto",
-        "Markus Jakobsson et Ari Juel",
-        "Cynthia Dwork et Moni Naor"
-      ],
-      "correctIndex": 3,
-      "difficulty": "hard",
-      "explanation": "Ils ont décrit le concept en 1992. Markus Jakobsson et Ari Juel ont créé le terme « proof of work ». Adam Back a repris le concept pour Hashcash.",
-      "source": {
-        "provider": "Plan B Network (planb.academy)",
-        "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/his201/quizz/014",
-        "author": "satoshi-brother",
-        "sourceId": "4c3e713d-576f-404e-94ca-10fa30356655",
-        "courseId": "his201",
-        "chapter": "Les modèles décentralisés avant Nakamoto",
-        "retrievedAt": "2026-10-31",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
-      }
-    },
-    {
-      "id": "planb-his201-033",
-      "type": "single-choice",
-      "text": "Quel mineur de 2009 a perdu l'intégralité de ses bitcoins en jetant son ordinateur à la décharge en 2013 ?",
-      "options": [
-        "Dustin Trammell",
-        "James Howells",
-        "NewLibertyStandard",
-        "Martti Malmi"
-      ],
-      "correctIndex": 1,
-      "difficulty": "hard",
-      "explanation": "Cet ingénieur britannique avait généré 8 000 bitcoins avec son ordinateur entre février et avril 2009. Son cas a été médiatisé par le Guardian.",
-      "source": {
-        "provider": "Plan B Network (planb.academy)",
-        "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/his201/quizz/033",
-        "author": "satoshi-brother",
-        "sourceId": "93faca86-69a6-4e69-bbd1-36a94e55cc56",
-        "courseId": "his201",
-        "chapter": "L'amorçage de la cryptomonnaie",
-        "retrievedAt": "2026-10-31",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr"
       }
     },
@@ -482,12 +499,12 @@
       "type": "single-choice",
       "text": "Qui sont les inventeurs du Lightning Network ?",
       "options": [
-        "Pieter Wuille et Gregory Maxwell",
-        "Andreas Antonopoulos et Adam Back",
         "Thaddeus Dryja et Joseph Poon",
+        "Andreas Antonopoulos et Adam Back",
+        "Pieter Wuille et Gregory Maxwell",
         "Satoshi Nakamoto et Hal Finney"
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "difficulty": "hard",
       "explanation": "Thaddeus Dryja et Joseph Poon ont inventé le Lightning Network en 2016 pour améliorer la scalabilité de Bitcoin.",
       "source": {
@@ -498,7 +515,7 @@
         "sourceId": "89bd3f1b-79be-4393-a557-16cd59ea30aa",
         "courseId": "btc102",
         "chapter": "L'architecture en couches de Bitcoin",
-        "retrievedAt": "2026-10-31",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr"
       }
     },
@@ -508,11 +525,11 @@
       "text": "Quelle vulnérabilité des signatures ECDSA a été corrigée par SegWit ?",
       "options": [
         "La taille excessive des signatures",
+        "Le manque d'agrégation",
         "La malléabilité",
-        "La vérification par lot",
-        "Le manque d'agrégation"
+        "La vérification par lot"
       ],
-      "correctIndex": 1,
+      "correctIndex": 2,
       "difficulty": "hard",
       "explanation": "SegWit a corrigé la malléabilité des signatures ECDSA, permettant des usages comme le Lightning Network.",
       "source": {
@@ -523,7 +540,7 @@
         "sourceId": "a3d009d2-c15c-480d-8259-3b54471c1808",
         "courseId": "cyp201",
         "chapter": "Signer avec la clé privée",
-        "retrievedAt": "2026-10-31",
+        "retrievedAt": "2026-11-04",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr"
       }
     }

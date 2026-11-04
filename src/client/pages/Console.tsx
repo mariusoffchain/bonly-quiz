@@ -100,7 +100,9 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
         ? view.config.podiumSize === 1
           ? `Fin du quiz${view.blocks.some((b) => b.found) ? ', gagnant tiré' : ''}`
           : `Fin du quiz, podium ${view.blocks.filter((b) => b.found).length} / ${view.config.podiumSize}`
-        : `Question ${(q?.index ?? 0) + 1} / ${view.questionTotal}${view.phase === 'reveal' ? ', réponse affichée' : ''}`;
+        : view.phase === 'intermission'
+          ? `Partie ${(view.part ?? 0) + 1} / ${view.parts.length} annoncée à l’écran${(view.part ?? 0) > 0 ? ', avec le classement' : ''}`
+          : `${view.parts.length > 1 && view.part !== undefined ? `Partie ${view.part + 1} · ` : ''}Question ${(q?.index ?? 0) + 1} / ${view.questionTotal}${view.phase === 'reveal' ? ', réponse affichée' : ''}`;
 
   return (
     <div className="console">
@@ -153,7 +155,7 @@ function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }
           </section>
 
           {q && view.phase !== 'final' ? <QuestionPanel view={view} /> : null}
-          {view.phase === 'lobby' || view.phase === 'reveal' ? <UpNext view={view} /> : null}
+          {view.phase === 'lobby' || view.phase === 'reveal' || view.phase === 'intermission' ? <UpNext view={view} /> : null}
           {view.phase === 'final' ? <Blocks view={view} /> : null}
           {view.phase === 'lobby' ? <Settings view={view} send={send} /> : null}
         </div>
@@ -204,7 +206,7 @@ function QuestionPanel({ view }: { view: ConsoleView }) {
 }
 
 function UpNext({ view }: { view: ConsoleView }) {
-  const i = view.phase === 'lobby' ? 0 : (view.question?.index ?? -1) + 1;
+  const i = view.phase === 'lobby' ? 0 : view.phase === 'intermission' ? (view.parts[view.part ?? 0]?.from ?? 0) : (view.question?.index ?? -1) + 1;
   const q = view.questions[i];
   if (!q) return null;
   return (
