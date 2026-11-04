@@ -144,7 +144,7 @@ les cours de la Plan B Academy, licence CC BY-SA 4.0, en 3 parties de 7 :
 |---|---|---|---|
 | 1. Les bases | facile | 10 TH | 21 millions, halving, blockchain, 10 minutes, El Salvador, clés privées, CPU. Un débutant doit en connaître au moins 4 sur 7. |
 | 2. Pour aller plus loin | moyen | 20 TH | 2140, Bitmain, livre blanc, généraux byzantins, bitcoins de Satoshi, Lightning, Schnorr |
-| 3. Pour les experts | difficile | 30 TH | James Howells, inventeurs de Lightning, inventeurs de la preuve de travail, taille du nonce, bits par mot de la phrase de récupération, taille de la mempool, date de naissance de Satoshi |
+| 3. Pour les experts | difficile | 30 TH | James Howells, inventeurs de Lightning, inventeurs de la preuve de travail, taille du nonce, bloc de la 1re transaction, taille de la mempool, date de naissance de Satoshi |
 
 `demo-fr.json` (5 questions) sert aux répétitions. La console permet de changer de pack
 avant la 1re question ; la partie joue les N premières questions du pack (N = 21 par

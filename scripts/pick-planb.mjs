@@ -59,7 +59,7 @@ const PARTS = [
       },
       { q: 'his201/014' }, // Dwork et Naor, piège avec Adam Back
       { q: 'min101/010' }, // nonce de 32 bits
-      { q: 'cyp201/047', as: 'hard' }, // 11 bits par mot de la phrase de récupération
+      { q: 'btc101/116' }, // bloc 170, la 1re transaction (Satoshi à Hal Finney)
       { q: 'btc202/076' }, // mempool de 300 Mo par défaut
       { q: 'his201/030' }, // date de naissance de Satoshi : 5 avril 1975
     ],
@@ -81,7 +81,7 @@ try {
 } catch {}
 
 /** Chosen so that the right answer lands on A, B, C and D 5 or 6 times each, never 3 times in a row. */
-const SALT = Number(process.env.SALT ?? 76);
+const SALT = Number(process.env.SALT ?? 248);
 
 const hash = (s) => {
   let h = 2166136261;

@@ -24,12 +24,12 @@
       "type": "single-choice",
       "text": "Quel est le nombre maximum de bitcoins qui peuvent être créés ?",
       "options": [
-        "environ 30 millions d'unités",
-        "environ 21 millions d'unités",
         "environ 25 millions d'unités",
-        "plus ou moins 18 millions d'unités"
+        "plus ou moins 18 millions d'unités",
+        "environ 30 millions d'unités",
+        "environ 21 millions d'unités"
       ],
-      "correctIndex": 1,
+      "correctIndex": 3,
       "difficulty": "easy",
       "explanation": "La création de Bitcoin est caractérisée par un plafond fixe de 21 millions d'unités.",
       "source": {
@@ -49,12 +49,12 @@
       "type": "single-choice",
       "text": "Quel est le nom de l'événement lors duquel la récompense de minage est divisée par deux ?",
       "options": [
-        "Doubling",
         "Quartering",
         "Halving",
+        "Doubling",
         "Tripling"
       ],
-      "correctIndex": 2,
+      "correctIndex": 1,
       "difficulty": "easy",
       "explanation": "L'événement lors duquel la récompense de minage est divisée par deux est appelé halving. Cet événement donne à la courbe d'émission monétaire une forme d'escalier.",
       "source": {
@@ -74,8 +74,8 @@
       "type": "single-choice",
       "text": "Comment s’appelle le registre public partagé où l’on écrit l’historique des paiements en bitcoins ?",
       "options": [
-        "Le hashrate",
         "Le wallet",
+        "Le hashrate",
         "La mempool",
         "La blockchain"
       ],
@@ -99,12 +99,12 @@
       "type": "single-choice",
       "text": "Quel est le temps moyen entre la création de deux blocs dans le protocole Bitcoin ?",
       "options": [
-        "20 minutes",
-        "15 minutes",
         "5 minutes",
-        "10 minutes"
+        "10 minutes",
+        "20 minutes",
+        "15 minutes"
       ],
-      "correctIndex": 3,
+      "correctIndex": 1,
       "difficulty": "easy",
       "explanation": "En moyenne, un bloc est créé toutes les 10 minutes dans le protocole Bitcoin. Ce temps reste constant indépendamment du nombre de mineurs et de leur puissance de calcul.",
       "source": {
@@ -124,12 +124,12 @@
       "type": "single-choice",
       "text": "Quel pays a déclaré le Bitcoin comme monnaie légale ?",
       "options": [
+        "États-Unis",
         "Chine",
         "El Salvador",
-        "États-Unis",
         "Inde"
       ],
-      "correctIndex": 1,
+      "correctIndex": 2,
       "difficulty": "easy",
       "explanation": "El Salvador a fait du bitcoin une monnaie légale en septembre 2021, une première mondiale. Début 2025, le pays est revenu en partie sur cette loi : les commerçants ne sont plus obligés de l'accepter.",
       "source": {
@@ -150,8 +150,8 @@
       "text": "Quelle est la fonction principale d’un portefeuille Bitcoin ?",
       "options": [
         "Vérifier la validité des blocs",
-        "Relayer les transactions du réseau",
         "Stocker et gérer la blockchain complète",
+        "Relayer les transactions du réseau",
         "Stocker et gérer les clés privées"
       ],
       "correctIndex": 3,
@@ -174,12 +174,12 @@
       "type": "single-choice",
       "text": "Avec quel type de matériel le minage s’effectuait-il surtout au tout début de Bitcoin ?",
       "options": [
+        "ASIC",
         "CPU",
         "GPU",
-        "ASIC",
         "FPGA"
       ],
-      "correctIndex": 0,
+      "correctIndex": 1,
       "difficulty": "easy",
       "explanation": "Au lancement, le logiciel tournait sur un ordinateur personnel et utilisait principalement le processeur.",
       "source": {
@@ -199,12 +199,12 @@
       "type": "single-choice",
       "text": "En quelle année prévoit-on que la création de bitcoins cessera-t-elle ?",
       "options": [
-        "2050",
         "2200",
-        "2030",
-        "2140"
+        "2050",
+        "2140",
+        "2030"
       ],
-      "correctIndex": 3,
+      "correctIndex": 2,
       "difficulty": "intermediate",
       "explanation": "En raison du mécanisme de halving, il est mathématiquement prévisible que la création de bitcoins cessera en 2140, lorsque le nombre total de bitcoins atteindra sa limite de 21 millions.",
       "source": {
@@ -224,12 +224,12 @@
       "type": "single-choice",
       "text": "Quel acteur majeur conçoit des ASICs pour le minage de Bitcoin ?",
       "options": [
-        "Ledger",
-        "Trezor",
         "Bitmain",
-        "Foundry USA"
+        "Trezor",
+        "Foundry USA",
+        "Ledger"
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "difficulty": "intermediate",
       "explanation": "Bitmain est l'un des principaux constructeurs de matériel spécialisé dans le minage de Bitcoin.",
       "source": {
@@ -249,12 +249,12 @@
       "type": "single-choice",
       "text": "À quel endroit Satoshi Nakamoto a-t-il publié le livre blanc de Bitcoin le 31 octobre 2008 ?",
       "options": [
-        "La Cryptography mailing list",
+        "Hackernews",
         "Twitter",
         "Reddit",
-        "Hackernews"
+        "La Cryptography mailing list"
       ],
-      "correctIndex": 0,
+      "correctIndex": 3,
       "difficulty": "intermediate",
       "explanation": "Héritière de la liste des cypherpunks, cette liste de diffusion de courrier électronique était gérée par le développeur Perry Metzger depuis 1996.",
       "source": {
@@ -274,12 +274,12 @@
       "type": "single-choice",
       "text": "Par quel nom désigne-t-on le problème du consensus au sein d'un réseau distribué ?",
       "options": [
+        "Le problème des colonels albanais",
         "Le problème des généraux byzantins",
-        "Le problème des centurions romains",
         "Le problème des taishos japonais",
-        "Le problème des colonels albanais"
+        "Le problème des centurions romains"
       ],
-      "correctIndex": 0,
+      "correctIndex": 1,
       "difficulty": "intermediate",
       "explanation": "Le nom de ce problème (formalisé par Lamport, Shostak et Pease en 1982) a été choisi pour ne pas offenser le lecteur, personne ne s'étant jamais identifié comme byzantin.",
       "source": {
@@ -299,12 +299,12 @@
       "type": "single-choice",
       "text": "Combien de bitcoins (environ) Satoshi Nakamoto a-t-il miné au total ?",
       "options": [
-        "11 000 000",
         "1 100 000",
-        "11 000",
-        "110 000"
+        "11 000 000",
+        "110 000",
+        "11 000"
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "difficulty": "intermediate",
       "explanation": "1 122 693 bitcoins selon une étude de Whale Alert publiée en 2020. Satoshi a cessé son activité de minage en mai 2010.",
       "source": {
@@ -324,12 +324,12 @@
       "type": "single-choice",
       "text": "Laquelle de ces opérations sur Lightning est enregistrée onchain ?",
       "options": [
-        "Ouverture de canal",
         "Mise à jour d’état",
         "Paiement intermédiaire",
+        "Ouverture de canal",
         "Routage multi-sauts"
       ],
-      "correctIndex": 0,
+      "correctIndex": 2,
       "difficulty": "intermediate",
       "explanation": "Seules l’ouverture et la fermeture d’un canal Lightning correspondent à des transactions Bitcoin publiées sur la blockchain.",
       "source": {
@@ -349,12 +349,12 @@
       "type": "single-choice",
       "text": "Quel algorithme de signature a été introduit dans Bitcoin avec Taproot ?",
       "options": [
+        "ECDSA",
         "SHA256",
-        "Schéma de signature de Schnorr",
         "PBKDF2",
-        "ECDSA"
+        "Schéma de signature de Schnorr"
       ],
-      "correctIndex": 1,
+      "correctIndex": 3,
       "difficulty": "intermediate",
       "explanation": "Le schéma de signature de Schnorr a été introduit en novembre 2021 avec la mise à jour Taproot.",
       "source": {
@@ -374,12 +374,12 @@
       "type": "single-choice",
       "text": "Quel mineur de 2009 a perdu l'intégralité de ses bitcoins en jetant son ordinateur à la décharge en 2013 ?",
       "options": [
-        "James Howells",
         "NewLibertyStandard",
-        "Martti Malmi",
-        "Dustin Trammell"
+        "Dustin Trammell",
+        "James Howells",
+        "Martti Malmi"
       ],
-      "correctIndex": 0,
+      "correctIndex": 2,
       "difficulty": "hard",
       "explanation": "Cet ingénieur britannique avait généré 8 000 bitcoins avec son ordinateur entre février et avril 2009. Son cas a été médiatisé par le Guardian.",
       "source": {
@@ -399,12 +399,12 @@
       "type": "single-choice",
       "text": "Qui sont les inventeurs du Lightning Network ?",
       "options": [
-        "Pieter Wuille et Gregory Maxwell",
-        "Andreas Antonopoulos et Adam Back",
         "Thaddeus Dryja et Joseph Poon",
-        "Satoshi Nakamoto et Hal Finney"
+        "Pieter Wuille et Gregory Maxwell",
+        "Satoshi Nakamoto et Hal Finney",
+        "Andreas Antonopoulos et Adam Back"
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "difficulty": "hard",
       "explanation": "Joseph Poon et Thaddeus Dryja ont publié le livre blanc du Lightning Network en 2015, puis sa version de référence en janvier 2016, pour faire passer Bitcoin à l’échelle.",
       "source": {
@@ -424,12 +424,12 @@
       "type": "single-choice",
       "text": "Qui a inventé le concept de preuve de travail ?",
       "options": [
+        "Adam Back",
         "Cynthia Dwork et Moni Naor",
-        "Markus Jakobsson et Ari Juel",
         "Satoshi Nakamoto",
-        "Adam Back"
+        "Markus Jakobsson et Ari Juel"
       ],
-      "correctIndex": 0,
+      "correctIndex": 1,
       "difficulty": "hard",
       "explanation": "Ils ont décrit le concept en 1992. Markus Jakobsson et Ari Juel ont créé le terme « proof of work ». Adam Back a repris le concept pour Hashcash.",
       "source": {
@@ -449,12 +449,12 @@
       "type": "single-choice",
       "text": "Quelle est la taille du nonce dans l'entête d'un bloc ?",
       "options": [
-        "256 bits",
-        "128 bits",
         "32 bits",
-        "64 bits"
+        "64 bits",
+        "128 bits",
+        "256 bits"
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "difficulty": "hard",
       "explanation": "Le nonce est un champ de 32 bits dans l’entête.",
       "source": {
@@ -470,28 +470,28 @@
       }
     },
     {
-      "id": "planb-cyp201-047",
+      "id": "planb-btc101-116",
       "type": "single-choice",
-      "text": "Quelle est la taille en bits d'un segment binaire utilisé pour créer chaque mot mnémonique ?",
+      "text": "Quel est le numéro du bloc de la première transaction Bitcoin ?",
       "options": [
-        "8 bits",
-        "11 bits",
-        "16 bits",
-        "10 bits"
+        "Bloc 17",
+        "Bloc 1",
+        "Bloc 170",
+        "Bloc 1700"
       ],
-      "correctIndex": 1,
+      "correctIndex": 2,
       "difficulty": "hard",
-      "explanation": "Chaque segment de 11 bits correspond à un mot de la liste standardisée de 2048 mots du BIP39.",
+      "explanation": "La première transaction Bitcoin, qui était une transaction de 10 BTC entre Satoshi Nakamoto et Hal Finney, est enregistrée dans le bloc 170.",
       "source": {
         "provider": "Plan B Network (planb.academy)",
         "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/cyp201/quizz/047",
-        "author": "pretty-private",
-        "sourceId": "495c1c65-73a7-4395-a4c1-a54a39463ccf",
-        "courseId": "cyp201",
-        "chapter": "La phrase mnémonique",
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc101/quizz/116",
+        "author": "DecouvreBitcoin",
+        "sourceId": "d464305d-7492-4785-be8a-b82deb2e4f67",
+        "courseId": "btc101",
+        "chapter": "Lancement de Bitcoin",
         "retrievedAt": "2026-11-04",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr, difficulté Plan B : intermediate"
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr"
       }
     },
     {
@@ -501,10 +501,10 @@
       "options": [
         "512 MB",
         "1024 MB",
-        "300 MB",
-        "256 MB"
+        "256 MB",
+        "300 MB"
       ],
-      "correctIndex": 2,
+      "correctIndex": 3,
       "difficulty": "hard",
       "explanation": "Par défaut, Bitcoin Core limite la mempool à 300 MB. Au-delà, il expulse les transactions moins rémunératrices.",
       "source": {
@@ -524,12 +524,12 @@
       "type": "single-choice",
       "text": "Quelle était la date de naissance indiquée par Satoshi Nakamoto sur le forum de la P2P Foundation ?",
       "options": [
-        "5 avril 1973",
-        "3 avril 1975",
+        "5 avril 1975",
         "3 avril 1973",
-        "5 avril 1975"
+        "5 avril 1973",
+        "3 avril 1975"
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "difficulty": "hard",
       "explanation": "Cette date composite fait référence à la prohibition pour les citoyens américains de détenir de l'or entre 1933 et 1975 ; le 5 avril est le jour d'intauration de cette interdiction en 1933 (Executive Order 6102) et l'année 1975 est son année d'abrogation (Public Law 93-373).",
       "source": {
