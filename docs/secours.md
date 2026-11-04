@@ -140,6 +140,23 @@ ne les reconnaît pas, reprennent leur place avec leur pseudo exact.
 Si la connexion internet de l'ordinateur est en cause : passer sur le partage de connexion
 d'un téléphone, puis relancer de la même façon.
 
+### La page affiche `{"error":"Not found"}` ou « Le port 8787 est déjà utilisé »
+
+Un autre programme de l'ordinateur occupe le port du quiz (un serveur de développement,
+par exemple `workerd` de Cloudflare, ou le quiz déjà lancé dans un autre terminal). Pour
+voir lequel :
+
+```bash
+lsof -i :8787
+```
+
+Le fermer, ou lancer le quiz sur un autre port, puis ouvrir `http://localhost:8788/board`
+et `http://localhost:8788/console` :
+
+```bash
+PORT=8788 npm run online
+```
+
 ### Changer d'ordinateur, l'ancien marche encore
 
 1. Sur l'ancien ordinateur : `Ctrl+C` dans le terminal du quiz.

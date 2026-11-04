@@ -16,6 +16,7 @@
  */
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -33,6 +34,26 @@ if (spawnSync(bin, ['--version']).error) {
   macOS    brew install cloudflared
   Windows  winget install --id Cloudflare.cloudflared
   Linux    https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/`);
+  process.exit(1);
+}
+
+/** True if something already answers on this computer's own address at `port`. */
+const portTaken = (host) =>
+  new Promise((resolve) => {
+    const s = net.connect({ host, port });
+    s.setTimeout(800);
+    s.once('connect', () => (s.destroy(), resolve(true)));
+    s.once('timeout', () => (s.destroy(), resolve(false)));
+    s.once('error', () => resolve(false));
+  });
+// Another program on 127.0.0.1 or ::1 (a dev server, a quiz started in another terminal)
+// would receive the tunnel's visitors instead of the quiz, which listens on all addresses.
+if ((await portTaken('127.0.0.1')) || (await portTaken('::1'))) {
+  console.error(`Le port ${port} est déjà utilisé par un autre programme sur cet ordinateur
+(un autre serveur de développement, ou le quiz déjà lancé dans un autre terminal).
+Pour voir lequel : lsof -i :${port}
+Fermez-le, ou lancez le quiz sur un autre port :
+  PORT=8788 npm run online`);
   process.exit(1);
 }
 
@@ -88,7 +109,7 @@ if (process.env.TUNNEL_TOKEN) {
 } else {
   console.log('[online] ouverture d’un tunnel temporaire trycloudflare.com…');
   let started = false;
-  startTunnel(['--url', `http://localhost:${port}`], (line) => {
+  startTunnel(['--url', `http://127.0.0.1:${port}`], (line) => {
     const m = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(line);
     if (m && !started) {
       started = true;
