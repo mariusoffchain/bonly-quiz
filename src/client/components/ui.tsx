@@ -8,7 +8,8 @@ import mountainsUrl from '../assets/mountains.webp';
 export function Wordmark({ size = 'md' }: { size?: 'md' | 'lg' }) {
   return (
     <span className={'wordmark ' + size}>
-      <span className="pixel">B-ONLY</span> quiz
+      <span className="pixel">Proof of Brain</span>
+      <span className="event">B-only</span>
     </span>
   );
 }

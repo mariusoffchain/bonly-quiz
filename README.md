@@ -1,6 +1,6 @@
-# bonly-quiz
+# Proof of Brain
 
-Quiz interactif pour B-only 2026. 21 questions sur Bitcoin, en 3 parties de plus en plus
+Le quiz de B-only 2026 (dépôt `bonly-quiz`). 21 questions sur Bitcoin, en 3 parties de plus en plus
 difficiles. Chaque bonne réponse rapporte du hashrate fictif (en TH). À la fin, on tire au
 sort le gagnant comme on mine un bloc : à chaque tirage, les chances d'un joueur sont égales à sa part du
 hashrate. Le plus gros mineur est favori, mais rien n'est garanti.

@@ -37,7 +37,10 @@ table { border-collapse: collapse; width: 100%; }
 .row { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
 .error { color: var(--crimson); }
 .wordmark { color: var(--ink); font-size: 1rem; white-space: nowrap; }
-.wordmark .pixel { font-size: 1.25em; margin-right: 0.15em; }
+.wordmark .pixel { font-size: 1.25em; margin-right: 0.6em; }
+.wordmark .event { color: var(--body); font-size: 0.85em; }
+.wordmark.lg { display: flex; flex-direction: column; gap: 0.2em; white-space: normal; }
+.wordmark.lg .pixel { margin-right: 0; }
 .wordmark.lg { font-size: 1.6rem; }
 .label { font-family: var(--pixel); font-size: 0.85rem; color: var(--ink); }
 .pixel, .label, .mining-status, .found .winner, .lobby-text h1, .final-intro h1, .mark { font-variant-ligatures: none; font-feature-settings: 'liga' 0, 'clig' 0; }
