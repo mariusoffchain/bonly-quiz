@@ -55,7 +55,11 @@ const PARTS = [
     title: 'Pour aller plus loin',
     subtitle: 'Histoire, minage et Lightning',
     picks: [
-      { q: 'btc101/059', options: ['2140', '2104', '2041', 'Quand la France aura remboursé sa dette'] },
+      {
+        q: 'btc101/059',
+        text: 'En quelle année la création de bitcoins doit-elle s’arrêter ?',
+        options: ['2140', '2104', '2041', 'Quand la France aura remboursé sa dette'],
+      },
       {
         q: 'btc102/029',
         options: ['Bitmain', 'Foundry USA', 'Nvidia', 'Thermomix'],
@@ -79,7 +83,11 @@ const PARTS = [
           'Le problème des réunions de copropriété',
         ],
       },
-      { q: 'his201/040', options: ['Environ 1,1 million', 'Environ 110 000', 'Environ 11 000', 'Juste de quoi payer deux pizzas'] },
+      {
+        q: 'his201/040',
+        text: 'Combien de bitcoins Satoshi Nakamoto a-t-il minés au total, environ ?',
+        options: ['Environ 1,1 million', 'Environ 110 000', 'Environ 11 000', 'Juste de quoi payer deux pizzas'],
+      },
       {
         q: 'btc101/214',
         options: ["L'ouverture d'un canal", 'Un paiement dans le canal', 'Le routage multi-sauts', "Le partage de l'addition au resto"],

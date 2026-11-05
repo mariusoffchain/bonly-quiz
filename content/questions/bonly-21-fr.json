@@ -197,7 +197,7 @@
     {
       "id": "planb-btc101-059",
       "type": "single-choice",
-      "text": "En quelle année prévoit-on que la création de bitcoins cessera-t-elle ?",
+      "text": "En quelle année la création de bitcoins doit-elle s’arrêter ?",
       "options": [
         "2140",
         "2104",
@@ -216,7 +216,7 @@
         "courseId": "btc101",
         "chapter": "21 millions de bitcoins",
         "retrievedAt": "2026-11-05",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses"
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : question, réponses"
       }
     },
     {
@@ -297,7 +297,7 @@
     {
       "id": "planb-his201-040",
       "type": "single-choice",
-      "text": "Combien de bitcoins (environ) Satoshi Nakamoto a-t-il miné au total ?",
+      "text": "Combien de bitcoins Satoshi Nakamoto a-t-il minés au total, environ ?",
       "options": [
         "Juste de quoi payer deux pizzas",
         "Environ 110 000",
@@ -316,7 +316,7 @@
         "courseId": "his201",
         "chapter": "Cartes graphiques, pizzas et bitcoins gratuits",
         "retrievedAt": "2026-11-05",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses"
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : question, réponses"
       }
     },
     {
