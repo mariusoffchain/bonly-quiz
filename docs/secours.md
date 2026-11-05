@@ -1,5 +1,9 @@
 # Note de secours : relancer le quiz ou passer sur un autre ordinateur
 
+Le lancement normal est dans `docs/lancement.md`. Sur le Mac de l'animation, le quiz tourne
+sur le port 8788 (`PORT=8788 npm run online`, adresses `localhost:8788`) ; ailleurs, le port
+8787 par défaut convient.
+
 Le quiz tourne sur l'ordinateur de l'animation (`npm run online`). Toute la partie en cours
 (joueurs, réponses, TH, tirage) est enregistrée en continu dans le dossier `data/` du projet.
 Tant qu'on a ce dossier, ou un export de la partie, on peut reprendre exactement où on en

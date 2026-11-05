@@ -61,6 +61,11 @@ L'adresse `/play` ne change pas d'une partie à l'autre : un QR code imprimé re
 Développement avec rechargement : `npm run dev` (serveur 8787, client Vite 5173 ; les
 téléphones ouvrent le port 5173).
 
+## Fiche de lancement
+
+`docs/lancement.md` : les commandes exactes du jour J, de l'ouverture du terminal au
+tirage, avec la séquence des boutons de la console.
+
 ## En cas de problème
 
 `docs/secours.md` donne la marche à suivre et les commandes exactes pour relancer le quiz,
