@@ -155,8 +155,12 @@ les cours de la Plan B Academy, licence CC BY-SA 4.0, en 3 parties de 7 :
 avant la 1re question ; la partie joue les N premières questions du pack (N = 21 par
 défaut), et les parties sont coupées d'autant.
 
-La sélection est dans `scripts/pick-planb.mjs` (les 3 parties et leurs questions, une
-ligne chacune). Pour en changer, modifier la liste puis, depuis un clone du dépôt Plan B
+Chaque question a 4 réponses : la bonne, deux pièges (une date voisine, un nom connu mais
+faux, Mo au lieu de Mb…) et, le plus souvent, une réponse pour rire. Dans la partie 1, la
+réponse pour rire est toujours la D : seules A, B et C sont mélangées.
+
+La sélection est dans `scripts/pick-planb.mjs` (les 3 parties, leurs questions et leurs
+réponses). Pour en changer, modifier la liste puis, depuis un clone du dépôt Plan B
 Network : `node scripts/pick-planb.mjs --repo chemin/vers/bitcoin-educational-content`.
 
 Format d'un pack :

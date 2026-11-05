@@ -9,6 +9,9 @@ describe('content packs', () => {
     expect(pack.questions.map((q) => q.difficulty)).toEqual([...Array(7).fill('easy'), ...Array(7).fill('intermediate'), ...Array(7).fill('hard')]);
     const letters = pack.questions.map((q) => q.correctIndex);
     for (const i of [0, 1, 2, 3]) expect(letters.filter((x) => x === i).length).toBeGreaterThanOrEqual(5);
+    // part 1: the joke answer is always D, so D is never right there
+    expect(letters.slice(0, 7)).not.toContain(3);
+    expect(pack.questions.every((q) => q.options.length === 4)).toBe(true);
   });
 
   it('rejects parts that do not add up to the questions', () => {

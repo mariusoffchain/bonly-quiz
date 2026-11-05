@@ -14,12 +14,13 @@ Les questions des packs `content/questions/bonly-21-fr.json` et
 (quiz de fin de leçon des cours de la Plan B Academy : btc101, btc102, btc202, his201,
 min101, min304, cyp201), licence
 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Chaque question garde son
-auteur, son identifiant et son lien dans le champ `source`. Les questions et les réponses
-sont reprises telles quelles ; seuls l'ordre des réponses et les liens markdown des
-explications (réduits à leur texte) changent. Deux explications ont été réécrites, signalées
-par « explication réécrite » dans `source.note` : El Salvador (le pays est revenu en 2025
-sur une partie de sa loi bitcoin) et les inventeurs de Lightning (livre blanc publié en
-2015, pas en 2016). Toute redistribution de ces packs doit conserver l'attribution et la même
+auteur, son identifiant et son lien dans le champ `source`. Dans `planb-btc101-fr.json`, les
+questions et les réponses sont reprises telles quelles ; seuls l'ordre des réponses et les
+liens markdown des explications (réduits à leur texte) changent. Dans `bonly-21-fr.json`,
+toutes les réponses ont été réécrites pour le quiz B-only (la bonne, deux pièges et le plus
+souvent une réponse pour rire), ainsi qu'une question (le bloc de la 1re transaction,
+précisée) et plusieurs explications. Ce qui a été réécrit est indiqué dans `source.note`
+(« réécrit ici : … »). Toute redistribution de ces packs doit conserver l'attribution et la même
 licence.
 
 ## B-Only
