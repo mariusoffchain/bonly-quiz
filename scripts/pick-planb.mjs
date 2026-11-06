@@ -57,7 +57,7 @@ const PARTS = [
     picks: [
       {
         q: 'btc101/059',
-        text: 'En quelle année la création de bitcoins doit-elle s’arrêter ?',
+        text: 'En quelle année la création de bitcoins devrait-elle s’arrêter ?',
         options: ['2140', '2104', '2041', 'Quand la France aura remboursé sa dette'],
       },
       {
@@ -85,8 +85,10 @@ const PARTS = [
       },
       {
         q: 'his201/040',
-        text: 'Combien de bitcoins Satoshi Nakamoto a-t-il minés au total, environ ?',
+        text: 'Combien de bitcoins Satoshi Nakamoto aurait-il minés au total, environ ?',
         options: ['Environ 1,1 million', 'Environ 110 000', 'Environ 11 000', 'Juste de quoi payer deux pizzas'],
+        explanation:
+          "C'est une estimation : en 2013, Sergio Demian Lerner a repéré dans les premiers blocs une signature attribuée à Satoshi, le « Patoshi pattern ». Une étude de Whale Alert (2020) arrive à 1 122 693 bitcoins. Satoshi a cessé de miner en mai 2010.",
       },
       {
         q: 'btc101/214',
@@ -94,9 +96,9 @@ const PARTS = [
       },
       {
         q: 'cyp201/016',
-        options: ['Schnorr', 'ECDSA', 'SHA-256', 'Le tampon de la mairie'],
+        options: ['Schnorr', 'ECDSA', 'Shor', 'Le tampon de la mairie'],
         explanation:
-          "Les signatures de Schnorr sont arrivées en novembre 2021 avec Taproot. Avant, Bitcoin n'utilisait qu'ECDSA. SHA-256 est une fonction de hachage, pas une signature.",
+          "Les signatures de Schnorr sont arrivées en novembre 2021 avec Taproot. Avant, Bitcoin n'utilisait qu'ECDSA. Shor, c'est l'algorithme quantique qui menacerait justement ces signatures.",
       },
     ],
   },
@@ -104,7 +106,12 @@ const PARTS = [
     title: 'Pour les experts',
     subtitle: 'Les questions qui piquent',
     picks: [
-      { q: 'his201/033', options: ['James Howells', 'Hal Finney', 'Martti Malmi', 'Aurore Lalucq'] },
+      {
+        q: 'his201/033',
+        options: ['James Howells', 'Hal Finney', 'Luke Dashjr', 'Aurore Lalucq'],
+        explanation:
+          "James Howells, un ingénieur britannique, avait miné 8 000 bitcoins en 2009. Son disque dur est parti à la décharge en 2013. Luke Dashjr a lui aussi perdu ses bitcoins, mais dans un piratage, fin 2022.",
+      },
       {
         q: 'btc102/033',
         options: ['Joseph Poon et Thaddeus Dryja', 'Pieter Wuille et Gregory Maxwell', 'Adam Back et Hal Finney', 'Laurel et Hardy'],
@@ -130,10 +137,12 @@ const PARTS = [
           "Le 12 janvier 2009, Satoshi envoie 10 BTC à Hal Finney : c'est la transaction du bloc 170. Ces bitcoins venaient de la récompense du bloc 9. Ceux du bloc 0, le bloc genesis, ne peuvent pas être dépensés.",
       },
       {
-        q: 'btc202/076',
-        options: ['300 Mo', '300 Mb', '500 Mo', '500 Mb'],
+        q: 'his201/054', // value overflow incident (Plan B : qui a repéré le bloc)
+        as: 'hard',
+        text: 'Combien de fois une faille de Bitcoin a-t-elle été exploitée pour créer des bitcoins à partir de rien ?',
+        options: ['Une fois', 'Jamais', 'Deux fois', '21 fois'],
         explanation:
-          'Par défaut, Bitcoin Core limite la mempool à 300 Mo (mégaoctets, pas mégabits). Au-delà, il expulse les transactions qui paient le moins de frais.',
+          "Une seule fois : le 15 août 2010, le « value overflow bug » a créé plus de 184 milliards de bitcoins dans le bloc 74 638. Satoshi a publié un correctif en quelques heures et la chaîne a repris sans cette transaction. Une faille du même type, découverte en 2018, a été corrigée avant d'être exploitée.",
       },
       {
         q: 'his201/030',
@@ -160,7 +169,7 @@ try {
 } catch {}
 
 /** Chosen so that the right answer lands on A, B, C and D 5 or 6 times each, never 3 times in a row. */
-const SALT = Number(process.env.SALT ?? 1311);
+const SALT = Number(process.env.SALT ?? 417);
 
 const hash = (s) => {
   let h = 2166136261;

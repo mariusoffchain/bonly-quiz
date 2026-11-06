@@ -25,8 +25,8 @@
       "text": "Quel est le nombre maximum de bitcoins qui peuvent être créés ?",
       "options": [
         "Environ 21 millions",
-        "Environ 100 millions",
         "Environ 20 millions",
+        "Environ 100 millions",
         "Illimité, comme l'euro"
       ],
       "correctIndex": 0,
@@ -40,7 +40,7 @@
         "sourceId": "3078256e-9f10-4cd1-84d4-bf466740f6e2",
         "courseId": "min304",
         "chapter": "Les nuances de l'industrie du minage",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses, explication"
       }
     },
@@ -50,11 +50,11 @@
       "text": "Quel est le nom de l'événement lors duquel la récompense de minage est divisée par deux ?",
       "options": [
         "Le doubling",
-        "Le halving",
         "Le burning",
+        "Le halving",
         "Le Black Friday"
       ],
-      "correctIndex": 1,
+      "correctIndex": 2,
       "difficulty": "easy",
       "explanation": "L'événement lors duquel la récompense de minage est divisée par deux est appelé halving. Cet événement donne à la courbe d'émission monétaire une forme d'escalier.",
       "source": {
@@ -65,7 +65,7 @@
         "sourceId": "1296bb6f-47f5-4cbe-9743-423e8baf3404",
         "courseId": "btc101",
         "chapter": "21 millions de bitcoins",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses"
       }
     },
@@ -74,12 +74,12 @@
       "type": "single-choice",
       "text": "Comment s’appelle le registre public partagé où l’on écrit l’historique des paiements en bitcoins ?",
       "options": [
+        "La blockchain",
         "La mempool",
         "Le wallet",
-        "La blockchain",
         "Un fichier Excel chez Satoshi"
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "difficulty": "easy",
       "explanation": "Le registre public partagé qui contient toutes les transactions s'appelle la blockchain.",
       "source": {
@@ -90,7 +90,7 @@
         "sourceId": "d3af25de-1388-49af-a62e-a0ada2450913",
         "courseId": "min101",
         "chapter": "Le minage de Bitcoin expliqué simplement",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses"
       }
     },
@@ -99,12 +99,12 @@
       "type": "single-choice",
       "text": "Quel est le temps moyen entre la création de deux blocs dans le protocole Bitcoin ?",
       "options": [
-        "10 minutes",
         "1 heure",
+        "10 minutes",
         "1 minute",
         "Une fois par semaine, le dimanche"
       ],
-      "correctIndex": 0,
+      "correctIndex": 1,
       "difficulty": "easy",
       "explanation": "En moyenne, un bloc est créé toutes les 10 minutes dans le protocole Bitcoin. Ce temps reste constant indépendamment du nombre de mineurs et de leur puissance de calcul.",
       "source": {
@@ -115,7 +115,7 @@
         "sourceId": "c1b095fc-a016-4357-81ed-c297b7ff8291",
         "courseId": "btc101",
         "chapter": "Bitcoin et écologie",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses"
       }
     },
@@ -125,11 +125,11 @@
       "text": "Quel pays a déclaré le Bitcoin comme monnaie légale ?",
       "options": [
         "Argentine",
-        "États-Unis",
         "El Salvador",
+        "États-Unis",
         "Le Groland"
       ],
-      "correctIndex": 2,
+      "correctIndex": 1,
       "difficulty": "easy",
       "explanation": "El Salvador a fait du bitcoin une monnaie légale en septembre 2021, une première mondiale. Début 2025, le pays est revenu en partie sur cette loi : les commerçants ne sont plus obligés de l'accepter.",
       "source": {
@@ -140,7 +140,7 @@
         "sourceId": "e58399a5-0e00-4283-b4fb-1b29d53e31d4",
         "courseId": "btc101",
         "chapter": "Hyper-bitcoinisation",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses, explication"
       }
     },
@@ -150,11 +150,11 @@
       "text": "Quelle est la fonction principale d’un portefeuille Bitcoin ?",
       "options": [
         "Stocker les bitcoins eux-mêmes",
-        "Garder les clés privées",
         "Miner de nouveaux bitcoins",
+        "Garder les clés privées",
         "Ranger sa carte bleue"
       ],
-      "correctIndex": 1,
+      "correctIndex": 2,
       "difficulty": "easy",
       "explanation": "Un portefeuille garde les clés privées qui permettent de dépenser les bitcoins. Les bitcoins, eux, ne quittent jamais la blockchain.",
       "source": {
@@ -165,7 +165,7 @@
         "sourceId": "bc105954-44de-438c-be5d-68a4e4e1354e",
         "courseId": "btc202",
         "chapter": "Quelle est la différence entre un nœud et un portefeuille ?",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses, explication"
       }
     },
@@ -175,11 +175,11 @@
       "text": "Avec quel type de matériel le minage s’effectuait-il surtout au tout début de Bitcoin ?",
       "options": [
         "Des machines spécialisées (ASIC)",
-        "La carte graphique (GPU)",
         "Le processeur (CPU)",
+        "La carte graphique (GPU)",
         "Une calculatrice Casio"
       ],
-      "correctIndex": 2,
+      "correctIndex": 1,
       "difficulty": "easy",
       "explanation": "Au lancement, le logiciel tournait sur un ordinateur personnel et utilisait principalement le processeur.",
       "source": {
@@ -190,21 +190,21 @@
         "sourceId": "0e3271e4-7ee4-4b70-bf5a-38f85e17e710",
         "courseId": "min101",
         "chapter": "L'évolution des machines de minage",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses"
       }
     },
     {
       "id": "planb-btc101-059",
       "type": "single-choice",
-      "text": "En quelle année la création de bitcoins doit-elle s’arrêter ?",
+      "text": "En quelle année la création de bitcoins devrait-elle s’arrêter ?",
       "options": [
-        "2140",
         "2104",
+        "2041",
         "Quand la France aura remboursé sa dette",
-        "2041"
+        "2140"
       ],
-      "correctIndex": 0,
+      "correctIndex": 3,
       "difficulty": "intermediate",
       "explanation": "En raison du mécanisme de halving, il est mathématiquement prévisible que la création de bitcoins cessera en 2140, lorsque le nombre total de bitcoins atteindra sa limite de 21 millions.",
       "source": {
@@ -215,7 +215,7 @@
         "sourceId": "b158211c-c712-44d1-ba04-88e5ad42ae33",
         "courseId": "btc101",
         "chapter": "21 millions de bitcoins",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : question, réponses"
       }
     },
@@ -224,12 +224,12 @@
       "type": "single-choice",
       "text": "Quel acteur majeur conçoit des ASICs pour le minage de Bitcoin ?",
       "options": [
+        "Foundry USA",
         "Thermomix",
         "Bitmain",
-        "Foundry USA",
         "Nvidia"
       ],
-      "correctIndex": 1,
+      "correctIndex": 2,
       "difficulty": "intermediate",
       "explanation": "Bitmain fabrique les Antminer, les machines de minage les plus répandues. Foundry USA est un pool de minage, et Nvidia fait des cartes graphiques.",
       "source": {
@@ -240,7 +240,7 @@
         "sourceId": "fcc6e84b-6f5a-4062-9897-b35591424563",
         "courseId": "btc102",
         "chapter": "Comprendre l'industrie de Bitcoin",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses, explication"
       }
     },
@@ -249,12 +249,12 @@
       "type": "single-choice",
       "text": "À quel endroit Satoshi Nakamoto a-t-il publié le livre blanc de Bitcoin le 31 octobre 2008 ?",
       "options": [
-        "La Cryptography mailing list",
         "Sur son Skyblog",
         "Le forum BitcoinTalk",
+        "La Cryptography mailing list",
         "Reddit"
       ],
-      "correctIndex": 0,
+      "correctIndex": 2,
       "difficulty": "intermediate",
       "explanation": "Satoshi l'a envoyé le 31 octobre 2008 sur la Cryptography mailing list, héritière de la liste des cypherpunks. Le forum BitcoinTalk n'existait pas encore : il a ouvert fin 2009.",
       "source": {
@@ -265,7 +265,7 @@
         "sourceId": "5e79473c-8857-4abb-bc05-00f4ef7b3dbb",
         "courseId": "his201",
         "chapter": "La naissance de Bitcoin",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, difficulté Plan B : easy, réécrit ici : réponses, explication"
       }
     },
@@ -276,8 +276,8 @@
       "options": [
         "Le problème du voyageur de commerce",
         "Le problème des généraux byzantins",
-        "Le problème des réunions de copropriété",
-        "Le dilemme du prisonnier"
+        "Le dilemme du prisonnier",
+        "Le problème des réunions de copropriété"
       ],
       "correctIndex": 1,
       "difficulty": "intermediate",
@@ -290,23 +290,23 @@
         "sourceId": "b5a0154a-8540-4582-b0da-60f4a87e4a79",
         "courseId": "his201",
         "chapter": "Les modèles décentralisés avant Nakamoto",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, difficulté Plan B : easy, réécrit ici : réponses"
       }
     },
     {
       "id": "planb-his201-040",
       "type": "single-choice",
-      "text": "Combien de bitcoins Satoshi Nakamoto a-t-il minés au total, environ ?",
+      "text": "Combien de bitcoins Satoshi Nakamoto aurait-il minés au total, environ ?",
       "options": [
-        "Juste de quoi payer deux pizzas",
         "Environ 110 000",
+        "Juste de quoi payer deux pizzas",
         "Environ 11 000",
         "Environ 1,1 million"
       ],
       "correctIndex": 3,
       "difficulty": "intermediate",
-      "explanation": "1 122 693 bitcoins selon une étude de Whale Alert publiée en 2020. Satoshi a cessé son activité de minage en mai 2010.",
+      "explanation": "C'est une estimation : en 2013, Sergio Demian Lerner a repéré dans les premiers blocs une signature attribuée à Satoshi, le « Patoshi pattern ». Une étude de Whale Alert (2020) arrive à 1 122 693 bitcoins. Satoshi a cessé de miner en mai 2010.",
       "source": {
         "provider": "Plan B Network (planb.academy)",
         "license": "CC BY-SA 4.0",
@@ -315,8 +315,8 @@
         "sourceId": "54f8781e-6bac-4101-bff5-2c2c234b5679",
         "courseId": "his201",
         "chapter": "Cartes graphiques, pizzas et bitcoins gratuits",
-        "retrievedAt": "2026-11-05",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : question, réponses"
+        "retrievedAt": "2026-11-06",
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : question, réponses, explication"
       }
     },
     {
@@ -324,9 +324,9 @@
       "type": "single-choice",
       "text": "Laquelle de ces opérations sur Lightning est enregistrée onchain ?",
       "options": [
+        "Le partage de l'addition au resto",
         "Le routage multi-sauts",
         "Un paiement dans le canal",
-        "Le partage de l'addition au resto",
         "L'ouverture d'un canal"
       ],
       "correctIndex": 3,
@@ -340,7 +340,7 @@
         "sourceId": "778f77f0-10e2-4775-8631-a85b5ce40136",
         "courseId": "btc101",
         "chapter": "Le réseau Lightning : payer en bitcoins rapidement, avec de faibles frais",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses"
       }
     },
@@ -350,13 +350,13 @@
       "text": "Quel algorithme de signature a été introduit dans Bitcoin avec Taproot ?",
       "options": [
         "Schnorr",
-        "ECDSA",
-        "SHA-256",
-        "Le tampon de la mairie"
+        "Le tampon de la mairie",
+        "Shor",
+        "ECDSA"
       ],
       "correctIndex": 0,
       "difficulty": "intermediate",
-      "explanation": "Les signatures de Schnorr sont arrivées en novembre 2021 avec Taproot. Avant, Bitcoin n'utilisait qu'ECDSA. SHA-256 est une fonction de hachage, pas une signature.",
+      "explanation": "Les signatures de Schnorr sont arrivées en novembre 2021 avec Taproot. Avant, Bitcoin n'utilisait qu'ECDSA. Shor, c'est l'algorithme quantique qui menacerait justement ces signatures.",
       "source": {
         "provider": "Plan B Network (planb.academy)",
         "license": "CC BY-SA 4.0",
@@ -365,7 +365,7 @@
         "sourceId": "eeab2070-7cd3-4157-ba5b-478ae4642953",
         "courseId": "cyp201",
         "chapter": "Signatures numériques et courbes elliptiques",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses, explication"
       }
     },
@@ -374,14 +374,14 @@
       "type": "single-choice",
       "text": "Quel mineur de 2009 a perdu l'intégralité de ses bitcoins en jetant son ordinateur à la décharge en 2013 ?",
       "options": [
-        "Hal Finney",
         "Aurore Lalucq",
-        "Martti Malmi",
+        "Luke Dashjr",
+        "Hal Finney",
         "James Howells"
       ],
       "correctIndex": 3,
       "difficulty": "hard",
-      "explanation": "Cet ingénieur britannique avait généré 8 000 bitcoins avec son ordinateur entre février et avril 2009. Son cas a été médiatisé par le Guardian.",
+      "explanation": "James Howells, un ingénieur britannique, avait miné 8 000 bitcoins en 2009. Son disque dur est parti à la décharge en 2013. Luke Dashjr a lui aussi perdu ses bitcoins, mais dans un piratage, fin 2022.",
       "source": {
         "provider": "Plan B Network (planb.academy)",
         "license": "CC BY-SA 4.0",
@@ -390,8 +390,8 @@
         "sourceId": "93faca86-69a6-4e69-bbd1-36a94e55cc56",
         "courseId": "his201",
         "chapter": "L'amorçage de la cryptomonnaie",
-        "retrievedAt": "2026-11-05",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses"
+        "retrievedAt": "2026-11-06",
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses, explication"
       }
     },
     {
@@ -400,11 +400,11 @@
       "text": "Qui sont les inventeurs du Lightning Network ?",
       "options": [
         "Pieter Wuille et Gregory Maxwell",
-        "Adam Back et Hal Finney",
         "Joseph Poon et Thaddeus Dryja",
+        "Adam Back et Hal Finney",
         "Laurel et Hardy"
       ],
-      "correctIndex": 2,
+      "correctIndex": 1,
       "difficulty": "hard",
       "explanation": "Joseph Poon et Thaddeus Dryja ont publié le livre blanc du Lightning Network en 2015, puis sa version de référence en janvier 2016, pour faire passer Bitcoin à l’échelle.",
       "source": {
@@ -415,7 +415,7 @@
         "sourceId": "89bd3f1b-79be-4393-a557-16cd59ea30aa",
         "courseId": "btc102",
         "chapter": "L'architecture en couches de Bitcoin",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses, explication"
       }
     },
@@ -424,12 +424,12 @@
       "type": "single-choice",
       "text": "Qui a inventé le concept de preuve de travail ?",
       "options": [
-        "Karl Marx",
-        "Hal Finney",
+        "Adam Back",
         "Cynthia Dwork et Moni Naor",
-        "Adam Back"
+        "Hal Finney",
+        "Karl Marx"
       ],
-      "correctIndex": 2,
+      "correctIndex": 1,
       "difficulty": "hard",
       "explanation": "Cynthia Dwork et Moni Naor ont décrit le concept en 1992. Adam Back l'a repris en 1997 pour Hashcash, et Hal Finney en 2004 pour RPOW.",
       "source": {
@@ -440,7 +440,7 @@
         "sourceId": "4c3e713d-576f-404e-94ca-10fa30356655",
         "courseId": "his201",
         "chapter": "Les modèles décentralisés avant Nakamoto",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses, explication"
       }
     },
@@ -449,12 +449,12 @@
       "type": "single-choice",
       "text": "Quelle est la taille du nonce dans l'entête d'un bloc ?",
       "options": [
-        "64 bits",
+        "32 bits",
         "69 bits",
         "256 bits",
-        "32 bits"
+        "64 bits"
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "difficulty": "hard",
       "explanation": "Le nonce est un champ de 32 bits dans l'en-tête du bloc. Les 256 bits, c'est la taille du hash du bloc.",
       "source": {
@@ -465,7 +465,7 @@
         "sourceId": "eaefe5af-e486-4229-85a1-b697447cf836",
         "courseId": "min101",
         "chapter": "Le hachage, la cible et le nonce",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses, explication"
       }
     },
@@ -474,12 +474,12 @@
       "type": "single-choice",
       "text": "Dans quel bloc se trouve la première transaction entre deux personnes (Satoshi → Hal Finney) ?",
       "options": [
+        "Bloc 9",
         "Bloc 0",
         "Bloc 170",
-        "Bloc 420",
-        "Bloc 9"
+        "Bloc 420"
       ],
-      "correctIndex": 1,
+      "correctIndex": 2,
       "difficulty": "hard",
       "explanation": "Le 12 janvier 2009, Satoshi envoie 10 BTC à Hal Finney : c'est la transaction du bloc 170. Ces bitcoins venaient de la récompense du bloc 9. Ceux du bloc 0, le bloc genesis, ne peuvent pas être dépensés.",
       "source": {
@@ -490,33 +490,33 @@
         "sourceId": "d464305d-7492-4785-be8a-b82deb2e4f67",
         "courseId": "btc101",
         "chapter": "Lancement de Bitcoin",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : question, réponses, explication"
       }
     },
     {
-      "id": "planb-btc202-076",
+      "id": "planb-his201-054",
       "type": "single-choice",
-      "text": "Quelle est la limite par défaut de la taille de la mempool dans Bitcoin Core ?",
+      "text": "Combien de fois une faille de Bitcoin a-t-elle été exploitée pour créer des bitcoins à partir de rien ?",
       "options": [
-        "500 Mo",
-        "300 Mo",
-        "500 Mb",
-        "300 Mb"
+        "Une fois",
+        "Deux fois",
+        "21 fois",
+        "Jamais"
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "difficulty": "hard",
-      "explanation": "Par défaut, Bitcoin Core limite la mempool à 300 Mo (mégaoctets, pas mégabits). Au-delà, il expulse les transactions qui paient le moins de frais.",
+      "explanation": "Une seule fois : le 15 août 2010, le « value overflow bug » a créé plus de 184 milliards de bitcoins dans le bloc 74 638. Satoshi a publié un correctif en quelques heures et la chaîne a repris sans cette transaction. Une faille du même type, découverte en 2018, a été corrigée avant d'être exploitée.",
       "source": {
         "provider": "Plan B Network (planb.academy)",
         "license": "CC BY-SA 4.0",
-        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/btc202/quizz/076",
-        "author": "6516474c-c190-41f2-b2ab-3d452ce7bdf0",
-        "sourceId": "aace6682-3e4f-4945-b568-91de0a92caab",
-        "courseId": "btc202",
-        "chapter": "Anatomie de votre nœud Bitcoin",
-        "retrievedAt": "2026-11-05",
-        "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses, explication"
+        "url": "https://github.com/PlanB-Network/bitcoin-educational-content/tree/main/courses/his201/quizz/054",
+        "author": "satoshi-brother",
+        "sourceId": "8fc7a1fa-2a78-4b8e-87f9-c5dcdbc7ca78",
+        "courseId": "his201",
+        "chapter": "Les premiers ennuis techniques",
+        "retrievedAt": "2026-11-06",
+        "note": "repo commit a400db3d8ff3, lesson quiz, fr, difficulté Plan B : intermediate, réécrit ici : question, réponses, explication"
       }
     },
     {
@@ -524,9 +524,9 @@
       "type": "single-choice",
       "text": "Quelle était la date de naissance indiquée par Satoshi Nakamoto sur le forum de la P2P Foundation ?",
       "options": [
+        "5 avril 1989",
         "5 avril 1968",
         "5 avril 1971",
-        "5 avril 1989",
         "5 avril 1975"
       ],
       "correctIndex": 3,
@@ -540,7 +540,7 @@
         "sourceId": "48488747-75a1-47b2-83a1-5eee333827b8",
         "courseId": "his201",
         "chapter": "La présentation au monde",
-        "retrievedAt": "2026-11-05",
+        "retrievedAt": "2026-11-06",
         "note": "repo commit a400db3d8ff3, lesson quiz, fr, réécrit ici : réponses, explication"
       }
     }
