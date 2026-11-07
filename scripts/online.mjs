@@ -18,6 +18,11 @@
  * company Wi-Fi): TUNNEL=pinggy npm run online opens a free Pinggy tunnel over SSH on
  * port 443, with the ssh already on macOS. Free Pinggy tunnels stop after 60 minutes:
  * relaunch, the game resumes and the QR code shows the new address.
+ *
+ * Second backup, with a fixed address, no warning page and no time limit:
+ * TUNNEL=tailscale npm run online publishes the quiz with Tailscale Funnel
+ * (https://<computer>.<tailnet>.ts.net). Needs the Tailscale app, signed in, and
+ * Funnel allowed once for the account (the first run prints the link to do it).
  */
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -28,14 +33,25 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const port = Number(process.env.PORT ?? 8787);
 const pinggy = process.env.TUNNEL === 'pinggy';
-const bin = pinggy ? 'ssh' : (process.env.CLOUDFLARED ?? 'cloudflared');
+const tailscale = process.env.TUNNEL === 'tailscale';
+/** The Tailscale command line: on the PATH, or inside the macOS app. */
+const findTailscale = () =>
+  [process.env.TAILSCALE, 'tailscale', '/Applications/Tailscale.app/Contents/MacOS/Tailscale'].find(
+    (b) => b && !spawnSync(b, ['version']).error,
+  );
+const bin = pinggy ? 'ssh' : tailscale ? findTailscale() : (process.env.CLOUDFLARED ?? 'cloudflared');
 const entry = path.join(root, 'dist/server/server/index.js');
 
 if (!fs.existsSync(entry)) {
   console.error('Lancez d’abord : npm run build');
   process.exit(1);
 }
-if (pinggy ? spawnSync(bin, ['-V']).error : spawnSync(bin, ['--version']).error) {
+if (tailscale && !bin) {
+  console.error(`Tailscale est introuvable. Installez l'application depuis https://tailscale.com/download
+(ou : brew install --cask tailscale), ouvrez-la et connectez-vous, puis relancez.`);
+  process.exit(1);
+}
+if (!tailscale && (pinggy ? spawnSync(bin, ['-V']).error : spawnSync(bin, ['--version']).error)) {
   if (pinggy) {
     console.error('ssh est introuvable sur cet ordinateur.');
     process.exit(1);
@@ -211,8 +227,46 @@ function startPinggy() {
   });
 }
 
+/**
+ * Tailscale Funnel: the address is known before starting (this computer's name on the
+ * tailnet), so the quiz starts first, then `tailscale funnel PORT` runs in the foreground
+ * and stops publishing when it exits.
+ */
+function startTailscale() {
+  const st = spawnSync(bin, ['status', '--json'], { encoding: 'utf8' });
+  let status;
+  try {
+    status = JSON.parse(st.stdout);
+  } catch {
+    status = null;
+  }
+  const dns = status?.Self?.DNSName?.replace(/\.$/, '');
+  if (status?.BackendState !== 'Running' || !dns) {
+    console.error(`Tailscale n'est pas connecté sur cet ordinateur.
+Ouvrez l'application Tailscale (icône dans la barre de menus), connectez-vous et
+activez-la (« Connected »), puis relancez la même commande.`);
+    process.exit(1);
+  }
+  const url = `https://${dns}`;
+  console.log('[online] publication avec Tailscale Funnel (adresse fixe, sans limite de temps)…');
+  console.log('[online] la 1re fois, Tailscale peut afficher un lien pour autoriser Funnel :');
+  console.log('[online] ouvrez-le, validez, et la suite se fait seule.');
+  console.log('[online] la 1re connexion peut prendre une minute (création du certificat HTTPS).\n');
+  startServer(url);
+  const funnel = spawn(bin, ['funnel', String(port)], { stdio: ['ignore', 'pipe', 'pipe'] });
+  children.push(funnel);
+  for (const stream of [funnel.stdout, funnel.stderr]) stream.on('data', (d) => process.stdout.write(d));
+  funnel.on('exit', (code) => {
+    if (stopping) return;
+    console.error(`\n[tunnel] Tailscale Funnel s’est arrêté (code ${code}). Relancez la même commande : la partie reprend.`);
+    stop();
+  });
+}
+
 if (pinggy) {
   startPinggy();
+} else if (tailscale) {
+  startTailscale();
 } else if (process.env.TUNNEL_TOKEN) {
   const publicUrl = process.env.PUBLIC_URL;
   if (!publicUrl) {

@@ -163,6 +163,17 @@ TUNNEL=pinggy PORT=8788 npm run online
 Il est gratuit mais se coupe au bout de 60 minutes : relancer alors la même commande, la
 partie reprend et le QR code de l'écran affiche la nouvelle adresse.
 
+Autre secours, Tailscale Funnel : adresse fixe (`https://<ordinateur>.<réseau>.ts.net`),
+pas de page d'avertissement, pas de limite de temps, passe aussi par le port 443. Il faut
+l'application Tailscale ouverte et connectée :
+
+```bash
+TUNNEL=tailscale PORT=8788 npm run online
+```
+
+Au premier lancement, le terminal peut afficher un lien pour autoriser Funnel sur le
+compte : l'ouvrir et valider. L'adresse ne change pas d'un lancement à l'autre.
+
 ### La page affiche `{"error":"Not found"}` ou « Le port 8787 est déjà utilisé »
 
 Un autre programme de l'ordinateur occupe le port du quiz (un serveur de développement,

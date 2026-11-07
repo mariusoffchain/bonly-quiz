@@ -129,5 +129,16 @@ partie reprend et le QR code se met à jour) :
 TUNNEL=pinggy PORT=8788 npm run online
 ```
 
+**Deuxième secours, Tailscale** (adresse fixe, pas d'écran d'avertissement, pas de limite
+de temps). Ouvrir l'application Tailscale (barre de menus) et vérifier qu'elle est
+connectée, puis :
+
+```bash
+TUNNEL=tailscale PORT=8788 npm run online
+```
+
+La 1re fois, le terminal peut afficher un lien pour autoriser Funnel : l'ouvrir, valider.
+À essayer une fois la veille, avec un téléphone en 4G.
+
 **Le Mac tombe en panne.** Suivre `docs/secours.md`, section « L'ancien ordinateur est hors
 service », avec le dossier `Bureau/bonly-sauvegarde` ou l'export JSON.

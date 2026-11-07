@@ -114,6 +114,12 @@ d'entreprise, ou avec un VPN), `TUNNEL=pinggy npm run online` ouvre un tunnel Pi
 SSH sur le port 443, sans compte ni installation. La version gratuite se coupe au bout de
 60 minutes : relancer, la partie reprend.
 
+Deuxième secours, avec une adresse fixe, sans page d'avertissement ni limite de temps :
+`TUNNEL=tailscale npm run online` publie le quiz avec Tailscale Funnel
+(`https://<ordinateur>.<réseau>.ts.net`). Il faut l'application Tailscale, connectée, et
+autoriser Funnel une fois pour le compte : au premier lancement, le terminal affiche le lien
+pour le faire.
+
 ## Déroulé d'une partie
 
 1. Projeter `/board`, ouvrir `/console` sur l'ordinateur ou un téléphone de l'animateur.
