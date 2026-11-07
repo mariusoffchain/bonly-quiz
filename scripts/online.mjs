@@ -13,6 +13,11 @@
  *   TUNNEL_TOKEN=eyJ... PUBLIC_URL=https://quiz.b-only.org npm run online
  *
  * Needs the cloudflared program (CLOUDFLARED=/path/to/cloudflared to pick one).
+ *
+ * Backup when the network blocks Cloudflare's tunnel port (7844, common on hotel or
+ * company Wi-Fi): TUNNEL=pinggy npm run online opens a free Pinggy tunnel over SSH on
+ * port 443, with the ssh already on macOS. Free Pinggy tunnels stop after 60 minutes:
+ * relaunch, the game resumes and the QR code shows the new address.
  */
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -22,14 +27,19 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const port = Number(process.env.PORT ?? 8787);
-const bin = process.env.CLOUDFLARED ?? 'cloudflared';
+const pinggy = process.env.TUNNEL === 'pinggy';
+const bin = pinggy ? 'ssh' : (process.env.CLOUDFLARED ?? 'cloudflared');
 const entry = path.join(root, 'dist/server/server/index.js');
 
 if (!fs.existsSync(entry)) {
   console.error('Lancez d’abord : npm run build');
   process.exit(1);
 }
-if (spawnSync(bin, ['--version']).error) {
+if (pinggy ? spawnSync(bin, ['-V']).error : spawnSync(bin, ['--version']).error) {
+  if (pinggy) {
+    console.error('ssh est introuvable sur cet ordinateur.');
+    process.exit(1);
+  }
   console.error(`cloudflared est introuvable. Installation :
   macOS    brew install cloudflared
   Windows  winget install --id Cloudflare.cloudflared
@@ -89,21 +99,25 @@ function explainBlocked() {
 [online]   les téléphones ne pourront pas se connecter tant que ce message revient.
 [online]   Branchez l'ordinateur sur le partage de connexion d'un téléphone (ou un autre
 [online]   Wi-Fi), puis Ctrl + C et relancez la même commande.
+[online]   Ou passez par le tunnel de secours (port 443, coupé au bout de 60 min) :
+[online]     TUNNEL=pinggy PORT=${port} npm run online
 `);
 }
 
 function startTunnel(args, onLine) {
-  const tunnel = spawn(bin, ['tunnel', '--no-autoupdate', ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const tunnel = spawn(bin, pinggy ? args : ['tunnel', '--no-autoupdate', ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
   children.push(tunnel);
   for (const stream of [tunnel.stdout, tunnel.stderr]) {
     let buf = '';
     stream.on('data', (d) => {
       buf += d;
       let i;
-      while ((i = buf.indexOf('\n')) >= 0) {
-        const line = buf.slice(0, i);
+      while ((i = buf.search(/[\r\n]/)) >= 0) {
+        // eslint-disable-next-line no-control-regex
+        const line = buf.slice(0, i).replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '');
         buf = buf.slice(i + 1);
-        if (/ERR|WRN|Registered tunnel connection/.test(line)) console.log('[tunnel]', line.replace(/^\S+\s/, ''));
+        if (!pinggy && /ERR|WRN|Registered tunnel connection/.test(line)) console.log('[tunnel]', line.replace(/^\S+\s/, ''));
+        if (pinggy && /error|denied|refused|timed out|expire/i.test(line)) console.log('[tunnel]', line.trim());
         if (/Allow outbound (QUIC|TCP).*7844/.test(line)) explainBlocked();
         if (/Registered tunnel connection/.test(line) && blockedShown) console.log('[online] tunnel connecté, tout va bien.');
         onLine?.(line);
@@ -111,14 +125,26 @@ function startTunnel(args, onLine) {
     });
   }
   tunnel.on('exit', (code) => {
-    console.error(`[tunnel] cloudflared s’est arrêté (code ${code}).`);
+    console.error(`[tunnel] ${pinggy ? 'le tunnel Pinggy' : 'cloudflared'} s’est arrêté (code ${code}).${pinggy && !stopping ? ' Relancez la même commande : la partie reprend.' : ''}`);
     if (stopping && children.length > 1) return; // Ctrl+C: wait for the quiz to save and close
     stop();
     process.exit(1);
   });
 }
 
-if (process.env.TUNNEL_TOKEN) {
+if (pinggy) {
+  console.log('[online] ouverture d’un tunnel de secours Pinggy (port 443, 60 min maximum)…');
+  let started = false;
+  const args = ['-tt', '-p', '443', '-o', 'StrictHostKeyChecking=accept-new', '-o', 'ServerAliveInterval=30', '-o', 'ExitOnForwardFailure=yes'];
+  startTunnel([...args, `-R0:127.0.0.1:${port}`, 'free@a.pinggy.io'], (line) => {
+    const m = /https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.pinggy\.(?:link|online)/.exec(line);
+    if (m && !started) {
+      started = true;
+      startServer(m[0]);
+      console.log('[online] tunnel Pinggy ouvert. Il se coupe au bout de 60 minutes : relancez alors la même commande.');
+    }
+  });
+} else if (process.env.TUNNEL_TOKEN) {
   const publicUrl = process.env.PUBLIC_URL;
   if (!publicUrl) {
     console.error('Avec TUNNEL_TOKEN, indiquez aussi PUBLIC_URL (ex. https://quiz.b-only.org).');

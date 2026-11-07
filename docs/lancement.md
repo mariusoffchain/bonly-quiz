@@ -120,7 +120,13 @@ PORT=8788 npm run online
 **Plus d'internet, ou le terminal répète « Allow outbound … port 7844 ».** Le réseau
 bloque le tunnel. Passer le Mac sur le partage de connexion d'un téléphone, puis Ctrl + C
 et relancer comme ci-dessus. C'est bon quand le terminal affiche
-`Registered tunnel connection`.
+`Registered tunnel connection`. Sans téléphone sous la main, tunnel de secours (il passe par le port des
+sites web, mais se coupe au bout de 60 minutes : relancer alors la même commande, la
+partie reprend et le QR code se met à jour) :
+
+```bash
+TUNNEL=pinggy PORT=8788 npm run online
+```
 
 **Le Mac tombe en panne.** Suivre `docs/secours.md`, section « L'ancien ordinateur est hors
 service », avec le dossier `Bureau/bonly-sauvegarde` ou l'export JSON.

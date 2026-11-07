@@ -108,6 +108,11 @@ partie reprend où elle en était.
 Le trafic est faible : environ 40 Ko par téléphone pour une partie complète (voir
 « Test de charge »).
 
+Si le réseau bloque le tunnel Cloudflare (port 7844, fréquent sur un Wi-Fi d'hôtel ou
+d'entreprise, ou avec un VPN), `TUNNEL=pinggy npm run online` ouvre un tunnel Pinggy par
+SSH sur le port 443, sans compte ni installation. La version gratuite se coupe au bout de
+60 minutes : relancer, la partie reprend.
+
 ## Déroulé d'une partie
 
 1. Projeter `/board`, ouvrir `/console` sur l'ordinateur ou un téléphone de l'animateur.

@@ -153,6 +153,16 @@ d'un téléphone (ou un autre Wi-Fi), puis `Ctrl+C` et relancer la même command
 terminal affiche alors `Registered tunnel connection` : c'est bon. À tester la veille sur
 le Wi-Fi de la salle.
 
+Sans partage de connexion possible, le tunnel de secours Pinggy passe par le port 443
+(celui des sites web) avec le `ssh` déjà installé sur le Mac :
+
+```bash
+TUNNEL=pinggy PORT=8788 npm run online
+```
+
+Il est gratuit mais se coupe au bout de 60 minutes : relancer alors la même commande, la
+partie reprend et le QR code de l'écran affiche la nouvelle adresse.
+
 ### La page affiche `{"error":"Not found"}` ou « Le port 8787 est déjà utilisé »
 
 Un autre programme de l'ordinateur occupe le port du quiz (un serveur de développement,
