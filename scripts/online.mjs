@@ -123,7 +123,7 @@ function explainBlocked() {
 }
 
 function startTunnel(args, onLine) {
-  const tunnel = spawn(bin, pinggy ? args : ['tunnel', '--no-autoupdate', ...args], { stdio: [sharedTty ? 'inherit' : 'ignore', 'pipe', 'pipe'] });
+  const tunnel = spawn(bin, ['tunnel', '--no-autoupdate', ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
   children.push(tunnel);
   for (const stream of [tunnel.stdout, tunnel.stderr]) {
     let buf = '';
@@ -134,8 +134,7 @@ function startTunnel(args, onLine) {
         // eslint-disable-next-line no-control-regex
         const line = buf.slice(0, i).replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '');
         buf = buf.slice(i + 1);
-        if (!pinggy && /ERR|WRN|Registered tunnel connection/.test(line)) console.log('[tunnel]', line.replace(/^\S+\s/, ''));
-        if (pinggy && /error|denied|refused|timed out|expire/i.test(line)) console.log('[tunnel]', line.trim());
+        if (/ERR|WRN|Registered tunnel connection/.test(line)) console.log('[tunnel]', line.replace(/^\S+\s/, ''));
         if (/Allow outbound (QUIC|TCP).*7844/.test(line)) explainBlocked();
         if (/Registered tunnel connection/.test(line) && blockedShown) console.log('[online] tunnel connecté, tout va bien.');
         onLine?.(line);
@@ -143,7 +142,7 @@ function startTunnel(args, onLine) {
     });
   }
   tunnel.on('exit', (code) => {
-    console.error(`[tunnel] ${pinggy ? 'le tunnel Pinggy' : 'cloudflared'} s’est arrêté (code ${code}).${pinggy && !stopping ? ' Relancez la même commande : la partie reprend.' : ''}`);
+    console.error(`[tunnel] cloudflared s’est arrêté (code ${code}).`);
     const serverRunning = children.length > 1;
     stop();
     // Let the quiz save and close first; its own exit ends this process.
@@ -151,20 +150,69 @@ function startTunnel(args, onLine) {
   });
 }
 
-if (pinggy) {
+const PINGGY_URL = /https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.pinggy(?:-free)?\.(?:link|net|online)/;
+
+/**
+ * Pinggy over ssh, run as close as possible to the hand-typed command that works
+ * (ssh -p 443 -R0:localhost:PORT free.pinggy.io): ssh shares this terminal, and its screen
+ * is shown as is until the public address is found, either in that screen or from
+ * Pinggy's local web debugger (forwarded to PORT+1000).
+ */
+function startPinggy() {
   console.log('[online] ouverture d’un tunnel de secours Pinggy (port 443, 60 min maximum)…');
   console.log('[online] si un mot de passe est demandé, appuyez simplement sur Entrée.');
   console.log('[online] pour tout arrêter : Ctrl + C. Si rien ne se passe : Entrée, puis ~ puis . (point).');
-  let started = false;
-  const args = ['-tt', '-p', '443', '-o', 'StrictHostKeyChecking=accept-new', '-o', 'ServerAliveInterval=30', '-o', 'ExitOnForwardFailure=yes', '-o', 'PubkeyAuthentication=no'];
-  startTunnel([...args, `-R0:127.0.0.1:${port}`, 'free.pinggy.io'], (line) => {
-    const m = /https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.pinggy(?:-free)?\.(?:link|net|online)/.exec(line);
-    if (m && !started) {
-      started = true;
-      startServer(m[0]);
-      console.log('[online] tunnel Pinggy ouvert. Il se coupe au bout de 60 minutes : relancez alors la même commande.');
-    }
+  const debugPort = port + 1000;
+  const args = ['-t', '-p', '443', '-o', 'StrictHostKeyChecking=accept-new', '-o', 'ServerAliveInterval=30', '-o', 'PubkeyAuthentication=no'];
+  const ssh = spawn(bin, [...args, '-L', `${debugPort}:localhost:4300`, `-R0:localhost:${port}`, 'free.pinggy.io'], {
+    stdio: [sharedTty ? 'inherit' : 'ignore', 'pipe', 'pipe'],
   });
+  children.push(ssh);
+
+  let started = false;
+  let seen = '';
+  const found = (url) => {
+    if (started) return;
+    started = true;
+    clearInterval(poll);
+    console.log('\n');
+    startServer(url);
+    console.log('[online] tunnel Pinggy ouvert. Il se coupe au bout de 60 minutes : relancez alors la même commande.');
+  };
+  ssh.stdout.on('data', (d) => {
+    if (started) return; // Pinggy's screen has done its job; keep the quiz's lines readable
+    process.stdout.write(d);
+    seen = (seen + d.toString()).slice(-20000);
+    // eslint-disable-next-line no-control-regex
+    const text = seen.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b[()][0-9A-Za-z]/g, '');
+    const m = PINGGY_URL.exec(text);
+    if (m) found(m[0]);
+  });
+  ssh.stderr.on('data', (d) => {
+    // Our probes of the debugger port make ssh complain while it is not ready: hide that.
+    const text = d.toString().split(/\r?\n/).filter((l) => l.trim() && !/channel \d+: open failed|connect_to localhost/.test(l));
+    if (text.length) process.stderr.write(text.join('\n') + '\n');
+  });
+  let tries = 0;
+  const poll = setInterval(async () => {
+    if (++tries > 40) return clearInterval(poll);
+    try {
+      const r = await fetch(`http://127.0.0.1:${debugPort}/urls`, { signal: AbortSignal.timeout(1500) });
+      const m = PINGGY_URL.exec(await r.text());
+      if (m) found(m[0]);
+    } catch {}
+  }, 1500);
+  ssh.on('exit', (code) => {
+    clearInterval(poll);
+    console.error(`\n[tunnel] le tunnel Pinggy s’est arrêté (code ${code}).${stopping ? '' : ' Relancez la même commande : la partie reprend.'}`);
+    const serverRunning = children.length > 1;
+    stop();
+    if (!serverRunning) process.exit(1);
+  });
+}
+
+if (pinggy) {
+  startPinggy();
 } else if (process.env.TUNNEL_TOKEN) {
   const publicUrl = process.env.PUBLIC_URL;
   if (!publicUrl) {
