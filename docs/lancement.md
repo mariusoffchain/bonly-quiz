@@ -140,5 +140,17 @@ TUNNEL=tailscale PORT=8788 npm run online
 La 1re fois, le terminal peut afficher un lien pour autoriser Funnel : l'ouvrir, valider.
 À essayer une fois la veille, avec un téléphone en 4G.
 
+Si le téléphone n'affiche rien alors que le terminal dit « Available on the internet », il
+manque le certificat HTTPS (certains Wi-Fi d'hôtel bloquent sa création). Mettre le Mac sur
+le partage de connexion de l'iPhone, puis, dans une deuxième fenêtre de Terminal :
+
+```bash
+cd /tmp && /Applications/Tailscale.app/Contents/MacOS/Tailscale cert mac.tail991840.ts.net
+```
+
+C'est bon quand il répond « Wrote public cert ». Supprimer les deux fichiers créés
+(`rm /tmp/mac.tail991840.ts.net.*`) et revenir au Wi-Fi : le certificat est gardé environ
+3 mois. Le faire la veille de l'événement.
+
 **Le Mac tombe en panne.** Suivre `docs/secours.md`, section « L'ancien ordinateur est hors
 service », avec le dossier `Bureau/bonly-sauvegarde` ou l'export JSON.

@@ -174,6 +174,12 @@ TUNNEL=tailscale PORT=8788 npm run online
 Au premier lancement, le terminal peut afficher un lien pour autoriser Funnel sur le
 compte : l'ouvrir et valider. L'adresse ne change pas d'un lancement à l'autre.
 
+Si l'adresse ne répond pas alors que le terminal affiche « Available on the internet », le
+Mac n'a pas son certificat HTTPS : le Wi-Fi bloque Let's Encrypt. Le demander depuis le
+partage de connexion d'un téléphone, une seule fois (il est gardé environ 3 mois) :
+`cd /tmp && /Applications/Tailscale.app/Contents/MacOS/Tailscale cert <adresse>.ts.net`,
+puis supprimer les deux fichiers écrits dans `/tmp`.
+
 ### La page affiche `{"error":"Not found"}` ou « Le port 8787 est déjà utilisé »
 
 Un autre programme de l'ordinateur occupe le port du quiz (un serveur de développement,
