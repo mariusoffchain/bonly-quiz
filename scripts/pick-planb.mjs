@@ -52,7 +52,7 @@ const PARTS = [
     ],
   },
   {
-    title: 'Pour aller plus loin',
+    title: 'On creuse',
     subtitle: 'Histoire, minage et Lightning',
     picks: [
       {
@@ -103,7 +103,7 @@ const PARTS = [
     ],
   },
   {
-    title: 'Pour les experts',
+    title: 'Au fond du terrier',
     subtitle: 'Les questions qui piquent',
     picks: [
       {
