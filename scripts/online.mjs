@@ -134,8 +134,9 @@ function startTunnel(args, onLine) {
 
 if (pinggy) {
   console.log('[online] ouverture d’un tunnel de secours Pinggy (port 443, 60 min maximum)…');
+  console.log('[online] si un mot de passe est demandé, appuyez simplement sur Entrée.');
   let started = false;
-  const args = ['-tt', '-p', '443', '-o', 'StrictHostKeyChecking=accept-new', '-o', 'ServerAliveInterval=30', '-o', 'ExitOnForwardFailure=yes'];
+  const args = ['-tt', '-p', '443', '-o', 'StrictHostKeyChecking=accept-new', '-o', 'ServerAliveInterval=30', '-o', 'ExitOnForwardFailure=yes', '-o', 'PubkeyAuthentication=no'];
   startTunnel([...args, `-R0:127.0.0.1:${port}`, 'free@a.pinggy.io'], (line) => {
     const m = /https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.pinggy\.(?:link|online)/.exec(line);
     if (m && !started) {
