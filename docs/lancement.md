@@ -26,7 +26,8 @@ npm install
 npm run build
 ```
 
-Puis faire un essai complet avec la partie 2 ci-dessous, et arrêter avec Ctrl + C.
+Puis faire un essai complet avec la partie 2 ci-dessous, si possible sur le Wi-Fi de la
+salle, et arrêter avec Ctrl + C.
 
 ## 2. Le jour J : lancer le quiz
 
@@ -112,8 +113,10 @@ fenêtre : la retrouver, ou lancer sur un autre port (et ouvrir alors
 PORT=8789 npm run online
 ```
 
-**Plus d'internet.** Passer le Mac sur le partage de connexion d'un téléphone, puis
-relancer comme ci-dessus.
+**Plus d'internet, ou le terminal répète « Allow outbound … port 7844 ».** Le réseau
+bloque le tunnel. Passer le Mac sur le partage de connexion d'un téléphone, puis Ctrl + C
+et relancer comme ci-dessus. C'est bon quand le terminal affiche
+`Registered tunnel connection`.
 
 **Le Mac tombe en panne.** Suivre `docs/secours.md`, section « L'ancien ordinateur est hors
 service », avec le dossier `Bureau/bonly-sauvegarde` ou l'export JSON.

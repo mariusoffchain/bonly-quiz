@@ -144,6 +144,15 @@ ne les reconnaît pas, reprennent leur place avec leur pseudo exact.
 Si la connexion internet de l'ordinateur est en cause : passer sur le partage de connexion
 d'un téléphone, puis relancer de la même façon.
 
+### Le terminal répète « Allow outbound … traffic on port 7844 »
+
+Le réseau de l'ordinateur (souvent un Wi-Fi d'entreprise, d'hôtel ou de salle) bloque le
+tunnel Cloudflare : l'adresse `trycloudflare.com` s'affiche mais ne marche pas, et le quiz
+l'explique en français dans le terminal. Brancher l'ordinateur sur le partage de connexion
+d'un téléphone (ou un autre Wi-Fi), puis `Ctrl+C` et relancer la même commande. Le
+terminal affiche alors `Registered tunnel connection` : c'est bon. À tester la veille sur
+le Wi-Fi de la salle.
+
 ### La page affiche `{"error":"Not found"}` ou « Le port 8787 est déjà utilisé »
 
 Un autre programme de l'ordinateur occupe le port du quiz (un serveur de développement,

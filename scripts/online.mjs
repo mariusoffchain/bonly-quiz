@@ -75,6 +75,19 @@ function startServer(publicUrl) {
   console.log(`[online] sur cet ordinateur, ouvrez http://localhost:${port}/board et http://localhost:${port}/console\n`);
 }
 
+/** Printed once when cloudflared cannot reach Cloudflare: the network blocks port 7844. */
+let blockedShown = false;
+function explainBlocked() {
+  if (blockedShown) return;
+  blockedShown = true;
+  console.error(`
+[online] ⚠ Le réseau de cet ordinateur bloque le tunnel (port 7844, UDP et TCP) :
+[online]   les téléphones ne pourront pas se connecter tant que ce message revient.
+[online]   Branchez l'ordinateur sur le partage de connexion d'un téléphone (ou un autre
+[online]   Wi-Fi), puis Ctrl + C et relancez la même commande.
+`);
+}
+
 function startTunnel(args, onLine) {
   const tunnel = spawn(bin, ['tunnel', '--no-autoupdate', ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
   children.push(tunnel);
@@ -87,6 +100,8 @@ function startTunnel(args, onLine) {
         const line = buf.slice(0, i);
         buf = buf.slice(i + 1);
         if (/ERR|WRN|Registered tunnel connection/.test(line)) console.log('[tunnel]', line.replace(/^\S+\s/, ''));
+        if (/Allow outbound (QUIC|TCP).*7844/.test(line)) explainBlocked();
+        if (/Registered tunnel connection/.test(line) && blockedShown) console.log('[online] tunnel connecté, tout va bien.');
         onLine?.(line);
       }
     });
