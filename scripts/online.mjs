@@ -52,13 +52,17 @@ if ((await portTaken('127.0.0.1')) || (await portTaken('::1'))) {
   console.error(`Le port ${port} est déjà utilisé par un autre programme sur cet ordinateur
 (un autre serveur de développement, ou le quiz déjà lancé dans un autre terminal).
 Pour voir lequel : lsof -i :${port}
-Fermez-le, ou lancez le quiz sur un autre port :
-  PORT=8788 npm run online`);
+Si c'est un ancien quiz resté ouvert, pour l'arrêter :
+  kill $(lsof -t -iTCP:${port} -sTCP:LISTEN)
+puis relancez. Sinon, lancez le quiz sur un autre port :
+  PORT=${port + 1} npm run online`);
   process.exit(1);
 }
 
 const children = [];
+let stopping = false;
 const stop = () => {
+  stopping = true;
   for (const c of children) c.kill('SIGTERM');
 };
 process.on('SIGINT', stop);
@@ -108,6 +112,7 @@ function startTunnel(args, onLine) {
   }
   tunnel.on('exit', (code) => {
     console.error(`[tunnel] cloudflared s’est arrêté (code ${code}).`);
+    if (stopping && children.length > 1) return; // Ctrl+C: wait for the quiz to save and close
     stop();
     process.exit(1);
   });

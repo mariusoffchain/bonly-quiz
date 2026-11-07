@@ -28,6 +28,7 @@ app.listen().then((port) => {
 });
 
 const shutdown = () => {
+  setTimeout(() => process.exit(0), 3000).unref(); // never linger holding the port
   app.close().finally(() => process.exit(0));
 };
 process.on('SIGINT', shutdown);

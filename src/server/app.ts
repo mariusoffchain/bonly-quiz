@@ -94,10 +94,14 @@ export class App {
     clearTimeout(this.closeTimer);
     clearTimeout(this.revealTimer);
     clearTimeout(this.broadcastTimer);
-    for (const c of this.conns) c.ws.close();
-    await new Promise<void>((resolve) => this.wss.close(() => resolve()));
-    await new Promise<void>((resolve) => this.server.close(() => resolve()));
     this.store.saveSnapshot(this.game.state, true);
+    // Cut every socket at once: a sleeping phone or a frozen tab never answers a polite
+    // close, and would keep this process (and its port) alive after Ctrl+C.
+    for (const c of this.conns) c.ws.terminate();
+    await new Promise<void>((resolve) => this.wss.close(() => resolve()));
+    const closed = new Promise<void>((resolve) => this.server.close(() => resolve()));
+    this.server.closeAllConnections();
+    await closed;
   }
 
   private restore(): boolean {

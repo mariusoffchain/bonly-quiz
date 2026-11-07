@@ -31,7 +31,8 @@ salle, et arrêter avec Ctrl + C.
 
 ## 2. Le jour J : lancer le quiz
 
-**Terminal 1, le quiz.** Ouvrir le Terminal, puis :
+**Terminal 1, le quiz.** Couper le VPN s'il y en a un (il bloque le tunnel). Ouvrir le
+Terminal, puis :
 
 ```bash
 cd ~/Documents/bonly-quiz
@@ -105,12 +106,15 @@ La partie reprend où elle en était. L'adresse `trycloudflare.com` change : les
 rescannent le QR code et, si leur téléphone ne les reconnaît pas, touchent « Déjà inscrit ?
 Reprendre ma place » et tapent leur pseudo exact.
 
-**« Le port 8788 est déjà utilisé ».** Le quiz tourne sans doute déjà dans une autre
-fenêtre : la retrouver, ou lancer sur un autre port (et ouvrir alors
-`localhost:8789/board` et `/console`) :
+**« Le port 8788 est déjà utilisé ».** Le quiz tourne sans doute encore en arrière-plan
+(un ancien lancement mal arrêté). Pour l'arrêter, puis relancer :
 
 ```bash
-PORT=8789 npm run online
+kill $(lsof -t -iTCP:8788 -sTCP:LISTEN)
+```
+
+```bash
+PORT=8788 npm run online
 ```
 
 **Plus d'internet, ou le terminal répète « Allow outbound … port 7844 ».** Le réseau
