@@ -137,8 +137,8 @@ if (pinggy) {
   console.log('[online] si un mot de passe est demandé, appuyez simplement sur Entrée.');
   let started = false;
   const args = ['-tt', '-p', '443', '-o', 'StrictHostKeyChecking=accept-new', '-o', 'ServerAliveInterval=30', '-o', 'ExitOnForwardFailure=yes', '-o', 'PubkeyAuthentication=no'];
-  startTunnel([...args, `-R0:127.0.0.1:${port}`, 'free@a.pinggy.io'], (line) => {
-    const m = /https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.pinggy\.(?:link|online)/.exec(line);
+  startTunnel([...args, `-R0:127.0.0.1:${port}`, 'free.pinggy.io'], (line) => {
+    const m = /https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.pinggy(?:-free)?\.(?:link|net|online)/.exec(line);
     if (m && !started) {
       started = true;
       startServer(m[0]);
