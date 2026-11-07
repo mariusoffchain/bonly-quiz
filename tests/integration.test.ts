@@ -96,12 +96,18 @@ describe('server', () => {
     }
     cv = await consoleC.waitView<ConsoleView>((v) => v.players.length === 2);
 
-    // Q1: both answer, the question closes early.
+    // Q1: both answer, one changes their mind; the question stays open until the
+    // countdown ends, or here until the host reveals it.
     consoleC.send({ type: 'next', key: cv.next!.key });
     await phones[0].waitView<PlayerView>((v) => v.phase === 'question');
     phones[0].send({ type: 'answer', questionIndex: 0, option: 1 });
     expect(await phones[0].wait((m) => m.type === 'answer-ack')).toMatchObject({ ok: true });
+    phones[1].send({ type: 'answer', questionIndex: 0, option: 1 });
     phones[1].send({ type: 'answer', questionIndex: 0, option: 0 });
+    const changed = await phones[1].waitView<PlayerView>((v) => v.myAnswer?.option === 0);
+    expect(changed.phase).toBe('question');
+    cv = await consoleC.waitView<ConsoleView>((v) => v.answeredIds.length === 2 && v.next?.action === 'close');
+    consoleC.send({ type: 'next', key: cv.next!.key });
     const v0 = await phones[0].waitView<PlayerView>((v) => v.phase === 'reveal');
     expect(v0.myResult).toMatchObject({ correct: true, streak: 1 });
     expect(v0.me!.hashrate).toBeGreaterThan(10); // base 10 + speed bonus
@@ -121,6 +127,8 @@ describe('server', () => {
     await again.waitView<PlayerView>((v) => v.phase === 'question' && v.question?.index === 1);
     again.send({ type: 'answer', questionIndex: 1, option: 1 });
     phones[0].send({ type: 'answer', questionIndex: 1, option: 1 });
+    cv = await consoleC.waitView<ConsoleView>((v) => v.answeredIds.length === 2 && v.next?.action === 'close');
+    consoleC.send({ type: 'next', key: cv.next!.key });
     cv = await consoleC.waitView<ConsoleView>((v) => v.next?.action === 'finish');
     consoleC.send({ type: 'next', key: cv.next!.key });
     cv = await consoleC.waitView<ConsoleView>((v) => v.next?.action === 'mine');

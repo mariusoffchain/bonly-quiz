@@ -23,8 +23,6 @@ export interface SessionConfig {
   reinvestRate: number;
   /** Hashrate given to every player when joining. */
   startHashrateThs: number;
-  /** Reveal the answer as soon as every registered player has answered (connected or not). */
-  closeWhenAllAnswered: boolean;
   /** Winners drawn at the end (1 by default; more = 1st, 2nd... place). A player can win only once. */
   podiumSize: number;
   /** Length of the mining animation before the winner is revealed. */
@@ -94,7 +92,6 @@ export const DEFAULT_CONFIG: SessionConfig = {
   questionCount: 21,
   questionDurationMs: 21_000,
   ...PRESETS[0].scoring,
-  closeWhenAllAnswered: true,
   podiumSize: 1,
   miningDurationMs: 8_000,
 };

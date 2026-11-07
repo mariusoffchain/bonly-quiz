@@ -161,16 +161,6 @@ export class App {
     }
   }
 
-  /** Reveal the answer early once every connected player has answered. */
-  private closeIfAllAnswered(): boolean {
-    const g = this.game;
-    if (!g.state.config.closeWhenAllAnswered || !g.allAnswered()) return false;
-    g.closeQuestion(Date.now());
-    this.scheduleTimers();
-    this.broadcast();
-    return true;
-  }
-
   // ------------------------------------------------------------------- URLs
   private port(): number {
     const addr = this.server.address();
@@ -269,7 +259,7 @@ export class App {
       const id = conn.playerId;
       if (id && ![...this.conns].some((c) => c.playerId === id)) {
         this.game.setConnected(id, false);
-        if (!this.closeIfAllAnswered()) this.broadcastSoon('screens');
+        this.broadcastSoon('screens');
       }
     });
   }
@@ -323,7 +313,6 @@ export class App {
         if (!conn.playerId) throw new GameError('not-joined', 'Inscrivez-vous d’abord.');
         const r = g.answer(conn.playerId, msg.questionIndex, msg.option, now);
         this.send(conn, { type: 'answer-ack', questionIndex: msg.questionIndex, option: msg.option, ok: r.ok, reason: r.reason });
-        if (r.ok && this.closeIfAllAnswered()) return;
         if (r.ok) this.sendState(conn);
         return this.broadcastSoon('screens');
       }
@@ -341,7 +330,6 @@ export class App {
       case 'remove-player':
         g.removePlayer(msg.id, now);
         for (const c of this.conns) if (c.playerId === msg.id) c.playerId = undefined;
-        if (this.closeIfAllAnswered()) return;
         break;
       case 'rename-player':
         g.rename(msg.id, msg.name, now);

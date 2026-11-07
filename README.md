@@ -16,10 +16,11 @@ hashrate. Le plus gros mineur est favori, mais rien n'est garanti.
 | Mauvaise réponse / pas de réponse | 0 TH, série remise à zéro, aucune pénalité |
 | Tirage | 1 gagnant tiré au sort (Web Crypto), probabilité = hashrate du joueur / hashrate total ; le classement final par TH sert aux autres lots |
 
-Une seule réponse par question, verrouillée dès l'envoi. Le chrono (21 s) est tenu par le
-serveur. La bonne réponse ne s'affiche (écran et téléphones) qu'à la fin du chrono, ou dès
-que tous les inscrits ont répondu, y compris ceux dont le téléphone s'est mis en veille.
-L'animateur peut aussi la révéler plus tôt depuis la console. Les gains sont comptés au
+Une réponse par question, que le joueur peut changer jusqu'à la fin du chrono : c'est son
+dernier choix qui compte, et pour le bonus de rapidité, l'heure de ce dernier choix. Le
+chrono (21 s) est tenu par le serveur. La bonne réponse ne s'affiche (écran et téléphones)
+qu'à la fin du chrono, même si tout le monde a déjà répondu. L'animateur peut la révéler
+plus tôt depuis la console. Les gains sont comptés au
 dixième de TH.
 
 Le gagnant est fixé par le serveur au clic, puis révélé après 8 s d'animation. Le réglage
@@ -119,8 +120,8 @@ SSH sur le port 443, sans compte ni installation. La version gratuite se coupe a
 2. Les joueurs scannent le QR code et choisissent un nom (le leur ou celui de leur équipe).
 3. Console : « Annoncer la partie 1 ». L'écran présente la partie (titre, nombre de
    questions, gain) et le rappel des règles : c'est le moment de les expliquer.
-4. Console : « Lancer la partie 1 ». La réponse s'affiche à la fin du chrono, ou dès que
-   tout le monde a répondu. L'écran montre la bonne réponse, les meilleurs gains et le
+4. Console : « Lancer la partie 1 ». La réponse s'affiche à la fin du chrono ; jusque-là,
+   les joueurs peuvent changer d'avis. L'écran montre la bonne réponse, les meilleurs gains et le
    classement ; chaque téléphone montre le gain détaillé, le rang et les chances de bloc.
 5. Console : « Question 2 / 21 », et ainsi de suite.
 6. Après la 7e : « Fin de la partie 1 : classement ». L'écran affiche le classement

@@ -380,10 +380,6 @@ function Settings({ view, send }: { view: ConsoleView; send: Send }) {
           <input type="number" min={0} max={60} value={draft.miningDurationMs / 1000} onChange={(e) => set({ miningDurationMs: num(e.target.value) * 1000 })} />
         </label>
       </div>
-      <label className="check">
-        <input type="checkbox" checked={draft.closeWhenAllAnswered} onChange={(e) => set({ closeWhenAllAnswered: e.target.checked })} />
-        Afficher la réponse dès que tout le monde a répondu
-      </label>
       <div className="row">
         <button className="btn primary" disabled={!dirty} onClick={() => send({ type: 'set-config', patch: draft })}>
           Enregistrer

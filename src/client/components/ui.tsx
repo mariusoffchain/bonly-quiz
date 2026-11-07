@@ -118,6 +118,8 @@ export function Rules({ config }: { config: PublicConfig }) {
           ? `${percents(config.speedBonusRanks)} pour ${config.speedBonusRanks.length > 1 ? `les ${config.speedBonusRanks.length} premières bonnes réponses` : 'la 1re bonne réponse'}`
           : 'pas de bonus'}
       </dd>
+      <dt>Changer d’avis</dt>
+      <dd>possible jusqu’à la fin du chrono ; pour la rapidité, c’est le dernier choix qui compte</dd>
       <dt>Série</dt>
       <dd>
         +{Math.round(config.streakBonusStep * 100)} % par bonne réponse d’affilée, max +{Math.round(config.streakBonusMax * 100)} %

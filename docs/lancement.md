@@ -84,8 +84,9 @@ Dans la console :
 Un seul gros bouton, qui change à chaque étape :
 
 1. **Annoncer la partie 1** : l'écran présente la partie et les règles. On les explique.
-2. **Lancer la partie 1** : 1re question. La réponse s'affiche seule à la fin des 21 s, ou
-   dès que tout le monde a répondu (« Révéler la réponse maintenant » pour forcer).
+2. **Lancer la partie 1** : 1re question. Les joueurs peuvent changer de réponse jusqu'à
+   la fin des 21 s ; la réponse s'affiche seule à ce moment-là (« Révéler la réponse
+   maintenant » pour l'afficher plus tôt).
 3. **Question 2 / 21**, et ainsi de suite.
 4. Après la 7e : **Fin de la partie 1 : classement** (classement provisoire à l'écran), puis
    **Lancer la partie 2**. Pareil après la 14e.

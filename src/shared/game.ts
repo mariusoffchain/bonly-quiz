@@ -289,30 +289,23 @@ export class Game {
     return run;
   }
 
-  /** One answer per player, locked once sent. */
+  /**
+   * One answer per player, which can be changed until the countdown ends. The time of the
+   * last change counts for the speed bonus, so a fast first guess then a switch earns no edge.
+   */
   answer(playerId: string, questionIndex: number, option: number, now: number): { ok: boolean; reason?: string } {
     const p = this.state.players[playerId];
     if (!p || p.removed) throw new GameError('not-found', 'Joueur inconnu.');
     const run = this.run;
     if (this.state.phase !== 'question' || !run || run.index !== questionIndex) return { ok: false, reason: 'not-open' };
     if (now >= run.closesAt) return { ok: false, reason: 'too-late' };
-    if (run.answers[playerId]) return { ok: false, reason: 'already-answered' };
     const q = this.state.questions[run.index];
     if (!Number.isInteger(option) || option < 0 || option >= q.options.length) return { ok: false, reason: 'bad-option' };
+    const previous = run.answers[playerId];
+    if (previous?.option === option) return { ok: true };
     run.answers[playerId] = { option, at: now };
-    this.emit(now, 'answer', { playerId, index: run.index, option, ms: now - run.openedAt });
+    this.emit(now, 'answer', { playerId, index: run.index, option, ms: now - run.openedAt, ...(previous ? { changedFrom: previous.option } : {}) });
     return { ok: true };
-  }
-
-  /**
-   * True when every registered player has answered the open question. Disconnected
-   * players count too: a phone whose screen locks must not reveal the answer early.
-   */
-  allAnswered(): boolean {
-    const run = this.run;
-    if (this.state.phase !== 'question' || !run) return false;
-    const players = this.activePlayers();
-    return players.length > 0 && players.every((p) => run.answers[p.id]);
   }
 
   /** Close the open question and credit the hashrate. */

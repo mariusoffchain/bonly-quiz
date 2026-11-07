@@ -26,7 +26,6 @@ const store = {
 
 const REFUSED: Record<string, string> = {
   'too-late': 'Trop tard.',
-  'already-answered': 'Réponse déjà enregistrée.',
   'not-open': 'Question fermée.',
 };
 
@@ -223,7 +222,8 @@ function QuestionPad({
 }) {
   useTicker(250);
   const q = view.question!;
-  const chosen = view.myAnswer?.option ?? (pending?.q === q.index ? pending.option : undefined);
+  // The tap just sent wins over the last answer the server confirmed, so a change shows at once.
+  const chosen = pending?.q === q.index ? pending.option : view.myAnswer?.option;
   const timeUp = serverNow() >= q.closesAt;
   return (
     <>
@@ -237,7 +237,7 @@ function QuestionPad({
           <button
             key={i}
             className={'answer' + (chosen === i ? ' chosen' : chosen !== undefined ? ' faded' : '')}
-            disabled={chosen !== undefined || timeUp}
+            disabled={timeUp}
             onClick={() => onAnswer(i)}
           >
             <span className="letter">{LETTERS[i]}</span>
@@ -247,8 +247,8 @@ function QuestionPad({
       </div>
       {view.myAnswer ? (
         <p className="muted">
-          Réponse {LETTERS[view.myAnswer.option]} enregistrée en {seconds(view.myAnswer.ms)}. Le résultat s’affiche quand tout le monde a répondu ou à la
-          fin du chrono.
+          Réponse {LETTERS[view.myAnswer.option]} enregistrée en {seconds(view.myAnswer.ms)}. Vous pouvez encore changer jusqu’à la fin du chrono : le
+          résultat s’affiche à ce moment-là.
         </p>
       ) : timeUp && chosen === undefined ? (
         <p className="muted">Temps écoulé.</p>

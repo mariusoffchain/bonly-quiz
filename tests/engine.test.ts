@@ -103,9 +103,10 @@ describe('Game', () => {
     expect(g.phase).toBe('question');
     expect(() => g.advance(step.key, T0)).toThrow(/déjà changé/);
 
-    // Q1: Alice first right answer (+10 %), Bob second (+5 %).
-    expect(g.answer(alice.id, 0, 0, T0)).toEqual({ ok: true });
-    expect(g.answer(alice.id, 0, 1, T0 + 10)).toEqual({ ok: false, reason: 'already-answered' });
+    // Q1: Alice first right answer (+10 %), Bob second (+5 %). Alice changes her mind:
+    // the last choice counts, timed when it was made.
+    expect(g.answer(alice.id, 0, 1, T0)).toEqual({ ok: true });
+    expect(g.answer(alice.id, 0, 0, T0 + 10)).toEqual({ ok: true });
     g.answer(bob.id, 0, 0, T0 + 10_000);
     g.closeQuestion(T0 + 12_000);
     expect(alice.hashrate).toBe(11);
@@ -115,7 +116,7 @@ describe('Game', () => {
     g.advance(g.nextStep(T0)!.key, T0 + 20_000);
     g.answer(alice.id, 1, 0, T0 + 39_999);
     g.answer(bob.id, 1, 3, T0 + 21_000);
-    expect(g.answer(bob.id, 1, 0, T0 + 40_001).ok).toBe(false);
+    expect(g.answer(bob.id, 1, 0, g.run!.closesAt)).toEqual({ ok: false, reason: 'too-late' });
     g.closeQuestion(T0 + 40_000);
     expect(g.state.runs[1].results![alice.id]).toMatchObject({ streak: 2, streakBonus: 1, speedBonus: 1, reinvest: 2.3, gain: 14.3 }); // reinvest: 21 % of 11
     expect(alice.hashrate).toBe(25.3);
@@ -229,19 +230,28 @@ describe('Game', () => {
     expect(g.phase).toBe('reveal');
   });
 
-  it('plays only questionCount questions and detects when all answered', () => {
+  it('plays only questionCount questions', () => {
     const g = Game.create('TEST', T0, pack(30), {}, deps());
     expect(g.total).toBe(21);
+  });
+
+  it('lets a player change the answer until the countdown ends', () => {
+    const g = Game.create('TEST', T0, pack(2), {}, deps());
     const a = g.join('A', T0);
     const b = g.join('B', T0);
     g.openQuestion(T0);
-    g.answer(a.id, 0, 0, T0);
-    expect(g.allAnswered()).toBe(false);
-    // A locked phone (disconnected) still counts: no early reveal.
-    g.setConnected(b.id, false);
-    expect(g.allAnswered()).toBe(false);
-    g.answer(b.id, 0, 1, T0 + 1);
-    expect(g.allAnswered()).toBe(true);
+    g.answer(a.id, 0, 0, T0 + 1_000); // right, fast
+    g.answer(b.id, 0, 0, T0 + 2_000); // right
+    g.answer(a.id, 0, 0, T0 + 3_000); // same answer again: keeps the 1st time
+    g.answer(b.id, 0, 2, T0 + 4_000); // b switches to a wrong answer
+    g.answer(b.id, 0, 0, T0 + 5_000); // ...and back: timed at 5 s now
+    expect(g.run!.answers[a.id]).toEqual({ option: 0, at: T0 + 1_000 });
+    expect(g.run!.answers[b.id]).toEqual({ option: 0, at: T0 + 5_000 });
+    expect(g.phase).toBe('question'); // everyone answered, still open
+    expect(g.answer(a.id, 0, 1, T0 + 21_000)).toEqual({ ok: false, reason: 'too-late' });
+    g.closeQuestion(T0 + 21_000);
+    expect(g.run!.results![a.id]).toMatchObject({ correct: true, speedRank: 1 });
+    expect(g.run!.results![b.id]).toMatchObject({ correct: true, speedRank: 2 });
   });
 
   it('settings are locked once the game started', () => {
