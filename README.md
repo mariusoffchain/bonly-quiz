@@ -67,6 +67,9 @@ téléphones ouvrent le port 5173).
 `docs/lancement.md` : les commandes exactes du jour J, de l'ouverture du terminal au
 tirage, avec la séquence des boutons de la console.
 
+`docs/mise-en-place.md` : installer le quiz sur un Mac neuf et mettre en place les deux
+façons de le mettre en ligne (Tailscale, Pinggy), de zéro.
+
 ## En cas de problème
 
 `docs/secours.md` donne la marche à suivre et les commandes exactes pour relancer le quiz,

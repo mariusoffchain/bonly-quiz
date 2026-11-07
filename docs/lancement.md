@@ -6,6 +6,9 @@ puis Entrée, et on attend qu'elle soit finie avant la suivante.
 Le quiz est dans `Documents/bonly-quiz`. Il tourne sur le port **8788** : sur ce Mac, un
 autre programme (`workerd`) occupe déjà le port 8787 habituel.
 
+Installation sur un Mac neuf et mise en place de Tailscale et Pinggy : voir
+`docs/mise-en-place.md`.
+
 ## 1. La veille : mettre à jour et tester
 
 Ouvrir le Terminal : Cmd + Espace, taper « Terminal », Entrée.
