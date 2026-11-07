@@ -69,6 +69,17 @@ puis relancez. Sinon, lancez le quiz sur un autre port :
   process.exit(1);
 }
 
+// Pinggy only works like a hand-typed ssh: it needs this terminal (its size, the password
+// prompt), so ssh gets our keyboard and switches the terminal to raw mode while it runs.
+// In raw mode a bare \n no longer returns to the start of the line: add the \r ourselves.
+const sharedTty = pinggy && process.stdin.isTTY;
+if (sharedTty) {
+  for (const stream of [process.stdout, process.stderr]) {
+    const write = stream.write.bind(stream);
+    stream.write = (chunk, ...rest) => write(String(chunk).replace(/\r?\n/g, '\r\n'), ...rest);
+  }
+}
+
 const children = [];
 let stopping = false;
 const stop = () => {
@@ -79,7 +90,14 @@ process.on('SIGINT', stop);
 process.on('SIGTERM', stop);
 
 function startServer(publicUrl) {
-  const server = spawn(process.execPath, [entry], { env: { ...process.env, PORT: String(port), PUBLIC_URL: publicUrl }, stdio: 'inherit' });
+  const server = spawn(process.execPath, [entry], {
+    env: { ...process.env, PORT: String(port), PUBLIC_URL: publicUrl },
+    stdio: sharedTty ? ['ignore', 'pipe', 'pipe'] : 'inherit',
+  });
+  if (sharedTty) {
+    server.stdout.on('data', (d) => process.stdout.write(d));
+    server.stderr.on('data', (d) => process.stderr.write(d));
+  }
   children.push(server);
   server.on('exit', (code) => {
     stop();
@@ -105,7 +123,7 @@ function explainBlocked() {
 }
 
 function startTunnel(args, onLine) {
-  const tunnel = spawn(bin, pinggy ? args : ['tunnel', '--no-autoupdate', ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const tunnel = spawn(bin, pinggy ? args : ['tunnel', '--no-autoupdate', ...args], { stdio: [sharedTty ? 'inherit' : 'ignore', 'pipe', 'pipe'] });
   children.push(tunnel);
   for (const stream of [tunnel.stdout, tunnel.stderr]) {
     let buf = '';
@@ -126,15 +144,17 @@ function startTunnel(args, onLine) {
   }
   tunnel.on('exit', (code) => {
     console.error(`[tunnel] ${pinggy ? 'le tunnel Pinggy' : 'cloudflared'} s’est arrêté (code ${code}).${pinggy && !stopping ? ' Relancez la même commande : la partie reprend.' : ''}`);
-    if (stopping && children.length > 1) return; // Ctrl+C: wait for the quiz to save and close
+    const serverRunning = children.length > 1;
     stop();
-    process.exit(1);
+    // Let the quiz save and close first; its own exit ends this process.
+    if (!serverRunning) process.exit(1);
   });
 }
 
 if (pinggy) {
   console.log('[online] ouverture d’un tunnel de secours Pinggy (port 443, 60 min maximum)…');
   console.log('[online] si un mot de passe est demandé, appuyez simplement sur Entrée.');
+  console.log('[online] pour tout arrêter : Ctrl + C. Si rien ne se passe : Entrée, puis ~ puis . (point).');
   let started = false;
   const args = ['-tt', '-p', '443', '-o', 'StrictHostKeyChecking=accept-new', '-o', 'ServerAliveInterval=30', '-o', 'ExitOnForwardFailure=yes', '-o', 'PubkeyAuthentication=no'];
   startTunnel([...args, `-R0:127.0.0.1:${port}`, 'free.pinggy.io'], (line) => {
