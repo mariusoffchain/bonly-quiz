@@ -1,271 +1,295 @@
-import { nextStep } from './progression.js';
-import { nanoFromJSON, shareOf } from './hashrate.js';
-import type { Avatar, BlockBonusEvent, BlockFeedStatus, BlockInfo, Competitor, GameEvent, Phase, PrizeSeries, Question, QuestionRun, RoundDef, RoundState, SessionConfig, SessionState } from './types.js';
+import type { Game, NextStep } from './game.js';
+import type { Difficulty, Phase, Question, QuestionResult, SessionConfig } from './types.js';
 
-/** Competitor as shown on boards and phones (no token). */
-export interface CompetitorView {
+/** A player as everyone may see it (no token). */
+export interface PlayerPublic {
   id: string;
-  kind: Competitor['kind'];
   name: string;
-  members: string[];
-  bitaxeNumber?: number;
-  avatar: Avatar;
+  color: number;
   connected: boolean;
-  hashrate: string; // nano, cumulative balance for the entire game
-  /** Gain credited on the last closed question of the round (nano), for the ranking screen. */
-  lastGain?: string;
-  lastRank?: number;
-  share: number; // 0..1 of the total
-  rank: number; // 1-based by hashrate
+  hashrate: number;
+  /** Share of the total hashrate, 0..1 = chance of finding the next block. */
+  share: number;
+  /** 1-based, by hashrate. */
+  rank: number;
+  streak: number;
+  correctCount: number;
+  /** Gain on the last closed question. */
+  lastGain?: number;
 }
 
-export interface PublicQuestion {
-  id: string;
-  type: Question['type'];
+export interface QuestionPublic {
+  index: number;
+  total: number;
   text: string;
   options: string[];
-  difficulty: Question['difficulty'];
-  /** Only present once the question is closed. */
-  correctIndex?: number;
-  explanation?: string;
-  source?: Question['source'];
-  demo?: boolean;
-}
-
-export interface QuestionView {
-  roundIndex: number;
-  questionIndex: number;
-  questionTotal: number;
-  question: PublicQuestion;
+  difficulty: Difficulty;
+  baseGain: number;
   openedAt: number;
   closesAt: number;
-  closedAt?: number;
   durationMs: number;
   closed: boolean;
   cancelled?: boolean;
   answerCount: number;
-  results?: QuestionRun['results'];
+  /** Sent once the question is closed (or to the console). */
+  correctIndex?: number;
+  explanation?: string;
+  source?: Question['source'];
+  demo?: boolean;
+  /** Answers per option, after closing. */
+  optionCounts?: number[];
+  /** Best gains of the question, after closing. */
+  top?: (QuestionResult & { id: string })[];
 }
 
-export interface RoundSummary {
-  index: number;
-  title: string;
-  status: RoundState['status'];
-  questionCount: number;
-  currentQuestion: number;
-  tipHeightAtStart: number | null;
-  blockBonusCount: number;
+export interface BlockPublic {
+  /** Block number = podium place. */
+  n: number;
+  startedAt: number;
+  revealAt: number;
+  found: boolean;
+  /** Candidates and their chances at draw time. */
+  candidates: { id: string; hashrate: number; share: number }[];
+  winnerId?: string | null;
+  hash?: string;
+  total?: number;
+  roll?: number;
 }
+
+export interface PartPublic {
+  /** 1-based. */
+  n: number;
+  title: string;
+  subtitle?: string;
+  /** First question, 0-based. */
+  from: number;
+  count: number;
+  /** Base gains of its questions, distinct, ascending (TH). */
+  gains: number[];
+}
+
+export type PublicConfig = Pick<
+  SessionConfig,
+  'baseGainThs' | 'speedBonusRanks' | 'streakBonusStep' | 'streakBonusMax' | 'reinvestRate' | 'startHashrateThs' | 'podiumSize' | 'miningDurationMs'
+>;
 
 export interface BoardView {
   kind: 'board';
   code: string;
+  joinUrl: string;
   phase: Phase;
-  config: SessionConfig;
-  contentName: string;
-  competitors: CompetitorView[];
-  totalHashrate: string;
-  rounds: RoundSummary[];
-  currentRoundIndex: number;
-  question?: QuestionView;
-  recentBlocks: BlockInfo[];
-  blockFeed: BlockFeedStatus;
-  blockBonuses: BlockBonusEvent[]; // current round
-  lastBlockBonus?: BlockBonusEvent;
-  prizeSeries: PrizeSeries[];
-  prizesDraft: SessionState['prizesDraft'];
-  joinUrl?: string;
+  packName: string;
+  questionTotal: number;
+  /** Parts of the game; empty when the pack has none. */
+  parts: PartPublic[];
+  /**
+   * 0-based index in `parts` of the part being played, or announced during an
+   * intermission. Undefined in the lobby, at the end, or without parts.
+   */
+  part?: number;
+  question?: QuestionPublic;
+  players: PlayerPublic[];
+  totalHashrate: number;
+  blocks: BlockPublic[];
+  config: PublicConfig;
 }
 
 export interface PlayerView extends Omit<BoardView, 'kind'> {
   kind: 'player';
-  me?: CompetitorView & { token: string };
-  myAnswer?: { optionIndex: number; firstAt: number; lastAt: number; changes: number };
+  me?: PlayerPublic;
+  myAnswer?: { option: number; ms: number };
+  /** My result on the current question, once closed. */
+  myResult?: QuestionResult;
 }
 
-export interface ConsoleView extends Omit<BoardView, 'kind' | 'competitors'> {
+export interface PackInfo {
+  file: string;
+  name: string;
+  description?: string;
+  questions: number;
+}
+
+export interface ConsoleView extends Omit<BoardView, 'kind'> {
   kind: 'console';
-  nextStep?: ReturnType<typeof nextStep>;
-  competitors: (CompetitorView & { token: string; joinedAt: number; lastSeenAt: number })[];
-  questions: Record<string, Question>;
-  roundDefs: RoundDef[];
-  roundStates: RoundState[];
-  recentEvents: GameEvent[];
-  contentPacks: { name: string; description?: string; questions: number; rounds: number; file: string }[];
-  serverInfo: { lanUrls: string[]; port: number; dataDir: string; version: string };
+  next: NextStep | null;
+  fullConfig: SessionConfig;
+  questions: Question[];
+  packs: PackInfo[];
+  lanUrls: string[];
+  answeredIds: string[];
 }
 
 export type AnyView = BoardView | PlayerView | ConsoleView;
 
-function rankedCompetitors(state: SessionState): { list: CompetitorView[]; total: bigint } {
-  const round = state.roundStates[state.currentRoundIndex];
-  const source = state.hashrates;
-  const active = Object.values(state.competitors).filter((c) => !c.removed);
-  const withHr = active.map((c) => ({ c, hr: nanoFromJSON(source[c.id] ?? '0') }));
-  const total = withHr.reduce((s, x) => s + x.hr, 0n);
-  withHr.sort((a, b) => (a.hr === b.hr ? a.c.joinedAt - b.c.joinedAt : a.hr > b.hr ? -1 : 1));
-  const lastRun = round && round.currentQuestion >= 0 ? round.questionRuns[round.currentQuestion] : undefined;
-  const lastGains = new Map((lastRun?.results?.gains ?? []).map((g) => [g.competitorId, g]));
-  const list = withHr.map((x, i) => {
-    const g = lastGains.get(x.c.id);
-    return {
-      id: x.c.id,
-      kind: x.c.kind,
-      name: x.c.name,
-      members: x.c.members,
-      bitaxeNumber: x.c.bitaxeNumber,
-      avatar: x.c.avatar,
-      connected: x.c.connected,
-      hashrate: x.hr.toString(),
-      share: shareOf(x.hr, total),
-      rank: i + 1,
-      lastGain: g?.gain,
-      lastRank: g?.rank,
-    };
-  });
+function players(game: Game): { list: PlayerPublic[]; total: number } {
+  const active = game.activePlayers();
+  const total = active.reduce((s, p) => s + p.hashrate, 0);
+  const results = game.state.phase !== 'question' ? game.run?.results : undefined;
+  const sorted = [...active].sort((a, b) => b.hashrate - a.hashrate || a.joinedAt - b.joinedAt);
+  const list = sorted.map((p, i) => ({
+    id: p.id,
+    name: p.name,
+    color: p.color,
+    connected: p.connected,
+    hashrate: p.hashrate,
+    share: total > 0 ? p.hashrate / total : 0,
+    rank: i + 1,
+    streak: p.streak,
+    correctCount: p.correctCount,
+    lastGain: results?.[p.id]?.gain,
+  }));
   return { list, total };
 }
 
-function publicQuestion(q: Question, revealed: boolean): PublicQuestion {
-  const base: PublicQuestion = { id: q.id, type: q.type, text: q.text, options: q.options, difficulty: q.difficulty, source: q.source, demo: q.demo };
-  if (revealed) {
-    base.correctIndex = q.correctIndex;
-    base.explanation = q.explanation;
-  }
-  return base;
-}
-
-function questionView(state: SessionState, revealToConsole: boolean): QuestionView | undefined {
-  const round = state.roundStates[state.currentRoundIndex];
-  if (!round || round.currentQuestion < 0) return undefined;
-  const run = round.questionRuns[round.currentQuestion];
+function question(game: Game, reveal: boolean): QuestionPublic | undefined {
+  const run = game.run;
   if (!run) return undefined;
-  const q = state.questions[run.questionId];
+  const q = game.state.questions[run.index];
   const closed = run.closedAt !== undefined;
-  return {
-    roundIndex: round.index,
-    questionIndex: run.questionIndex,
-    questionTotal: state.rounds[round.index]?.questionIds.length ?? 0,
-    question: publicQuestion(q, closed || revealToConsole),
+  const out: QuestionPublic = {
+    index: run.index,
+    total: game.total,
+    text: q.text,
+    options: q.options,
+    difficulty: q.difficulty,
+    baseGain: game.state.config.baseGainThs[q.difficulty],
     openedAt: run.openedAt,
     closesAt: run.closesAt,
-    closedAt: run.closedAt,
     durationMs: run.durationMs,
     closed,
     cancelled: run.cancelled,
     answerCount: Object.keys(run.answers).length,
-    results: closed ? run.results : undefined,
+    source: q.source,
+    demo: q.demo,
   };
+  if (closed || reveal) {
+    out.correctIndex = q.correctIndex;
+    out.explanation = q.explanation;
+  }
+  if (closed) {
+    out.optionCounts = q.options.map((_, i) => Object.values(run.answers).filter((a) => a.option === i).length);
+    out.top = Object.entries(run.results ?? {})
+      .filter(([, r]) => r.correct)
+      .map(([id, r]) => ({ id, ...r }))
+      .sort((a, b) => b.gain - a.gain || (a.ms ?? 0) - (b.ms ?? 0))
+      .slice(0, 5);
+  }
+  return out;
 }
 
-function roundSummaries(state: SessionState): RoundSummary[] {
-  return state.roundStates.map((r) => ({
-    index: r.index,
-    title: r.title,
-    status: r.status,
-    questionCount: state.rounds[r.index]?.questionIds.length ?? 0,
-    currentQuestion: r.currentQuestion,
-    tipHeightAtStart: r.tipHeightAtStart,
-    blockBonusCount: r.blockBonuses.length,
+function blocks(game: Game, now: number): BlockPublic[] {
+  return game.state.blocks.map((b) => {
+    const found = now >= b.revealAt;
+    const out: BlockPublic = {
+      n: b.n,
+      startedAt: b.startedAt,
+      revealAt: b.revealAt,
+      found,
+      candidates: b.weights.map((w) => ({ ...w, share: b.total > 0 ? Math.round(w.hashrate * 10) / b.total : 0 })),
+    };
+    if (found) Object.assign(out, { winnerId: b.winnerId, hash: b.hash, total: b.total, roll: b.roll });
+    return out;
+  });
+}
+
+function parts(game: Game): { list: PartPublic[]; current?: number } {
+  const s = game.state;
+  const list = game.parts().map((p) => ({
+    n: p.n,
+    title: p.title,
+    subtitle: p.subtitle,
+    from: p.from,
+    count: p.to - p.from,
+    gains: [...new Set(s.questions.slice(p.from, p.to).map((q) => s.config.baseGainThs[q.difficulty]))].sort((a, b) => a - b),
   }));
+  const index = s.phase === 'intermission' ? s.current + 1 : s.phase === 'question' || s.phase === 'reveal' ? s.current : -1;
+  const n = index >= 0 ? game.partOf(index)?.n : undefined;
+  return { list, current: n === undefined ? undefined : n - 1 };
 }
 
-export function boardView(state: SessionState, joinUrl?: string): BoardView {
-  const { list, total } = rankedCompetitors(state);
-  const round = state.roundStates[state.currentRoundIndex];
-  const bonuses = round?.blockBonuses ?? [];
+export function boardView(game: Game, now: number, joinUrl: string): BoardView {
+  const s = game.state;
+  const { list, total } = players(game);
+  const c = s.config;
+  const p = parts(game);
   return {
     kind: 'board',
-    code: state.code,
-    phase: state.phase,
-    config: state.config,
-    contentName: state.contentName,
-    competitors: list,
-    totalHashrate: total.toString(),
-    rounds: roundSummaries(state),
-    currentRoundIndex: state.currentRoundIndex,
-    question: questionView(state, false),
-    recentBlocks: state.recentBlocks,
-    blockFeed: state.blockFeed,
-    blockBonuses: bonuses,
-    lastBlockBonus: bonuses[bonuses.length - 1],
-    prizeSeries: state.prizeSeries,
-    prizesDraft: state.prizesDraft,
+    code: s.code,
     joinUrl,
+    phase: s.phase,
+    packName: s.packName,
+    questionTotal: game.total,
+    parts: p.list,
+    part: p.current,
+    question: s.phase === 'intermission' ? undefined : question(game, false),
+    players: list,
+    totalHashrate: total,
+    blocks: blocks(game, now),
+    config: {
+      baseGainThs: c.baseGainThs,
+      speedBonusRanks: c.speedBonusRanks,
+      streakBonusStep: c.streakBonusStep,
+      streakBonusMax: c.streakBonusMax,
+      reinvestRate: c.reinvestRate,
+      startHashrateThs: c.startHashrateThs,
+      podiumSize: c.podiumSize,
+      miningDurationMs: c.miningDurationMs,
+    },
   };
 }
 
-export function playerView(state: SessionState, competitorId: string | undefined, joinUrl?: string): PlayerView {
-  const b = boardView(state, joinUrl);
-  const c = competitorId ? state.competitors[competitorId] : undefined;
-  const me = c && !c.removed ? { ...b.competitors.find((x) => x.id === c.id)!, token: c.token } : undefined;
-  const round = state.roundStates[state.currentRoundIndex];
-  const run = round && round.currentQuestion >= 0 ? round.questionRuns[round.currentQuestion] : undefined;
-  const myAnswer = run && c ? run.answers[c.id] : undefined;
-  return { ...b, kind: 'player', me, myAnswer: myAnswer ? { ...myAnswer } : undefined };
+export function playerView(game: Game, now: number, joinUrl: string, playerId?: string): PlayerView {
+  const b = boardView(game, now, joinUrl);
+  const me = playerId ? b.players.find((p) => p.id === playerId) : undefined;
+  const run = game.run;
+  const a = me && run ? run.answers[me.id] : undefined;
+  return {
+    ...b,
+    kind: 'player',
+    me,
+    myAnswer: a && run ? { option: a.option, ms: a.at - run.openedAt } : undefined,
+    myResult: me && run?.closedAt !== undefined ? run.results?.[me.id] : undefined,
+  };
 }
 
-export function consoleView(
-  state: SessionState,
-  extra: { joinUrl?: string; contentPacks: ConsoleView['contentPacks']; serverInfo: ConsoleView['serverInfo'] },
-): ConsoleView {
-  const b = boardView(state, extra.joinUrl);
-  const competitors = b.competitors.map((cv) => {
-    const c = state.competitors[cv.id];
-    return { ...cv, token: c.token, joinedAt: c.joinedAt, lastSeenAt: c.lastSeenAt };
-  });
+export function consoleView(game: Game, now: number, joinUrl: string, extra: { packs: PackInfo[]; lanUrls: string[] }): ConsoleView {
+  const b = boardView(game, now, joinUrl);
   return {
     ...b,
     kind: 'console',
-    nextStep: nextStep(state),
-    competitors,
-    question: questionView(state, true),
-    questions: state.questions,
-    roundDefs: state.rounds,
-    roundStates: state.roundStates,
-    recentEvents: state.recentEvents.slice(-120),
-    contentPacks: extra.contentPacks,
-    serverInfo: extra.serverInfo,
+    question: game.state.phase === 'intermission' ? undefined : question(game, true),
+    next: game.nextStep(now),
+    fullConfig: game.state.config,
+    questions: game.state.questions.slice(0, game.total),
+    packs: extra.packs,
+    lanUrls: extra.lanUrls,
+    answeredIds: Object.keys(game.run?.answers ?? {}),
   };
 }
 
 // ------------------------------------------------------------------ protocol
-export type ClientHello =
-  | { type: 'hello'; role: 'player'; sessionCode?: string; token?: string }
-  | { type: 'hello'; role: 'board'; sessionCode?: string }
-  | { type: 'hello'; role: 'console'; consoleToken: string };
-
-export type PlayerMessage =
-  | { type: 'join-pool'; name: string; members: string[] }
-  | { type: 'join-bitaxe'; owner?: string }
-  | { type: 'update-me'; name?: string; members?: string[] }
-  | { type: 'answer'; questionId: string; optionIndex: number; clientId?: string };
-
-export type ConsoleCommand =
-  | { type: 'next-step'; expectedKey: string }
-  | { type: 'new-session'; packName?: string; config?: Partial<SessionConfig> }
-  | { type: 'set-config'; patch: Partial<SessionConfig> }
-  | { type: 'set-content'; packName: string }
-  | { type: 'update-question'; id: string; durationMs?: number; difficulty?: Question['difficulty'] }
-  | { type: 'remove-competitor'; id: string }
-  | { type: 'update-competitor'; id: string; name?: string; members?: string[] }
-  | { type: 'start-round'; index: number }
-  | { type: 'open-question'; durationMs?: number }
-  | { type: 'close-question' }
+export type ClientMessage =
+  | { type: 'hello'; role: 'player'; token?: string }
+  | { type: 'hello'; role: 'board' }
+  | { type: 'hello'; role: 'console'; consoleToken: string }
+  | { type: 'ping'; t: number }
+  // player
+  | { type: 'join'; name: string }
+  | { type: 'reclaim'; name: string }
+  | { type: 'answer'; questionIndex: number; option: number }
+  // console
+  | { type: 'next'; key: string }
   | { type: 'cancel-question' }
-  | { type: 'end-round' }
-  | { type: 'set-prizes'; prizes: { id?: string; label: string; rank?: number }[] }
-  | { type: 'draw-prizes'; roundIndexes?: number[]; scope?: 'round' | 'sumOfRounds' }
-  | { type: 'set-block-mode'; mode: 'real' | 'simulated' | 'off' }
-  | { type: 'simulate-block' };
-
-export type ClientMessage = ClientHello | PlayerMessage | ConsoleCommand | { type: 'ping'; t: number };
+  | { type: 'remove-player'; id: string }
+  | { type: 'rename-player'; id: string; name: string }
+  | { type: 'set-config'; patch: Partial<SessionConfig> }
+  | { type: 'set-pack'; file: string }
+  | { type: 'new-session' };
 
 export type ServerMessage =
+  | { type: 'hello-ok'; role: string; serverNow: number; playerId: string | null; tokenRecognized: boolean }
   | { type: 'state'; serverNow: number; view: AnyView }
-  | { type: 'joined'; competitorId: string; token: string }
-  | { type: 'answer-ack'; questionId: string; accepted: boolean; reason?: string; optionIndex: number; serverAt: number; clientId?: string }
-  | { type: 'event'; serverNow: number; event: GameEvent }
+  | { type: 'joined'; playerId: string; token: string }
+  | { type: 'answer-ack'; questionIndex: number; option: number; ok: boolean; reason?: string }
   | { type: 'error'; code: string; message: string }
-  | { type: 'pong'; t: number; serverNow: number }
-  | { type: 'hello-ok'; role: string; serverNow: number; competitorId: string | null; tokenRecognized: boolean };
+  | { type: 'pong'; t: number; serverNow: number };

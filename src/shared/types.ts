@@ -1,14 +1,10 @@
 import type { Difficulty, SessionConfig } from './config.js';
-import type { DrawAudit, PrizeAward, PrizeDef } from './draw.js';
 
-export type { Difficulty, SessionConfig, PrizeAward, PrizeDef, DrawAudit };
-
-/** Question formats. Only 'single-choice' is playable today; add formats here. */
-export type QuestionType = 'single-choice';
+export type { Difficulty, SessionConfig };
 
 export interface QuestionSource {
-  provider: string; // e.g. "Plan B Network / Plan B Academy"
-  license: string; // e.g. "CC BY-SA 4.0"
+  provider: string;
+  license: string;
   url?: string;
   author?: string;
   sourceId?: string;
@@ -20,158 +16,107 @@ export interface QuestionSource {
 
 export interface Question {
   id: string;
-  type: QuestionType;
+  type: 'single-choice';
   text: string;
   options: string[];
   correctIndex: number;
   difficulty: Difficulty;
-  /** Overrides config.defaultQuestionDurationMs when set. */
+  /** Overrides config.questionDurationMs when set. */
   durationMs?: number;
   explanation?: string;
   source?: QuestionSource;
-  /** True for demo content that must never be presented as sourced material. */
+  /** Content written for rehearsals only. */
   demo?: boolean;
 }
 
-export interface RoundDef {
-  id: string;
+/** A part of the game: the next `questions` questions of the pack, announced on the big screen. */
+export interface PartDef {
   title: string;
-  questionIds: string[];
+  subtitle?: string;
+  questions: number;
 }
 
 export interface ContentPack {
   name: string;
   description?: string;
+  /** Optional split of the questions into parts, in order; the counts add up to the number of questions. */
+  parts?: PartDef[];
   questions: Question[];
-  rounds: RoundDef[];
 }
 
-export type CompetitorKind = 'pool' | 'bitaxe';
-
-/** Visual identity assigned by the server at registration: indexes into the client palettes. */
-export interface Avatar {
-  shape: number;
-  color: number;
-}
-
-export interface Competitor {
+export interface Player {
   id: string;
-  kind: CompetitorKind;
   name: string;
-  members: string[];
-  bitaxeNumber?: number;
-  avatar: Avatar;
-  /** Secret used by the phone to reconnect to this competitor. Never sent to the board. */
+  /** Palette index assigned at registration. */
+  color: number;
+  /** Secret kept by the phone to reconnect. Never sent to the board. */
   token: string;
   joinedAt: number;
   connected: boolean;
-  lastSeenAt: number;
   removed?: boolean;
+  /** Fictitious hashrate in TH, the weight of the final draw. */
+  hashrate: number;
+  /** Consecutive correct answers up to the last closed question. */
+  streak: number;
+  bestStreak: number;
+  correctCount: number;
 }
 
-export interface AnswerRecord {
-  optionIndex: number;
-  firstAt: number;
-  lastAt: number;
-  changes: number;
+export interface Answer {
+  option: number;
+  /** Server receive time. */
+  at: number;
 }
 
-export interface GainRecord {
-  competitorId: string;
-  rank: number;
-  tied: boolean;
-  bonusPercent: string; // exact decimal text of the Percent
-  base: string; // nano
-  gain: string; // nano
+/** What a player earned on one question. */
+export interface QuestionResult {
+  option: number | null;
+  correct: boolean;
+  /** Time taken to answer, ms. */
+  ms?: number;
+  base: number;
+  speedBonus: number;
+  /** 1 = first correct answer received, when it earned a speed bonus. */
+  speedRank?: number;
+  streakBonus: number;
+  /** Share of the hashrate already held, added by reinvestment. */
+  reinvest: number;
+  gain: number;
+  /** Streak after this question. */
+  streak: number;
 }
 
 export interface QuestionRun {
-  roundIndex: number;
-  questionIndex: number;
+  index: number;
   questionId: string;
   openedAt: number;
   closesAt: number;
   durationMs: number;
-  answers: Record<string, AnswerRecord>;
+  answers: Record<string, Answer>;
   closedAt?: number;
+  /** Closed without awarding anything (host mistake); streaks are left untouched. */
   cancelled?: boolean;
-  results?: {
-    correctIndex: number;
-    gains: GainRecord[];
-    /** competitorIds that answered wrong (0 gain, no penalty) */
-    wrong: string[];
-    /** competitorIds that did not answer (0 gain, no penalty) */
-    silent: string[];
-  };
+  results?: Record<string, QuestionResult>;
 }
 
-export type RoundStatus = 'pending' | 'running' | 'ended';
-
-export interface RoundState {
-  index: number;
-  defId: string;
-  title: string;
-  status: RoundStatus;
-  startedAt?: number;
-  endedAt?: number;
-  /** Chain tip height known when the round started; blocks at or below are history. */
-  tipHeightAtStart: number | null;
-  /** Current fictitious hashrate per competitor (nano TH/s as string). */
-  hashrates: Record<string, string>;
-  questionRuns: QuestionRun[];
-  currentQuestion: number; // index into def.questionIds, -1 before the first
-  blockBonuses: BlockBonusEvent[];
-  finalHashrates?: Record<string, string>;
-}
-
-export type BlockOrigin = 'real' | 'simulated';
-
-export interface BlockInfo {
-  id: string;
-  height: number;
-  timestamp: number; // unix seconds
-  pool?: string;
-  txCount?: number;
-  origin: BlockOrigin;
-  receivedAt: number;
-}
-
-export interface BlockBonusEvent {
-  blockId: string;
-  height: number;
-  origin: BlockOrigin;
-  roundIndex: number;
-  at: number;
+export interface BlockDraw {
+  /** 1-based block number in this game, which is also the podium place. */
+  n: number;
+  startedAt: number;
+  /** The winner is kept secret until this time. */
+  revealAt: number;
   winnerId: string | null;
-  reason?: 'no-candidates' | 'zero-total';
-  base: 'own' | 'total';
-  before?: string;
-  bonus?: string;
-  after?: string;
-  audit: DrawAudit;
+  /** Decorative hash displayed for the found block. */
+  hash: string;
+  /** Hashrate of every candidate at draw time (TH). */
+  weights: { id: string; hashrate: number }[];
+  total: number;
+  /** Random integer in [0, total) that selected the winner. */
+  roll: number;
 }
 
-export interface PrizeSeries {
-  id: string;
-  createdAt: number;
-  scope: 'round' | 'sumOfRounds';
-  weightBasis?: 'cumulative';
-  roundIndexes: number[];
-  prizes: PrizeDef[];
-  weights: Record<string, string>;
-  awards: PrizeAward[];
-}
-
-export interface BlockFeedStatus {
-  mode: 'real' | 'simulated' | 'off';
-  connected: boolean;
-  lastMessageAt?: number;
-  tipHeight: number | null;
-  lastError?: string;
-  endpoint?: string;
-}
-
-export type Phase = 'lobby' | 'round-ready' | 'question-open' | 'question-closed' | 'round-ended' | 'finished';
+/** `intermission`: a part is announced on the big screen (with the standings after part 1) before its first question. */
+export type Phase = 'lobby' | 'intermission' | 'question' | 'reveal' | 'final';
 
 export interface GameEvent {
   seq: number;
@@ -181,30 +126,21 @@ export interface GameEvent {
 }
 
 export interface SessionState {
-  /** Absent in snapshots created with independent rounds. */
-  hashrateMode?: 'continuous';
-  /** One balance per competitor for the entire game. */
-  hashrates: Record<string, string>;
-  /** Original balances retained when upgrading independent-round snapshots. */
-  legacyRoundBalances?: { index: number; hashrates: Record<string, string>; finalHashrates?: Record<string, string> }[];
+  version: 2;
   code: string;
   createdAt: number;
   config: SessionConfig;
-  contentName: string;
-  questions: Record<string, Question>;
-  rounds: RoundDef[];
-  roundStates: RoundState[];
-  currentRoundIndex: number;
+  packName: string;
+  /** The questions of the pack, in pack order. */
+  questions: Question[];
+  /** Parts of the pack, if it has some. */
+  parts?: PartDef[];
   phase: Phase;
-  competitors: Record<string, Competitor>;
-  nextBitaxeNumber: number;
-  nextAvatarIndex: number;
-  processedBlockIds: string[];
-  recentBlocks: BlockInfo[];
-  prizesDraft: PrizeDef[];
-  prizeSeries: PrizeSeries[];
-  blockFeed: BlockFeedStatus;
+  /** Index of the current question run, -1 before the first. */
+  current: number;
+  runs: QuestionRun[];
+  players: Record<string, Player>;
+  nextColor: number;
+  blocks: BlockDraw[];
   eventSeq: number;
-  /** Rolling tail of the audit log kept in memory (full log on disk). */
-  recentEvents: GameEvent[];
 }

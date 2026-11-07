@@ -1,41 +1,56 @@
-import { applyPercent, type Nano, type Percent } from './hashrate.js';
-import { speedBonusForRank, type SessionConfig } from './config.js';
+import type { SessionConfig } from './config.js';
+import type { Answer, Question, QuestionResult } from './types.js';
 
-export interface CorrectAnswerInput {
-  competitorId: string;
-  /** Reference time (ms) used for speed ranking, chosen per config.speedReference. */
-  referenceAt: number;
-}
-
-export interface RankedGain {
-  competitorId: string;
-  rank: number; // standard competition ranking (ties share the best rank, next rank skipped)
-  tied: boolean;
-  bonus: Percent;
-  base: Nano;
-  gain: Nano;
-}
+/** Gains are kept to a tenth of TH: +10 % of a 10 TH question is 1 TH, +5 % is 0,5 TH. */
+export const round1 = (x: number) => Math.round(x * 10) / 10;
 
 /**
- * Rank correct answers by reference time and apply the degressive speed bonus to
- * the base gain only. Provisional tie rule: identical reference times share the
- * rank; the following rank is skipped (1, 1, 3, ...).
+ * Gain of one player on one question.
+ * - correct answer: base gain of the question's difficulty;
+ * - speed: the 1st, 2nd, 3rd... correct answers received by the server get
+ *   `speedBonusRanks[0]`, `[1]`, `[2]`... × base; the others nothing;
+ * - streak: `streakBonusStep` × base per consecutive correct answer after the first, capped;
+ * - reinvestment: `reinvestRate` × the hashrate held before this question.
+ * A wrong or missing answer earns nothing and resets the streak. No penalty.
+ *
+ * `speedRank` is the 0-based rank of this answer among the question's correct answers.
  */
-export function rankCorrectAnswers(
-  answers: CorrectAnswerInput[],
-  base: Nano,
-  config: Pick<SessionConfig, 'speedBonusHeadPercents'>,
-): RankedGain[] {
-  const sorted = [...answers].sort((a, b) => a.referenceAt - b.referenceAt || a.competitorId.localeCompare(b.competitorId));
-  const out: RankedGain[] = [];
-  let rank = 0;
-  for (let i = 0; i < sorted.length; i++) {
-    if (i === 0 || sorted[i].referenceAt !== sorted[i - 1].referenceAt) rank = i + 1;
-    const bonus = speedBonusForRank(rank, config.speedBonusHeadPercents);
-    const tied =
-      (i > 0 && sorted[i - 1].referenceAt === sorted[i].referenceAt) ||
-      (i + 1 < sorted.length && sorted[i + 1].referenceAt === sorted[i].referenceAt);
-    out.push({ competitorId: sorted[i].competitorId, rank, tied, bonus, base, gain: base + applyPercent(base, bonus) });
+export function scoreAnswer(
+  q: Pick<Question, 'difficulty' | 'correctIndex'>,
+  answer: Answer | undefined,
+  timing: { openedAt: number },
+  streakBefore: number,
+  config: Pick<SessionConfig, 'baseGainThs' | 'speedBonusRanks' | 'streakBonusStep' | 'streakBonusMax' | 'reinvestRate'>,
+  speedRank = Infinity,
+  hashrateBefore = 0,
+): QuestionResult {
+  const ms = answer ? Math.max(0, answer.at - timing.openedAt) : undefined;
+  if (!answer || answer.option !== q.correctIndex) {
+    return { option: answer?.option ?? null, correct: false, ms, base: 0, speedBonus: 0, streakBonus: 0, reinvest: 0, gain: 0, streak: 0 };
   }
-  return out;
+  const base = config.baseGainThs[q.difficulty];
+  const speedBonus = round1(base * (config.speedBonusRanks[speedRank] ?? 0));
+  const streak = streakBefore + 1;
+  const streakBonus = round1(base * Math.min(config.streakBonusMax, config.streakBonusStep * (streak - 1)));
+  const reinvest = round1(hashrateBefore * config.reinvestRate);
+  return {
+    option: answer.option,
+    correct: true,
+    ms,
+    base,
+    speedBonus,
+    speedRank: speedRank < config.speedBonusRanks.length ? speedRank + 1 : undefined,
+    streakBonus,
+    reinvest,
+    gain: round1(base + speedBonus + streakBonus + reinvest),
+    streak,
+  };
+}
+
+/** 0-based rank of each correct answer by arrival time at the server. */
+export function speedRanks(answers: Record<string, Answer>, correctIndex: number): Map<string, number> {
+  const correct = Object.entries(answers)
+    .filter(([, a]) => a.option === correctIndex)
+    .sort(([, a], [, b]) => a.at - b.at);
+  return new Map(correct.map(([id], i) => [id, i]));
 }

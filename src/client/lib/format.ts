@@ -1,35 +1,36 @@
-import { formatThs, nanoFromJSON } from '../../shared/hashrate';
+const num = (n: number, digits: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: digits }).replace(/[\u202f\u00a0]/g, ' ');
 
-export const ths = (nano: string | undefined, opts?: { unit?: boolean; maxFrac?: number }) => formatThs(nanoFromJSON(nano ?? '0'), opts);
-export const pctText = (share: number, digits = 1) => `${(share * 100).toFixed(digits).replace('.', ',')} %`;
+/**
+ * "10,5 TH" (gains are kept to a tenth of TH), then "1,25 PH" from 1 000 TH on.
+ * PH always carries its unit, even where TH values are shown bare.
+ */
+export const ths = (n: number | undefined, unit = true) => {
+  const v = n ?? 0;
+  return Math.abs(v) >= 1000 ? `${num(v / 1000, 2)} PH` : `${num(v, 1)}${unit ? ' TH' : ''}`;
+};
 
-import type { Avatar } from '../../shared/types';
+/** "+10 %, +5 %, +2 %" */
+export const percents = (fractions: number[]) => fractions.map((f) => `+${pct(f, 0)}`).join(', ');
 
-/** Colour palette inspired by the pool colours of mining dashboards; index assigned by the server. */
-const PALETTE = ['#007cfa', '#eba814', '#0aab2f', '#e83e8c', '#00ddff', '#ff9f00', '#9339f4', '#83fd00', '#ff3d00', '#fff000', '#2055e3', '#6225b2', '#d5a90a', '#1d486f', '#6f1d5d', '#116761'];
-const SHAPES = ['◆', '●', '■', '▲', '★', '⬢', '♦', '✦', '⬟', '▼'];
-export function colorFor(index: number): string {
-  return PALETTE[((index % PALETTE.length) + PALETTE.length) % PALETTE.length];
-}
-export function avatarColor(a: Avatar | undefined): string {
-  return colorFor(a?.color ?? 0);
-}
-export function avatarShape(a: Avatar | undefined): string {
-  return SHAPES[((a?.shape ?? 0) % SHAPES.length + SHAPES.length) % SHAPES.length];
-}
-export const medal = (rank: number) => (rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : String(rank));
+/** "12,4 %" */
+export const pct = (share: number, digits = 1) => `${(share * 100).toFixed(digits).replace('.', ',')} %`;
 
-export const difficultyLabel: Record<string, string> = { easy: 'Facile', intermediate: 'Intermédiaire', hard: 'Difficile' };
+export const seconds = (ms: number) => `${(ms / 1000).toFixed(1).replace('.', ',')} s`;
 
-export function timeAgo(unixSeconds: number, nowMs: number): string {
-  const s = Math.max(0, Math.floor(nowMs / 1000 - unixSeconds));
-  if (s < 60) return `il y a ${s} s`;
-  const m = Math.floor(s / 60);
-  if (m < 60) return `il y a ${m} min`;
-  const h = Math.floor(m / 60);
-  return `il y a ${h} h ${m % 60} min`;
-}
+/** "à 20 TH", or "de 20 à 50 TH" when a part mixes difficulties. */
+export const gainsLabel = (gains: number[]) =>
+  gains.length === 0 ? '' : gains.length === 1 ? `à ${ths(gains[0])}` : `de ${ths(gains[0], false)} à ${ths(gains[gains.length - 1])}`;
 
-export function fmtClock(ms: number): string {
-  return new Date(ms).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-}
+/** "Partie 2 / 3 · " before a question number, when the game has parts. */
+export const partPrefix = (view: { parts: { n: number }[]; part?: number }) =>
+  view.part !== undefined && view.parts.length > 1 ? `Partie ${view.part + 1} / ${view.parts.length} · ` : '';
+
+export const LETTERS = ['A', 'B', 'C', 'D'];
+
+export const difficultyLabel = { easy: 'facile', intermediate: 'moyenne', hard: 'difficile', expert: 'expert' } as const;
+
+export { placeLabel } from '../../shared/config';
+
+/** Player colours, indexed by Player.color: the orange, mauve, gold and mountain tones of the B-Only site, then neutrals. */
+const PALETTE = ['#f6751b', '#955c6b', '#c49b55', '#c2405a', '#3d5a80', '#e3a8b7', '#6b7d4f', '#7a4e9c', '#3a3a3a', '#d98b5f', '#4f8a8b', '#a8573f'];
+export const playerColor = (i: number) => PALETTE[((i % PALETTE.length) + PALETTE.length) % PALETTE.length];

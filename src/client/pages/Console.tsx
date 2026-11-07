@@ -1,465 +1,414 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { SessionConfig } from '../../shared/config';
+import { useEffect, useState, type FormEvent } from 'react';
+import { DIFFICULTIES, PRESETS, type SessionConfig } from '../../shared/config';
 import type { ConsoleView } from '../../shared/views';
-import { BlocksStrip, Countdown, FeedBadge, PoolList } from '../components/Shared';
-import { difficultyLabel, fmtClock, ths } from '../lib/format';
-import { useQuizSocket, useTicker } from '../lib/ws';
+import { ConnBadge, Countdown, Swatch, Wordmark } from '../components/ui';
+import { LETTERS, difficultyLabel, pct, placeLabel, ths } from '../lib/format';
+import { useQuizSocket } from '../lib/ws';
 
 const TOKEN_KEY = 'bq_console_token';
 
+const readToken = () => {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+};
+const writeToken = (t: string | null) => {
+  try {
+    if (t) localStorage.setItem(TOKEN_KEY, t);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    /* ignore */
+  }
+};
+
+type Send = ReturnType<typeof useQuizSocket>['send'];
+
 export function Console() {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
-  if (!token) return <Login onToken={(t) => { localStorage.setItem(TOKEN_KEY, t); setToken(t); }} />;
-  return <ConsoleApp token={token} onLogout={() => { localStorage.removeItem(TOKEN_KEY); setToken(null); }} />;
+  const [token, setToken] = useState<string | null>(() => new URLSearchParams(location.search).get('token') ?? readToken());
+  useEffect(() => {
+    if (token) writeToken(token);
+    if (location.search.includes('token=')) history.replaceState(null, '', location.pathname);
+  }, [token]);
+  if (!token) return <Login onToken={setToken} />;
+  return (
+    <ConsoleApp
+      token={token}
+      onLogout={() => {
+        writeToken(null);
+        setToken(null);
+      }}
+    />
+  );
 }
 
 function Login({ onToken }: { onToken: (t: string) => void }) {
   const [t, setT] = useState('');
   const [err, setErr] = useState('');
-  const check = async () => {
+  const check = async (e: FormEvent) => {
+    e.preventDefault();
     const r = await fetch('/api/console/check', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: t.trim() }) });
     const j = (await r.json()) as { ok: boolean };
     if (j.ok) onToken(t.trim());
-    else setErr('Jeton invalide. Il est affiché dans le terminal du serveur au démarrage (ou dans data/console-token.txt).');
+    else setErr('Jeton invalide. Il s’affiche au démarrage du serveur et se trouve dans data/console-token.txt.');
   };
   return (
-    <div className="login">
-      <h1>Console d’animation</h1>
-      <input className="input" placeholder="Jeton console" value={t} onChange={(e) => setT(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && void check()} autoFocus />
-      <button className="btn" onClick={() => void check()}>
-        Entrer
-      </button>
-      {err ? <div className="alert error">{err}</div> : null}
-    </div>
+    <form className="narrow" onSubmit={(e) => void check(e)}>
+      <Wordmark size="lg" />
+      <input className="input" placeholder="Jeton" value={t} onChange={(e) => setT(e.target.value)} autoFocus />
+      <button className="btn primary">Entrer</button>
+      {err ? <p className="error">{err}</p> : null}
+    </form>
   );
 }
 
 function ConsoleApp({ token, onLogout }: { token: string; onLogout: () => void }) {
   const sock = useQuizSocket<ConsoleView>(() => ({ type: 'hello', role: 'console', consoleToken: token }));
   const { view, send } = sock;
-  const now = useTicker(500);
-  const [pendingStep, setPendingStep] = useState<string | null>(null);
-  const sentStep = useRef<string | null>(null);
-  const lastStepClick = useRef(0);
-  useEffect(() => sock.onMessage((message) => {
-    if (message.type === 'state' || message.type === 'error') {
-      sentStep.current = null;
-      setPendingStep(null);
-    }
-  }), [sock.onMessage]);
-  const names = useMemo(() => new Map((view?.competitors ?? []).map((c) => [c.id, c.name])), [view?.competitors]);
+  const [sentKey, setSentKey] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (sock.lastError?.code === 'unauthorized') onLogout();
-  }, [sock.lastError, onLogout]);
+  useEffect(
+    () =>
+      sock.onMessage((m) => {
+        if (m.type === 'state') setSentKey(null);
+        if (m.type === 'error') {
+          setSentKey(null);
+          if (m.code === 'unauthorized') onLogout();
+          else setError(m.message);
+        }
+      }),
+    [sock.onMessage, onLogout],
+  );
 
-  if (!view) {
-    return (
-      <div className="login">
-        <h1>Console d’animation</h1>
-        <div className="muted">{sock.conn === 'open' ? 'Chargement…' : 'Connexion au serveur…'}</div>
-        {sock.lastError ? <div className="alert error">{sock.lastError.message}</div> : null}
-        {sock.lastError?.code === 'no-session' ? (
-          <button className="btn" onClick={() => send({ type: 'new-session' })}>
-            Créer une session
-          </button>
-        ) : null}
-      </div>
-    );
-  }
+  if (!view) return <p className="narrow muted">{sock.conn === 'open' ? 'Chargement…' : 'Connexion…'}</p>;
 
-  const round = view.roundStates[view.currentRoundIndex];
-  const def = view.roundDefs[view.currentRoundIndex];
+  const next = view.next;
   const q = view.question;
-  const open = view.phase === 'question-open';
-  const canEnd = round?.status === 'running' && !open;
-  const nextRoundIndex = view.roundStates.findIndex((r) => r.status === 'pending');
-  const step = view.nextStep;
+  const connected = view.players.filter((p) => p.connected).length;
+  const go = () => {
+    if (!next || sentKey === next.key) return;
+    setSentKey(next.key);
+    setError(null);
+    send({ type: 'next', key: next.key });
+  };
+  const status =
+    view.phase === 'lobby'
+      ? `${view.players.length} inscrit${view.players.length > 1 ? 's' : ''}`
+      : view.phase === 'final'
+        ? view.config.podiumSize === 1
+          ? `Fin du quiz${view.blocks.some((b) => b.found) ? ', gagnant tiré' : ''}`
+          : `Fin du quiz, podium ${view.blocks.filter((b) => b.found).length} / ${view.config.podiumSize}`
+        : view.phase === 'intermission'
+          ? `Partie ${(view.part ?? 0) + 1} / ${view.parts.length} annoncée à l’écran${(view.part ?? 0) > 0 ? ', avec le classement' : ''}`
+          : `${view.parts.length > 1 && view.part !== undefined ? `Partie ${view.part + 1} · ` : ''}Question ${(q?.index ?? 0) + 1} / ${view.questionTotal}${view.phase === 'reveal' ? ', réponse affichée' : ''}`;
 
   return (
     <div className="console">
-      {/* ------------------------------------------------ left: session, competitors, blocks */}
-      <div className="col">
-        <div className="card">
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <h1>Console</h1>
-            <span className="phase">{view.phase}</span>
-          </div>
-          <div className="small muted" style={{ marginTop: 6 }}>
-            Session <span className="kbd">{view.code}</span> · pack « {view.contentName} » · serveur {sock.conn === 'open' ? 'connecté' : 'DÉCONNECTÉ'}
-          </div>
-          <div className="row" style={{ marginTop: 10 }}>
-            <div className="qr-mini">
-              <img src={`/api/qr.svg?text=${encodeURIComponent(view.joinUrl ?? '')}&v=${view.code}`} alt="QR" />
-            </div>
-            <div className="small grow">
-              <div className="mono" style={{ wordBreak: 'break-all' }}>{view.joinUrl}</div>
-              <div className="muted" style={{ marginTop: 6 }}>
-                Écran : <a href="/board" target="_blank" rel="noreferrer">/board</a>
-              </div>
-              <div className="muted">Autres adresses LAN : {view.serverInfo.lanUrls.join(', ') || '—'}</div>
-            </div>
-          </div>
-          <details style={{ marginTop: 10 }}>
-            <summary>Nouvelle session (remet tout à zéro)</summary>
-            <div className="row" style={{ marginTop: 8 }}>
-              <NewSession view={view} onCreate={(packName) => confirm('Créer une nouvelle session ? Les téléphones devront se réinscrire.') && send({ type: 'new-session', packName })} />
-            </div>
-          </details>
-          {sock.lastError ? (
-            <div className="alert error" onClick={sock.clearError}>
-              {sock.lastError.code}: {sock.lastError.message}
-            </div>
-          ) : null}
-        </div>
+      <ConnBadge conn={sock.conn} />
+      <header className="console-head">
+        <Wordmark />
+        <span className="muted">
+          console · {view.code} · {view.packName}
+        </span>
+        <nav>
+          <a href="/board" target="_blank" rel="noreferrer">
+            Écran
+          </a>
+          <a href={view.joinUrl} target="_blank" rel="noreferrer">
+            Page joueur
+          </a>
+          <button className="link" onClick={onLogout}>
+            Déconnexion
+          </button>
+        </nav>
+      </header>
 
-        <div className="card">
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <div className="card-title">Blocs Bitcoin</div>
-            <FeedBadge feed={view.blockFeed} />
-          </div>
-          <div className="small muted">
-            Pointe {view.blockFeed.tipHeight?.toLocaleString('fr-FR') ?? '—'} · dernier message {view.blockFeed.lastMessageAt ? fmtClock(view.blockFeed.lastMessageAt) : '—'}
-            {view.blockFeed.lastError ? <div style={{ color: 'var(--orange)' }}>{view.blockFeed.lastError}</div> : null}
-            {view.blockFeed.endpoint ? <div>{view.blockFeed.endpoint}</div> : null}
-          </div>
-          <div className="row" style={{ marginTop: 8 }}>
-            <button className={'btn sm ' + (view.blockFeed.mode === 'real' ? '' : 'secondary')} onClick={() => send({ type: 'set-block-mode', mode: 'real' })}>
-              Réel
-            </button>
-            <button className={'btn sm ' + (view.blockFeed.mode === 'simulated' ? '' : 'secondary')} onClick={() => confirm('Passer en SIMULATION ? Les blocs réels seront ignorés.') && send({ type: 'set-block-mode', mode: 'simulated' })}>
-              Simulation
-            </button>
-            <button className={'btn sm ' + (view.blockFeed.mode === 'off' ? '' : 'secondary')} onClick={() => send({ type: 'set-block-mode', mode: 'off' })}>
-              Off
-            </button>
-            {view.blockFeed.mode === 'simulated' ? (
-              <button className="btn sm danger" onClick={() => send({ type: 'simulate-block' })}>
-                Bloc simulé
+      <div className="console-grid">
+        <div>
+          <section className="control">
+            <p className="status">{status}</p>
+            {view.phase === 'question' && q ? (
+              <>
+                <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={sock.serverNow} />
+                <p className="muted">
+                  {q.answerCount} / {view.players.length} réponses{connected < view.players.length ? ` (${view.players.length - connected} hors ligne)` : ''}
+                </p>
+              </>
+            ) : null}
+            {next ? (
+              <button className="btn primary big" onClick={go} disabled={sentKey === next.key}>
+                {next.label}
+              </button>
+            ) : view.phase === 'final' ? (
+              <button className="btn big" disabled>
+                {view.blocks.some((b) => !b.found) ? 'Tirage en cours…' : 'Tirage terminé'}
               </button>
             ) : null}
-          </div>
-          <BlocksStrip blocks={view.recentBlocks} bonuses={view.blockBonuses} names={names} limit={3} />
+            {view.phase === 'question' ? (
+              <button className="link" onClick={() => confirm('Annuler cette question ? Personne ne marque.') && send({ type: 'cancel-question' })}>
+                Annuler la question sans points
+              </button>
+            ) : null}
+            {error ? <p className="error">{error}</p> : null}
+          </section>
+
+          {q && view.phase !== 'final' ? <QuestionPanel view={view} /> : null}
+          {view.phase === 'lobby' || view.phase === 'reveal' || view.phase === 'intermission' ? <UpNext view={view} /> : null}
+          {view.phase === 'final' ? <Blocks view={view} /> : null}
+          {view.phase === 'lobby' ? <Settings view={view} send={send} /> : null}
         </div>
 
-        <div className="card">
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <div className="card-title">
-              Concurrents ({view.competitors.length}) · {ths(view.totalHashrate)}
-            </div>
-          </div>
-          <PoolList competitors={view.competitors} />
-          <details style={{ marginTop: 8 }}>
-            <summary>Détails, jetons de reconnexion, retrait</summary>
-            {view.competitors.map((c) => (
-              <div key={c.id} className="comp">
-                <div>
-                  <div>
-                    {c.name} <span className="m">{c.connected ? 'en ligne' : `hors ligne depuis ${fmtClock(c.lastSeenAt)}`}</span>
-                  </div>
-                  <div className="m">{c.members.join(', ') || '—'}</div>
-                  <div className="m">
-                    Lien de secours : <span className="mono">{`${location.origin}/play?s=${view.code}&t=${c.token}`}</span>
-                  </div>
-                </div>
-                <button className="btn sm danger" onClick={() => confirm(`Retirer ${c.name} ?`) && send({ type: 'remove-competitor', id: c.id })}>
-                  Retirer
-                </button>
+        <div>
+          <Players view={view} send={send} />
+          <section>
+            <h3>Rejoindre</h3>
+            <div className="join-mini">
+              <img src={`/api/qr.svg?text=${encodeURIComponent(view.joinUrl)}`} alt="" />
+              <div>
+                <p className="mono">{view.joinUrl}</p>
+                {view.lanUrls.length > 1 ? <p className="muted small">Autres adresses : {view.lanUrls.join(', ')}</p> : null}
               </div>
-            ))}
-          </details>
-        </div>
-      </div>
-
-      {/* ------------------------------------------------ middle: run the game */}
-      <div className="col">
-        <div className="card">
-          <div className="card-title">Déroulé</div>
-          <div className="row" style={{ marginBottom: 8 }}>
-            {view.roundStates.map((r) => (
-              <span key={r.index} className="badge" style={{ background: r.status === 'running' ? 'var(--primary)' : r.status === 'ended' ? 'var(--success)' : 'var(--secondary)' }}>
-                M{r.index + 1} {r.status === 'pending' ? 'à venir' : r.status === 'running' ? 'en cours' : 'finie'}
-              </span>
-            ))}
-          </div>
-          <div className="commands">
-            <button className="btn next-step" disabled={!step || pendingStep === step.key || sock.conn !== 'open'}
-              onClick={() => {
-                if (!step || sentStep.current === step.key || Date.now() - lastStepClick.current < 600) return;
-                lastStepClick.current = Date.now();
-                sentStep.current = step.key;
-                setPendingStep(step.key);
-                sock.clearError();
-                send({ type: 'next-step', expectedKey: step.key });
-              }}>
-              {step ? 'Prochaine étape →' : 'Partie terminée'}
+            </div>
+          </section>
+          <section className="row">
+            <a href={`/api/export?token=${encodeURIComponent(token)}`}>Exporter la partie (JSON)</a>
+            <button className="link danger" onClick={() => confirm('Nouvelle partie ? Les joueurs devront se réinscrire.') && send({ type: 'new-session' })}>
+              Nouvelle partie
             </button>
-            <div className="small muted" aria-live="polite">{step?.label ?? 'Le classement final est affiché. Vous pouvez tirer les lots.'}</div>
-            <details>
-              <summary>Commandes avancées</summary>
-              <div className="row" style={{ marginTop: 8 }}>
-                <button className="btn ghost" disabled={!open} onClick={() => confirm('Annuler la question sans la compter ?') && send({ type: 'cancel-question' })}>
-                  Annuler la question
-                </button>
-                <button className="btn ghost" disabled={!canEnd} onClick={() => confirm(`Passer les questions restantes de ${def?.title} et afficher son bilan ? Le hashrate sera conservé.`) && send({ type: 'end-round' })}>
-                  Passer les questions restantes
-                </button>
-              </div>
-            </details>
-          </div>
-          {q ? (
-            <div className="stat" style={{ marginTop: 10 }}>
-              <div className="row" style={{ justifyContent: 'space-between' }}>
-                <div>
-                  <div className="label">
-                    Question {q.questionIndex + 1}/{q.questionTotal} · {difficultyLabel[q.question.difficulty]} · {q.closed ? (q.cancelled ? 'annulée' : 'close') : 'OUVERTE'} · {q.answerCount} réponse{q.answerCount > 1 ? 's' : ''}
-                  </div>
-                  <div style={{ fontWeight: 700, marginTop: 4 }}>{q.question.text}</div>
-                  <div className="small" style={{ marginTop: 4 }}>
-                    {q.question.options.map((o, i) => (
-                      <div key={i} style={{ color: i === q.question.correctIndex ? 'var(--green)' : undefined }}>
-                        {'ABCD'[i]}. {o} {i === q.question.correctIndex ? '✓' : ''}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {!q.closed ? <Countdown closesAt={q.closesAt} durationMs={q.durationMs} serverNow={sock.serverNow} small /> : null}
-              </div>
-              {q.results ? (
-                <div className="small" style={{ marginTop: 8 }}>
-                  {q.results.gains.map((g) => (
-                    <div key={g.competitorId}>
-                      #{g.rank}{g.tied ? '=' : ''} {names.get(g.competitorId)} +{g.bonusPercent} % → {ths(g.gain)}
-                    </div>
-                  ))}
-                  <div className="muted">
-                    Faux : {q.results.wrong.map((id) => names.get(id)).join(', ') || '—'} · Sans réponse : {q.results.silent.map((id) => names.get(id)).join(', ') || '—'}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
+          </section>
         </div>
-
-        <div className="card">
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <div className="card-title">Questions {def ? `· ${def.title}` : '(lancez une manche)'}</div>
-            <ContentPicker view={view} onPick={(name) => send({ type: 'set-content', packName: name })} />
-          </div>
-          <RoundQuestions view={view} roundIndex={view.currentRoundIndex >= 0 ? view.currentRoundIndex : Math.max(0, nextRoundIndex)} onUpdate={(id, patch) => send({ type: 'update-question', id, ...patch })} />
-        </div>
-
-        <div className="card">
-          <div className="card-title">Lots et tirages finaux</div>
-          <Prizes view={view} onSave={(prizes) => send({ type: 'set-prizes', prizes })} onDraw={(scope, roundIndexes) => send({ type: 'draw-prizes', scope, roundIndexes })} names={names} />
-        </div>
-      </div>
-
-      {/* ------------------------------------------------ right: config + log */}
-      <div className="col">
-        <div className="card">
-          <div className="card-title">Réglages (hypothèses provisoires modifiables)</div>
-          <ConfigForm config={view.config} onSave={(patch) => send({ type: 'set-config', patch })} />
-        </div>
-        <div className="card">
-          <div className="card-title">Journal des événements ({view.recentEvents.length} derniers)</div>
-          <div className="log">
-            {view.recentEvents.map((e) => (
-              <div key={e.seq}>
-                <span className="muted">{fmtClock(e.at)}</span> <b>{e.type}</b> {summarize(e.type, e.payload, names)}
-              </div>
-            ))}
-          </div>
-          <div className="small muted" style={{ marginTop: 6 }}>
-            Journal complet : <span className="mono">{view.serverInfo.dataDir}/sessions/{view.code}.events.jsonl</span> · heure serveur {fmtClock(sock.serverNow())} (écart {Math.round(sock.serverNow() - now)} ms)
-          </div>
-        </div>
-        <button className="btn ghost sm" onClick={onLogout}>
-          Se déconnecter de la console
-        </button>
       </div>
     </div>
   );
 }
 
-function summarize(type: string, payload: unknown, names: Map<string, string>): string {
-  const p = payload as Record<string, unknown>;
-  const n = (id: unknown) => names.get(String(id)) ?? String(id);
-  switch (type) {
-    case 'answer.recorded':
-      return `${n(p.competitorId)} → option ${'ABCDEFGH'[Number(p.optionIndex)]}${Number(p.changes) > 0 ? ` (modif ${p.changes})` : ''}`;
-    case 'question.closed':
-      return `${(p.gains as { competitorId: string; rank: number; gain: string }[]).map((g) => `#${g.rank} ${n(g.competitorId)} ${ths(g.gain)}`).join(', ') || 'aucune bonne réponse'}`;
-    case 'block.bonus':
-      return `bloc ${p.height} (${p.origin}) → ${p.winnerId ? `${n(p.winnerId)} +${ths(p.bonus as string)} (tirage ${p.audit ? (p.audit as { roll: string }).roll : ''}/${(p.audit as { total: string })?.total})` : `personne (${p.reason})`}`;
-    case 'block.ignored':
-      return `bloc ${p.height} ${p.origin} ignoré (${p.reason})`;
-    case 'competitor.joined':
-      return `${p.name} (${p.kind})`;
-    case 'round.started':
-      return `${p.title}, pointe ${p.tipHeightAtStart ?? '—'}, ${p.competitors} concurrents`;
-    case 'prizes.drawn':
-      return (p.awards as { prizeId: string; winnerId: string | null }[]).map((a) => `${a.prizeId}→${a.winnerId ? n(a.winnerId) : '∅'}`).join(' ');
-    default:
-      return JSON.stringify(payload).slice(0, 140);
-  }
-}
-
-function NewSession({ view, onCreate }: { view: ConsoleView; onCreate: (packName: string) => void }) {
-  const [pack, setPack] = useState(view.contentPacks[0]?.name ?? '');
+function QuestionPanel({ view }: { view: ConsoleView }) {
+  const q = view.question!;
   return (
-    <>
-      <select className="input" value={pack} onChange={(e) => setPack(e.target.value)} style={{ padding: 8, fontSize: 13 }}>
-        {view.contentPacks.map((p) => (
-          <option key={p.file} value={p.name}>
-            {p.name} ({p.questions} q, {p.rounds} manches)
-          </option>
+    <section>
+      <h3>
+        Question {q.index + 1} · {difficultyLabel[q.difficulty]} · {q.baseGain} TH
+      </h3>
+      <p className="q-console">{q.text}</p>
+      <ol className="opts-console">
+        {q.options.map((o, i) => (
+          <li key={i} className={i === q.correctIndex ? 'right' : ''}>
+            <span className="letter">{LETTERS[i]}</span>
+            <span className="grow">{o}</span>
+            {q.optionCounts ? <span className="mono">{q.optionCounts[i]}</span> : null}
+          </li>
         ))}
-      </select>
-      <button className="btn sm danger" onClick={() => onCreate(pack)}>
-        Créer
-      </button>
-    </>
+      </ol>
+    </section>
   );
 }
 
-function ContentPicker({ view, onPick }: { view: ConsoleView; onPick: (name: string) => void }) {
+function UpNext({ view }: { view: ConsoleView }) {
+  const i = view.phase === 'lobby' ? 0 : view.phase === 'intermission' ? (view.parts[view.part ?? 0]?.from ?? 0) : (view.question?.index ?? -1) + 1;
+  const q = view.questions[i];
+  if (!q) return null;
   return (
-    <select className="input" style={{ width: 'auto', padding: '4px 8px', fontSize: 12 }} value={view.contentName} onChange={(e) => confirm('Remplacer les questions de la session ?') && onPick(e.target.value)}>
-      {!view.contentPacks.some((p) => p.name === view.contentName) ? <option value={view.contentName}>{view.contentName}</option> : null}
-      {view.contentPacks.map((p) => (
-        <option key={p.file} value={p.name}>
-          {p.name}
-        </option>
-      ))}
-    </select>
+    <section>
+      <h3>
+        Ensuite · question {i + 1} · {difficultyLabel[q.difficulty]}
+      </h3>
+      <p>{q.text}</p>
+      <p className="muted small">
+        Réponse {LETTERS[q.correctIndex]} : {q.options[q.correctIndex]}
+      </p>
+    </section>
   );
 }
 
-function RoundQuestions({ view, roundIndex, onUpdate }: { view: ConsoleView; roundIndex: number; onUpdate: (id: string, patch: { durationMs?: number; difficulty?: 'easy' | 'intermediate' | 'hard' }) => void }) {
-  const def = view.roundDefs[roundIndex];
-  const rs = view.roundStates[roundIndex];
-  if (!def) return <div className="muted small">Aucune manche.</div>;
+function Blocks({ view }: { view: ConsoleView }) {
+  const byId = new Map(view.players.map((p) => [p.id, p]));
+  if (view.blocks.length === 0) {
+    return (
+      <section>
+        <p className="muted">
+          {view.config.podiumSize === 1
+            ? 'Un clic tire le gagnant. Chances = part du hashrate.'
+            : `Chaque clic tire une place, de la 1re à la ${placeLabel(view.config.podiumSize)}. Chances = part du hashrate parmi les joueurs pas encore placés.`}
+        </p>
+      </section>
+    );
+  }
   return (
-    <div className="qlist">
-      {def.questionIds.map((qid, i) => {
-        const q = view.questions[qid];
-        const done = rs && rs.questionRuns[i]?.closedAt !== undefined;
-        const current = rs && rs.currentQuestion === i;
-        return (
-          <div key={qid} className={'qitem' + (done ? ' done' : '') + (current ? ' current' : '')} title={q.options.map((o, j) => `${'ABCD'[j]}. ${o}${j === q.correctIndex ? ' ✓' : ''}`).join('\n')}>
-            <span className="mono muted">{i + 1}</span>
-            <span className="t">
-              {q.text} {q.demo ? <span className="badge sim">démo</span> : null}
+    <section>
+      <h3>{view.config.podiumSize === 1 ? 'Tirage' : 'Podium'}</h3>
+      <table className="standings">
+        <tbody>
+          {view.blocks.map((b) => {
+            const w = b.winnerId ? byId.get(b.winnerId) : undefined;
+            const share = b.candidates.find((c) => c.id === b.winnerId)?.share;
+            return (
+              <tr key={b.n}>
+                <td className="rank">{placeLabel(b.n)}</td>
+                {b.found ? (
+                  <>
+                    <td className="who">
+                      <span className="nm">{w?.name ?? 'personne'}</span>
+                    </td>
+                    <td className="num">{share !== undefined ? pct(share) : ''}</td>
+                    <td className="num muted small">
+                      tirage {ths((b.roll ?? 0) / 10, false)} sur {ths((b.total ?? 0) / 10)}
+                    </td>
+                  </>
+                ) : (
+                  <td className="muted" colSpan={3}>
+                    tirage…
+                  </td>
+                )}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function Players({ view, send }: { view: ConsoleView; send: Send }) {
+  const answered = new Set(view.answeredIds);
+  return (
+    <section>
+      <h3>
+        Joueurs · {view.players.length} ({view.players.filter((p) => p.connected).length} en ligne)
+      </h3>
+      {view.players.length === 0 ? <p className="muted">Personne pour l’instant.</p> : null}
+      <table className="standings players">
+        <tbody>
+          {view.players.map((p) => (
+            <tr key={p.id} className={p.connected ? '' : 'off'}>
+              <td className="rank">{p.rank}</td>
+              <td className="who">
+                <Swatch color={p.color} />
+                <span className="nm">{p.name}</span>
+                {view.phase === 'question' && answered.has(p.id) ? <span className="mark">a répondu</span> : null}
+              </td>
+              <td className="num muted">{p.streak >= 2 ? `série ${p.streak}` : ''}</td>
+              <td className="num">{ths(p.hashrate)}</td>
+              <td>
+                <button className="link" title="Retirer" onClick={() => confirm(`Retirer ${p.name} ?`) && send({ type: 'remove-player', id: p.id })}>
+                  retirer
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function Settings({ view, send }: { view: ConsoleView; send: Send }) {
+  const c = view.fullConfig;
+  const [draft, setDraft] = useState<SessionConfig>(c);
+  useEffect(() => setDraft(c), [JSON.stringify(c)]);
+  const num = (v: string) => (v === '' ? 0 : Number(v.replace(',', '.')));
+  const set = (patch: Partial<SessionConfig>) => setDraft((d) => ({ ...d, ...patch }));
+  const dirty = JSON.stringify(draft) !== JSON.stringify(c);
+  const currentPack = view.packs.find((p) => p.name === view.packName);
+  const preset = PRESETS.find((p) => (Object.keys(p.scoring) as (keyof typeof p.scoring)[]).every((k) => JSON.stringify(p.scoring[k]) === JSON.stringify(draft[k])));
+  return (
+    <details className="settings">
+      <summary>Réglages{preset ? ` · ${preset.name}` : ' · personnalisés'}</summary>
+      <fieldset className="presets">
+        <legend>Profil de points</legend>
+        {PRESETS.map((p) => (
+          <label key={p.id} className="check">
+            <input type="radio" name="preset" checked={preset?.id === p.id} onChange={() => set(p.scoring)} />
+            <span>
+              <b>{p.name}</b> <span className="muted small">{p.description}</span>
             </span>
-            <select value={q.difficulty} onChange={(e) => onUpdate(qid, { difficulty: e.target.value as 'easy' })}>
-              <option value="easy">facile</option>
-              <option value="intermediate">intermédiaire</option>
-              <option value="hard">difficile</option>
-            </select>
-            <input type="number" min={1} step={1} value={Math.round((q.durationMs ?? view.config.defaultQuestionDurationMs) / 1000)} onChange={(e) => onUpdate(qid, { durationMs: Math.max(1, Number(e.target.value)) * 1000 })} title="Durée en secondes" />
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function ConfigForm({ config, onSave }: { config: SessionConfig; onSave: (p: Partial<SessionConfig>) => void }) {
-  const [c, setC] = useState(config);
-  useEffect(() => setC(config), [config]);
-  const set = <K extends keyof SessionConfig>(k: K, v: SessionConfig[K]) => setC({ ...c, [k]: v });
-  return (
-    <>
-      <div className="cfg">
-        <label>Gain facile (TH/s)</label>
-        <input value={c.baseGainThs.easy} onChange={(e) => set('baseGainThs', { ...c.baseGainThs, easy: e.target.value })} />
-        <label>Gain intermédiaire (TH/s)</label>
-        <input value={c.baseGainThs.intermediate} onChange={(e) => set('baseGainThs', { ...c.baseGainThs, intermediate: e.target.value })} />
-        <label>Gain difficile (TH/s)</label>
-        <input value={c.baseGainThs.hard} onChange={(e) => set('baseGainThs', { ...c.baseGainThs, hard: e.target.value })} />
-        <label>Durée par défaut (s)</label>
-        <input type="number" value={c.defaultQuestionDurationMs / 1000} onChange={(e) => set('defaultQuestionDurationMs', Number(e.target.value) * 1000)} />
-        <label>Hashrate de départ des nouveaux joueurs (TH/s)</label>
-        <input value={c.initialHashrateThs} onChange={(e) => set('initialHashrateThs', e.target.value)} />
-        <label>Référence rapidité si réponse modifiée</label>
-        <select value={c.speedReference} onChange={(e) => set('speedReference', e.target.value as 'last')}>
-          <option value="last">dernière modification</option>
-          <option value="first">première réponse</option>
-        </select>
-        <label>Bonus rapidité rangs 1-3 (%)</label>
-        <input value={c.speedBonusHeadPercents.join(',')} onChange={(e) => set('speedBonusHeadPercents', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} />
-        <label>Bonus bloc (%)</label>
-        <input value={c.blockBonusPercent} onChange={(e) => set('blockBonusPercent', e.target.value)} />
-        <label>Assiette du bonus bloc</label>
-        <select value={c.blockBonusBase} onChange={(e) => set('blockBonusBase', e.target.value as 'own')}>
-          <option value="own">hashrate du gagnant</option>
-          <option value="total">hashrate total du quiz</option>
-        </select>
-        <label>Exclure les gagnants des séries précédentes</label>
-        <select value={String(c.excludePrizeWinnersAcrossSeries)} onChange={(e) => set('excludePrizeWinnersAcrossSeries', e.target.value === 'true')}>
-          <option value="false">non</option>
-          <option value="true">oui</option>
-        </select>
-        <label>Écran résultat après clôture (s)</label>
-        <input type="number" value={c.revealHoldMs / 1000} onChange={(e) => set('revealHoldMs', Math.max(0, Number(e.target.value)) * 1000)} />
-        <label>Écran classement ensuite (s, 0 = aucun)</label>
-        <input type="number" value={c.leaderboardHoldMs / 1000} onChange={(e) => set('leaderboardHoldMs', Math.max(0, Number(e.target.value)) * 1000)} />
-        <label>Membres minimum par pool</label>
-        <input type="number" value={c.minPoolMembers} onChange={(e) => set('minPoolMembers', Number(e.target.value))} />
-      </div>
-      <button className="btn sm" style={{ marginTop: 10 }} onClick={() => onSave(c)}>
-        Enregistrer les réglages
-      </button>
-    </>
-  );
-}
-
-function Prizes({ view, onSave, onDraw, names }: { view: ConsoleView; onSave: (p: { id?: string; label: string; rank: number }[]) => void; onDraw: (scope: 'round' | 'sumOfRounds', roundIndexes?: number[]) => void; names: Map<string, string> }) {
-  const [text, setText] = useState(view.prizesDraft.map((p) => p.label).join('\n'));
-  useEffect(() => setText(view.prizesDraft.map((p) => p.label).join('\n')), [view.prizesDraft]);
-  const ended = view.roundStates.filter((r) => r.status === 'ended');
-  const [roundSel, setRoundSel] = useState<string>('last');
-  const lines = text.split('\n').map((s) => s.trim()).filter(Boolean);
-  return (
-    <>
-      <label className="small muted">1 lot par ligne, du plus gros au plus petit</label>
-      <textarea className="input" rows={3} value={text} onChange={(e) => setText(e.target.value)} placeholder={'Gros lot\nLot 2\nLot 3'} />
-      <div className="row" style={{ marginTop: 8 }}>
-        <button className="btn sm secondary" onClick={() => onSave(lines.map((label, i) => ({ id: view.prizesDraft[i]?.id, label, rank: i + 1 })))}>
-          Enregistrer les lots ({lines.length})
-        </button>
-        <select className="input" style={{ width: 'auto', padding: 6, fontSize: 12 }} value={roundSel} onChange={(e) => setRoundSel(e.target.value)}>
-          <option value="last">hashrate cumulé actuel (dernière manche terminée)</option>
-          {ended.map((r) => (
-            <option key={r.index} value={String(r.index)}>
-              hashrate cumulé après la manche {r.index + 1}
+          </label>
+        ))}
+      </fieldset>
+      <label>
+        Questions
+        <select value={currentPack?.file ?? ''} onChange={(e) => send({ type: 'set-pack', file: e.target.value })}>
+          {view.packs.map((p) => (
+            <option key={p.file} value={p.file}>
+              {p.name} ({p.questions})
             </option>
           ))}
         </select>
-        <button
-          className="btn sm"
-          disabled={view.prizesDraft.length === 0 || ended.length === 0}
-          onClick={() => confirm('Lancer les tirages des lots maintenant ?') && onDraw('round', roundSel === 'last' ? undefined : [Number(roundSel)])}
-        >
-          Tirer les lots
+      </label>
+      <div className="grid-2">
+        <label>
+          Nombre de questions
+          <input type="number" min={1} value={draft.questionCount} onChange={(e) => set({ questionCount: num(e.target.value) })} />
+        </label>
+        <label>
+          Chrono (s)
+          <input type="number" min={3} value={draft.questionDurationMs / 1000} onChange={(e) => set({ questionDurationMs: num(e.target.value) * 1000 })} />
+        </label>
+        {DIFFICULTIES.map((d) => (
+          <label key={d}>
+            Gain {difficultyLabel[d]} (TH)
+            <input type="number" min={0} value={draft.baseGainThs[d]} onChange={(e) => set({ baseGainThs: { ...draft.baseGainThs, [d]: num(e.target.value) } })} />
+          </label>
+        ))}
+        <label>
+          Hashrate de départ
+          <input type="number" min={0} value={draft.startHashrateThs} onChange={(e) => set({ startHashrateThs: num(e.target.value) })} />
+        </label>
+        <label>
+          Bonus rapidité par rang (%)
+          <RanksInput value={draft.speedBonusRanks} onChange={(speedBonusRanks) => set({ speedBonusRanks })} />
+        </label>
+        <label>
+          Bonus série par réponse (%)
+          <input type="number" min={0} value={Math.round(draft.streakBonusStep * 100)} onChange={(e) => set({ streakBonusStep: num(e.target.value) / 100 })} />
+        </label>
+        <label>
+          Bonus série max (%)
+          <input type="number" min={0} value={Math.round(draft.streakBonusMax * 100)} onChange={(e) => set({ streakBonusMax: num(e.target.value) / 100 })} />
+        </label>
+        <label>
+          Réinvestissement par bonne réponse (%)
+          <input type="number" min={0} max={100} value={Math.round(draft.reinvestRate * 100)} onChange={(e) => set({ reinvestRate: num(e.target.value) / 100 })} />
+        </label>
+        <label>
+          Gagnants tirés au sort
+          <input type="number" min={1} max={20} value={draft.podiumSize} onChange={(e) => set({ podiumSize: num(e.target.value) })} />
+        </label>
+        <label>
+          Durée du tirage (s)
+          <input type="number" min={0} max={60} value={draft.miningDurationMs / 1000} onChange={(e) => set({ miningDurationMs: num(e.target.value) * 1000 })} />
+        </label>
+      </div>
+      <div className="row">
+        <button className="btn primary" disabled={!dirty} onClick={() => send({ type: 'set-config', patch: draft })}>
+          Enregistrer
+        </button>
+        <button className="link" disabled={!dirty} onClick={() => setDraft(c)}>
+          Annuler
         </button>
       </div>
-      {view.prizeSeries.map((s) => (
-        <div key={s.id} className="stat small" style={{ marginTop: 8 }}>
-          <div className="label">
-            Série {fmtClock(s.createdAt)} · {s.weightBasis === 'cumulative' ? 'cumul après la manche' : s.scope === 'round' ? 'ancienne manche' : 'ancienne somme des manches'} {s.roundIndexes.map((i) => i + 1).join(', ')}
-          </div>
-          {s.awards.map((a) => {
-            const prize = s.prizes.find((p) => p.id === a.prizeId);
-            return (
-              <div key={a.prizeId}>
-                {prize?.label} → <b>{a.winnerId ? names.get(a.winnerId) : `non attribué (${a.reason})`}</b> <span className="muted">tirage {a.audit.roll}/{a.audit.total}</span>
-              </div>
-            );
-          })}
-        </div>
-      ))}
-    </>
+    </details>
+  );
+}
+
+/** "10, 5, 2": bonus of the 1st, 2nd, 3rd correct answers, in % of the base gain. */
+function RanksInput({ value, onChange }: { value: number[]; onChange: (v: number[]) => void }) {
+  const show = (v: number[]) => v.map((f) => String(Math.round(f * 1000) / 10).replace('.', ',')).join(', ');
+  const [text, setText] = useState(show(value));
+  useEffect(() => setText(show(value)), [value.join()]);
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      placeholder="10, 5, 2"
+      value={text}
+      onChange={(e) => {
+        setText(e.target.value);
+        const parts = e.target.value.split(/[;\s]+|,\s+/).map((x) => x.trim().replace(',', '.')).filter(Boolean);
+        const nums = parts.map(Number);
+        if (nums.every((n) => Number.isFinite(n) && n >= 0)) onChange(nums.map((n) => n / 100));
+      }}
+    />
   );
 }

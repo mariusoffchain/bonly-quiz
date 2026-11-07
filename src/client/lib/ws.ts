@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { AnyView, ClientHello, ClientMessage, ServerMessage } from '../../shared/views';
-import type { GameEvent } from '../../shared/types';
+import type { AnyView, ClientMessage, ServerMessage } from '../../shared/views';
+
+type ClientHello = Extract<ClientMessage, { type: 'hello' }>;
 
 export type ConnState = 'connecting' | 'open' | 'closed';
 
@@ -13,7 +14,6 @@ export interface Socket<V extends AnyView> {
   lastError: { code: string; message: string } | null;
   clearError: () => void;
   onMessage: (fn: (m: ServerMessage) => void) => () => void;
-  events: GameEvent[];
 }
 
 export function wsUrl(): string {
@@ -30,7 +30,6 @@ export function useQuizSocket<V extends AnyView>(makeHello: () => ClientHello): 
   const [view, setView] = useState<V | null>(null);
   const [conn, setConn] = useState<ConnState>('connecting');
   const [lastError, setLastError] = useState<Socket<V>['lastError']>(null);
-  const [events, setEvents] = useState<GameEvent[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
   const offsetRef = useRef(0);
   const listeners = useRef(new Set<(m: ServerMessage) => void>());
@@ -67,7 +66,6 @@ export function useQuizSocket<V extends AnyView>(makeHello: () => ClientHello): 
         }
         if (msg.type === 'state') setView(msg.view as V);
         if (msg.type === 'error') setLastError({ code: msg.code, message: msg.message });
-        if (msg.type === 'event') setEvents((prev) => [...prev.slice(-49), msg.event]);
         for (const l of listeners.current) l(msg);
       };
       ws.onclose = () => {
@@ -98,15 +96,15 @@ export function useQuizSocket<V extends AnyView>(makeHello: () => ClientHello): 
     return () => void listeners.current.delete(fn);
   }, []);
 
+  const serverNow = useCallback(() => Date.now() + offsetRef.current, []);
   return {
     view,
     conn,
-    serverNow: () => Date.now() + offsetRef.current,
+    serverNow,
     send,
     lastError,
     clearError: () => setLastError(null),
     onMessage,
-    events,
   };
 }
 
@@ -118,4 +116,10 @@ export function useTicker(ms = 100): number {
     return () => window.clearInterval(id);
   }, [ms]);
   return Date.now();
+}
+
+/** Countdown helper: remaining ms and fraction left (1 → 0). */
+export function remaining(closesAt: number, durationMs: number, now: number): { ms: number; frac: number } {
+  const ms = Math.max(0, closesAt - now);
+  return { ms, frac: durationMs > 0 ? Math.min(1, ms / durationMs) : 0 };
 }

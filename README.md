@@ -1,151 +1,253 @@
-# bonly-quiz
+# Proof of Brain
 
-Quiz interactif pour B-only 2026 : les équipes sont des pools de minage fictives, leur
-hashrate (en TH/s) grandit avec les bonnes réponses et leur rapidité, et chaque nouveau bloc
-réel du réseau Bitcoin déclenche un tirage de bonus pondéré par les parts de hashrate.
-Direction visuelle inspirée du tableau de bord de minage de mempool.space (voir `NOTICE.md`).
+Le quiz de B-only 2026 (dépôt `bonly-quiz`). 21 questions sur Bitcoin, en 3 parties de plus en plus
+difficiles. Chaque bonne réponse rapporte du hashrate fictif (en TH). À la fin, on tire au
+sort le gagnant comme on mine un bloc : à chaque tirage, les chances d'un joueur sont égales à sa part du
+hashrate. Le plus gros mineur est favori, mais rien n'est garanti.
 
-Le besoin et les décisions sont décrits dans la note Obsidian « B-only 2026, descriptif du
-quiz interactif ». La documentation de reconstruction est dans « B-only 2026, quiz interactif,
-fiche de reconstruction de l'application ».
+## Règles
 
-## Démarrage rapide
+| | Par défaut |
+|---|---|
+| Bonne réponse | 10 TH (facile), 20 (moyenne), 30 (difficile), 50 (expert) |
+| Rapidité | les 3 premières bonnes réponses reçues : +10 %, +5 %, +2 % du gain de base (facile : +1, +0,5, +0,2 TH) ; rien pour les suivantes |
+| Série | +10 % du gain de base par bonne réponse d'affilée après la 1re (2e d'affilée +10 %, 3e +20 %…), plafonné à +50 % |
+| Réinvestissement | chaque bonne réponse ajoute aussi 21 % des TH déjà gagnés : l'écart se creuse entre les bons joueurs et les autres (le 1er finit avec environ 50 fois le hashrate du dernier) |
+| Mauvaise réponse / pas de réponse | 0 TH, série remise à zéro, aucune pénalité |
+| Tirage | 1 gagnant tiré au sort (Web Crypto), probabilité = hashrate du joueur / hashrate total ; le classement final par TH sert aux autres lots |
 
-Prérequis : Node 24 (testé avec 24.18), npm.
+Une réponse par question, que le joueur peut changer jusqu'à la fin du chrono : c'est son
+dernier choix qui compte, et pour le bonus de rapidité, l'heure de ce dernier choix. Le
+chrono (21 s) est tenu par le serveur. La bonne réponse ne s'affiche (écran et téléphones)
+qu'à la fin du chrono, même si tout le monde a déjà répondu. L'animateur peut la révéler
+plus tôt depuis la console. Les gains sont comptés au
+dixième de TH.
+
+Le gagnant est fixé par le serveur au clic, puis révélé après 8 s d'animation. Le réglage
+« Gagnants tirés au sort » permet d'en tirer plusieurs (1re, 2e, 3e place…) : un joueur
+déjà tiré ne participe plus aux tirages suivants.
+
+Un joueur qui change de téléphone, ou dont le téléphone ne le reconnaît plus parce que
+l'adresse du quiz a changé, retrouve sa place et ses TH avec « Déjà inscrit ? Reprendre ma
+place » et son pseudo exact. C'est possible seulement si sa place est hors ligne (personne
+ne peut prendre celle d'un joueur connecté), et l'ancien téléphone perd alors l'accès : une
+place n'est jamais sur deux téléphones.
+
+Tous ces réglages se changent dans la console avant la 1re question, à la main ou avec
+l'un des trois profils (Équilibré, Ouvert, Compétitif). `docs/reglages.md` compare leurs
+effets sur les chances de chacun, simulation à l'appui : avec 50 joueurs, le 1er du
+classement a environ 7 % de chances de gagner le tirage, le joueur médian 1,4 %, le dernier
+0,2 %.
+
+## Démarrage
+
+Prérequis : Node 22 ou plus, npm.
 
 ```bash
 npm install
-npm run import:planb      # optionnel, régénère le pack Plan B depuis le dépôt cloné
-npm run dev               # serveur 8787 + client Vite 5173, avec rechargement
-```
-
-Le terminal affiche le jeton de la console, l'URL de la console, du board et le lien à
-scanner. En développement les téléphones ouvrent le port 5173 (Vite relaie l'API et le
-WebSocket vers 8787).
-
-Version « production locale » sur un seul port :
-
-```bash
 npm run build
-npm start                 # http://<ip-du-mac>:8787
+npm start
 ```
 
-Interfaces :
+Le terminal affiche le jeton de la console et les 3 adresses :
 
 | Route | Rôle |
 |---|---|
-| `/play?s=CODE` | téléphone des participants (QR code affiché sur le board et la console) |
-| `/board` | écran de présentation |
-| `/console` | console d'animation, protégée par le jeton |
+| `/board` | écran projeté : QR code, questions, résultats, minage |
+| `/console` | console d'animation (jeton requis), 1 gros bouton « étape suivante » |
+| `/play` | téléphone des joueurs (le QR code y mène) |
+
+L'adresse `/play` ne change pas d'une partie à l'autre : un QR code imprimé reste valable.
+
+Développement avec rechargement : `npm run dev` (serveur 8787, client Vite 5173 ; les
+téléphones ouvrent le port 5173).
+
+## Fiche de lancement
+
+`docs/lancement.md` : les commandes exactes du jour J, de l'ouverture du terminal au
+tirage, avec la séquence des boutons de la console.
+
+`docs/mise-en-place.md` : installer le quiz sur un Mac neuf et mettre en place les deux
+façons de le mettre en ligne (Tailscale, Pinggy), de zéro.
+
+## En cas de problème
+
+`docs/secours.md` donne la marche à suivre et les commandes exactes pour relancer le quiz,
+garder une sauvegarde pendant la partie et tout reprendre sur un autre ordinateur
+(`npm run restore` réimporte un export JSON de la console).
+
+## Jouer en ligne (4G, sans Wi-Fi commun)
+
+Avec `npm start`, les téléphones doivent être sur le même réseau que l'ordinateur. Pour
+qu'ils se connectent depuis n'importe où (4G, Wi-Fi de la salle qui isole les appareils),
+le serveur passe par un tunnel Cloudflare : il tourne toujours sur l'ordinateur, Cloudflare
+lui donne une adresse publique en HTTPS, et le QR code pointe vers elle.
+
+1. Installer `cloudflared` : `brew install cloudflared` (macOS),
+   `winget install --id Cloudflare.cloudflared` (Windows).
+2. Lancer :
+
+   ```bash
+   npm run build
+   npm run online
+   ```
+
+   Sans réglage, l'adresse est temporaire (`https://xxx.trycloudflare.com`, sans compte,
+   nouvelle à chaque lancement, sans garantie de disponibilité) : bien pour répéter.
+3. Pour l'événement, une adresse fixe sur votre domaine est plus sûre : dans le tableau de
+   bord Cloudflare (Zero Trust, Networks, Tunnels), créer un tunnel, lui ajouter le nom
+   public `quiz.votre-domaine` vers `http://localhost:8787`, copier son jeton, puis :
+
+   ```bash
+   TUNNEL_TOKEN=eyJ... PUBLIC_URL=https://quiz.votre-domaine npm run online
+   ```
+
+   Le domaine doit être géré par Cloudflare (offre gratuite suffisante).
+
+L'écran et la console s'ouvrent sur l'ordinateur en `http://localhost:8787/board` et
+`/console`. L'ordinateur doit avoir une connexion internet fiable (prévoir un partage 4G
+en secours) ; si elle coupe, les téléphones se reconnectent seuls dès son retour et la
+partie reprend où elle en était.
+
+Le trafic est faible : environ 40 Ko par téléphone pour une partie complète (voir
+« Test de charge »).
+
+Si le réseau bloque le tunnel Cloudflare (port 7844, fréquent sur un Wi-Fi d'hôtel ou
+d'entreprise, ou avec un VPN), `TUNNEL=pinggy npm run online` ouvre un tunnel Pinggy par
+SSH sur le port 443, sans compte ni installation. La version gratuite se coupe au bout de
+60 minutes : relancer, la partie reprend.
+
+Deuxième secours, avec une adresse fixe, sans page d'avertissement ni limite de temps :
+`TUNNEL=tailscale npm run online` publie le quiz avec Tailscale Funnel
+(`https://<ordinateur>.<réseau>.ts.net`). Il faut l'application Tailscale, connectée, et
+autoriser Funnel une fois pour le compte : au premier lancement, le terminal affiche le lien
+pour le faire.
+
+## Déroulé d'une partie
+
+1. Projeter `/board`, ouvrir `/console` sur l'ordinateur ou un téléphone de l'animateur.
+2. Les joueurs scannent le QR code et choisissent un nom (le leur ou celui de leur équipe).
+3. Console : « Annoncer la partie 1 ». L'écran présente la partie (titre, nombre de
+   questions, gain) et le rappel des règles : c'est le moment de les expliquer.
+4. Console : « Lancer la partie 1 ». La réponse s'affiche à la fin du chrono ; jusque-là,
+   les joueurs peuvent changer d'avis. L'écran montre la bonne réponse, les meilleurs gains et le
+   classement ; chaque téléphone montre le gain détaillé, le rang et les chances de bloc.
+5. Console : « Question 2 / 21 », et ainsi de suite.
+6. Après la 7e : « Fin de la partie 1 : classement ». L'écran affiche le classement
+   provisoire et annonce la partie 2 ; chaque téléphone montre son bilan. L'animateur
+   commente, puis « Lancer la partie 2 ». Pareil après la 14e.
+7. Après la 21e : « Classement final », puis « Tirer le gagnant ».
+
+En cas d'erreur sur une question : « Annuler la question » la ferme sans attribuer de
+points et sans casser les séries. « Nouvelle partie » repart de zéro (les joueurs se
+réinscrivent). « Exporter la partie » télécharge l'état et le journal complet.
 
 ## Variables d'environnement
 
 | Variable | Défaut | Rôle |
 |---|---|---|
-| `PORT` | `8787` | port HTTP + WebSocket du serveur |
+| `PORT` | `8787` | port HTTP + WebSocket |
 | `HOST` | `0.0.0.0` | interface d'écoute |
 | `CONSOLE_TOKEN` | généré dans `data/console-token.txt` | jeton de la console |
-| `PUBLIC_URL` | 1re IP LAN détectée | base des liens à scanner, ex. `http://192.168.1.20:8787` |
-| `DATA_DIR` | `./data` | instantanés et journaux des sessions |
+| `PUBLIC_URL` | 1re IP LAN détectée | base du lien à scanner, ex. `http://192.168.1.20:8787` |
+| `DATA_DIR` | `./data` | sauvegardes et journaux des parties |
 | `CONTENT_DIR` | `./content/questions` | packs de questions |
-| `BLOCK_SOURCE` | `real` | `real` connecte mempool.space au démarrage, `off` attend la console |
-| `MEMPOOL_URL` | `https://mempool.space` | instance mempool (une instance auto-hébergée fonctionne) |
 
-## Tests
+La console accepte aussi `/console?token=…` pour se connecter sans saisir le jeton.
 
-```bash
-npm test                        # moteur, intégration WebSocket multi-clients, flux réel
-QUIZ_SKIP_NETWORK=1 npm test    # sans le test de connexion à mempool.space
-```
+## Questions
 
-Les tests d'intégration utilisent des blocs **simulés**, étiquetés comme tels. Le test
-`blocks-real` vérifie seulement la connexion et l'historique du flux réel, pas la réception
-d'un nouveau bloc.
+`content/questions/bonly-21-fr.json` est le pack par défaut : 21 questions choisies dans
+les cours de la Plan B Academy, licence CC BY-SA 4.0, en 3 parties de 7 :
 
-## Architecture
+| Partie | Niveau Plan B | Gain | Contenu |
+|---|---|---|---|
+| 1. Les bases | facile | 10 TH | 21 millions, halving, blockchain, 10 minutes, El Salvador, clés privées, CPU. Un débutant doit en connaître au moins 4 sur 7. |
+| 2. On creuse | moyen | 20 TH | 2140, Bitmain, livre blanc, généraux byzantins, bitcoins de Satoshi, Lightning, Schnorr |
+| 3. Au fond du terrier | difficile | 30 TH | James Howells, inventeurs de Lightning, inventeurs de la preuve de travail, taille du nonce, bloc de la 1re transaction, faille du value overflow (2010), date de naissance de Satoshi |
 
-```
-src/shared/     moteur pur (TypeScript, partagé serveur/client/tests)
-  hashrate.ts   nano-TH/s en BigInt, pourcentages exacts, arrondi demi-supérieur
-  config.ts     réglages de session et barème de rapidité
-  scoring.ts    classement de rapidité et gains
-  draw.ts       tirage pondéré (crypto), séries de lots avec exclusion
-  game.ts       machine à états faisant autorité (manches, questions, réponses, blocs, lots)
-  views.ts      vues filtrées par rôle (la bonne réponse n'est envoyée qu'après la clôture)
-src/server/     Node : HTTP + WebSocket, persistance, flux de blocs
-  app.ts        hub WebSocket, commandes console, timers de clôture
-  blocks.ts     MempoolBlockSource (WS + REST) et SimulatedBlockSource
-  store.ts      instantané JSON + journal JSONL par session
-  content.ts    chargement et validation des packs
-src/client/     React + Vite, routes /play /board /console
-content/questions/  packs JSON (Plan B btc101 provisoire, démo)
-scripts/import-planb.mjs  import depuis le dépôt Plan B Network
-tests/          vitest
-```
+`demo-fr.json` (5 questions) sert aux répétitions. La console permet de changer de pack
+avant la 1re question ; la partie joue les N premières questions du pack (N = 21 par
+défaut), et les parties sont coupées d'autant.
 
-Le serveur fait autorité : horloge, acceptation des réponses, calculs, tirages. Les
-téléphones n'envoient qu'un choix d'option. Chaque mutation est journalisée dans
-`data/sessions/<CODE>.events.jsonl` avec les détails des tirages (total, nombre tiré,
-cumuls), et l'état est sauvegardé dans `data/sessions/<CODE>.json` pour survivre à un
-redémarrage.
+Chaque question a 4 réponses : la bonne, deux pièges (une date voisine, un nom connu mais
+faux, Mo au lieu de Mb…) et, le plus souvent, une réponse pour rire. Dans la partie 1, la
+réponse pour rire est toujours la D : seules A, B et C sont mélangées.
 
-## Règles implémentées et hypothèses provisoires
+La sélection est dans `scripts/pick-planb.mjs` (les 3 parties, leurs questions et leurs
+réponses). Pour en changer, modifier la liste puis, depuis un clone du dépôt Plan B
+Network : `node scripts/pick-planb.mjs --repo chemin/vers/bitcoin-educational-content`.
 
-Décidées (fiche) : gains 10/50/100 TH/s, bonus de rapidité 3/2/1 % puis division par 2 sans
-fin, bonus appliqué au gain de base seulement, mauvaise réponse = 0 sans pénalité, hashrate cumulé
-sur les 5 manches, bonus de bloc 2,1 % pour un seul gagnant tiré selon les parts de hashrate,
-lots tirés du plus gros au plus petit avec exclusion des gagnants dans une même série.
-
-Provisoires (modifiables dans la console) :
-
-- référence de rapidité = heure serveur de la **dernière** modification (`speedReference`) ;
-- ex æquo au même instant : même rang, rang suivant sauté ;
-- arrondi au nano-TH/s le plus proche ;
-- absence de réponse = 0, sans bonus ni pénalité ;
-- hashrate initial 10 TH/s attribué 1 fois à chaque concurrent (`initialHashrateThs`), tirage ignoré et journalisé si
-  le total vaut 0 ;
-- assiette du 2,1 % = hashrate courant du gagnant (`blockBonusBase: own`), alternative
-  `total` ;
-- bloc éligible = reçu pendant une manche en cours, hauteur supérieure à la pointe connue au
-  début de la manche, hash jamais traité ;
-- lots : poids du hashrate cumulé après la dernière manche terminée ou une manche choisie ;
-  les anciennes commandes `sumOfRounds` utilisent le dernier instantané sélectionné, sans addition ;
-  option d'exclusion entre séries ;
-- numéros Bitaxe dans l'ordre d'inscription ;
-- un seul format jouable, choix simple ; le champ `type` des questions est prévu pour
-  d'autres formats.
-
-## Remplacer les questions
-
-Un pack est un fichier JSON dans `content/questions/` :
+Format d'un pack :
 
 ```json
 {
   "name": "Nom du pack",
+  "parts": [{ "title": "Les bases", "subtitle": "…", "questions": 7 }, …],
   "questions": [
     { "id": "q1", "type": "single-choice", "text": "…", "options": ["a", "b", "c", "d"],
-      "correctIndex": 2, "difficulty": "easy|intermediate|hard", "durationMs": 10000,
+      "correctIndex": 2, "difficulty": "easy|intermediate|hard|expert", "durationMs": 20000,
       "explanation": "…", "source": { "provider": "…", "license": "…" } }
-  ],
-  "rounds": [ { "id": "r1", "title": "Manche 1", "questionIds": ["q1"] } ]
+  ]
 }
 ```
 
-Le nombre de manches et de questions est libre. La console permet de changer la difficulté
-et la durée de chaque question, et de charger un autre pack tant qu'aucune manche ne tourne.
+2 à 4 options par question. `parts`, `durationMs` et `explanation` sont facultatifs ; les
+parties se suivent dans l'ordre et leurs `questions` additionnées font le total du pack.
+`npm run import:planb` régénère `planb-btc101-fr.json` (50 questions) depuis un clone du
+dépôt Plan B Network.
 
+## Tests
 
-## Continuité de la partie (2026-10-23)
+```bash
+npm test         # règles de score, tirage, partie complète, serveur WebSocket multi-clients
+npm run typecheck
+npm run simulate # chances de chacun selon les réglages (voir docs/reglages.md)
+```
 
-La console expose 1 bouton « Prochaine étape » et l'action annoncée par le serveur.
-Le parcours passe par question, réponse, bilan de manche, manche suivante et bilan final.
-Une clé de transition empêche les doubles clics et les commandes envoyées depuis un écran périmé.
-Les commandes permettant de passer les questions restantes ou d'annuler restent dans « Commandes avancées ».
+### Test de charge
 
-Le solde `SessionState.hashrates` fait autorité et persiste après rechargement/redémarrage.
-Les gains de questions et de blocs s'ajoutent au même solde. Le début d'une manche ne le remet jamais à zéro.
-Les instantanés sans `hashrateMode: continuous` sont migrés au chargement. Le moteur conserve
-les soldes d'origine dans `legacyRoundBalances`, déduit la première allocation des gains journalisés,
-puis additionne les gains réellement crédités de chaque manche. Il conserve les bonus historiques
-sans les recalculer et ne modifie aucun tirage de lots déjà effectué. Le marqueur rend cette migration idempotente.
-Sauvegarder le dossier `data` avant mise à jour, conserver cette sauvegarde avec l'ancienne version pour revenir en arrière.
+`npm run build` puis `npm run loadtest -- 50` lance un vrai serveur et 50 téléphones
+simulés qui jouent les 21 questions et le podium : réponses à des moments aléatoires
+(un tiers dans les 2 premières secondes), 5 % de questions sans réponse, 5 téléphones qui
+perdent la connexion à la 11e question et reviennent. Résultats sur la machine de
+développement :
+
+| | 50 téléphones | 150 téléphones |
+|---|---|---|
+| inscription (confirmation reçue) | médiane 7 ms | médiane 2 ms, max 51 ms |
+| question affichée sur les téléphones après le clic console | médiane 19 ms, max 33 ms | médiane 92 ms, max 183 ms |
+| réponse → accusé de réception | médiane 2 ms, max 18 ms | médiane 3 ms, max 158 ms |
+| trafic par téléphone pour toute la partie | environ 40 Ko (800 Ko si un proxy retire la compression) | environ 135 Ko |
+| serveur | 2,4 % d'un cœur, 100 Mo de mémoire | 7,6 % d'un cœur, 180 Mo |
+| erreurs, hashrates incohérents | 0 | 0 |
+
+Ces temps ne comptent pas le réseau : en 4G et via le tunnel, ajouter de l'ordre de 50 à
+200 ms.
+
+Un serveur déjà en ligne peut être testé avec
+`npm run loadtest -- 50 https://quiz.votre-domaine JETON_CONSOLE` (crée une nouvelle partie
+sur ce serveur : pas pendant l'événement).
+
+## Architecture
+
+```
+src/shared/     moteur pur, partagé serveur/client/tests
+  config.ts     réglages et valeurs par défaut
+  scoring.ts    gain d'une réponse (base + rapidité + série)
+  draw.ts       tirage pondéré par le hashrate (Web Crypto, sans biais)
+  game.ts       machine à états : lobby → question → reveal → … → final (blocs)
+  views.ts      vues par rôle (la bonne réponse et le gagnant d'un bloc ne partent qu'au bon moment) + protocole
+src/server/     Node : HTTP + WebSocket, chronos, sauvegarde
+src/client/     React + Vite : /play, /board, /console
+content/questions/  packs JSON
+tests/          vitest
+```
+
+Le serveur fait autorité : horloge, réponses, calculs, tirages. Chaque événement est
+journalisé dans `data/sessions/<CODE>.events.jsonl` (y compris le nombre tiré et les poids
+de chaque bloc) et l'état est sauvegardé dans `data/sessions/<CODE>.json` : un redémarrage
+reprend la partie en cours, et les téléphones se reconnectent seuls.
+
+Les sauvegardes de l'ancienne version (manches, blocs réels, lots) ne sont pas reprises :
+le serveur démarre une nouvelle partie s'il en trouve une.
